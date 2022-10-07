@@ -18,6 +18,11 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
 
+import service.FacturasendService;
+
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
 public class Principal extends JFrame {
 
 	private JFrame frmFacturaSend;
@@ -50,6 +55,7 @@ public class Principal extends JFrame {
 				try {
 					Principal window = new Principal();
 					window.frmFacturaSend.setVisible(true);
+					window.setLocationRelativeTo(null); 
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -61,7 +67,9 @@ public class Principal extends JFrame {
 	 * Create the application.
 	 */
 	public Principal() {
+		FacturasendService fs = new FacturasendService();
 		initialize();
+		events();
 	}
 
 	/**
@@ -205,7 +213,27 @@ public class Principal extends JFrame {
 		scrollPaneCenter = new JScrollPane();
 		frmFacturaSend.getContentPane().add(scrollPaneCenter, BorderLayout.CENTER);
 		
+		FacturasendService fs = new FacturasendService();
 		table = new JTable();
+		fs.cargar_tabla(table);
+		//fs.addCheckBox(0, table);
 		scrollPaneCenter.setViewportView(table);
+		
+	}
+	
+	private void events() {
+		btnLogs.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Logs logsDialog = new Logs();
+				logsDialog.setVisible(true);
+			}
+		});
+
+		btnCondiguracion.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Configuracion confView = new Configuracion();
+				confView.setVisible(true);
+			}
+		});
 	}
 }
