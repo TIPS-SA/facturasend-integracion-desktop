@@ -3,6 +3,7 @@ package service;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -29,7 +30,7 @@ public class FacturasendService {
 	public static List<DocumentoElectronico>  loadDocumentosElectronicos(Integer tipo) {
 		
 		List<DocumentoElectronico> returnData = new ArrayList<DocumentoElectronico>();
-		
+		/*
 		DocumentoElectronico de1 = new DocumentoElectronico();
 		DocumentoElectronico de2 = new DocumentoElectronico();
 		DocumentoElectronico de3 = new DocumentoElectronico();
@@ -116,7 +117,23 @@ public class FacturasendService {
 		returnData.add(de4);
 		returnData.add(de5);
 		returnData.add(de6);
+		*/
 		
+		for (int i = 0; i < 50; i++) {
+			Cliente cli1 = new Cliente();
+			cli1.setId(i);
+			cli1.setNombre("Lucas"+i);
+			DocumentoElectronico de1 = new DocumentoElectronico();
+			de1.setNroven(i);
+			de1.setFecha(null);
+			de1.setCliente(cli1);
+			de1.setNumeroFactura("001-001-0000"+i);
+			de1.setMoneda("GS");
+			de1.setTotal(19000.00 + i*1000);
+			de1.setEstado(-1);
+			returnData.add(de1);
+			
+		}
 		return returnData;
 	}
 	
@@ -147,8 +164,8 @@ public class FacturasendService {
 			e.printStackTrace();
 		}
 		table.setModel(model);
-		addCheckBox(0, table);
 		setCellAlignPositiion(table);
+		addCheckBox(0, table);
 		table.getColumnModel().getColumn(1).setPreferredWidth(10);
 		table.getColumnModel().getColumn(5).setPreferredWidth(20);
 	}
@@ -193,15 +210,34 @@ public class FacturasendService {
 		final DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
 		defaultTableCellRenderer.setHorizontalTextPosition(0);
 		table.setDefaultRenderer(getClass(), defaultTableCellRenderer);
-		/*table.getColumnModel().getColumn(1).setCellRenderer(defaultTableCellRenderer);
+		table.getColumnModel().getColumn(1).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(2).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(3).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(4).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(5).setCellRenderer(defaultTableCellRenderer);
-		table.getColumnModel().getColumn(6).setCellRenderer(defaultTableCellRenderer);
-		table.getColumnModel().getColumn(7).setCellRenderer(defaultTableCellRenderer);*/
+		table.getColumnModel().getColumn(6).setCellRenderer(new CurrencyCellRenderer());
+		table.getColumnModel().getColumn(7).setCellRenderer(defaultTableCellRenderer);
 	}
 	
+}
+
+class CurrencyCellRenderer extends DefaultTableCellRenderer {
+	 
+    private static final NumberFormat FORMAT = NumberFormat.getCurrencyInstance();
+
+    @Override
+    public final Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
+        final Component result = super.getTableCellRendererComponent(table, value,
+                isSelected, hasFocus, row, column);
+        if (value instanceof Number) {
+            //setHorizontalAlignment(JLabel.RIGHT);
+            setText(FORMAT.format(value));
+        } else {
+            setText("");
+        }
+        return result;
+    }
 }
 
 class HeaderRenderer2 implements TableCellRenderer {

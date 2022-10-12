@@ -1,38 +1,35 @@
 package views;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.GroupLayout;
-import javax.swing.JFrame;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 
 import enums.DatabaseType;
+import java.awt.GridLayout;
 
-import javax.swing.JComboBox;
-import javax.swing.JTextField;
-import javax.swing.JFormattedTextField;
-import javax.swing.JButton;
-import javax.swing.JScrollPane;
-import javax.swing.JCheckBox;
-import javax.swing.JPasswordField;
-import javax.swing.border.BevelBorder;
-import javax.swing.border.LineBorder;
-import java.awt.Color;
-import javax.swing.border.TitledBorder;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.ActionEvent;
+public class Config extends JDialog {
 
-public class Configuracion extends JFrame {
-
+	private final JPanel contentPanel = new JPanel();
 	private JPanel contentPane;
 	private JTextField txtHost;
 	private JTextField txtPuerto;
@@ -44,8 +41,6 @@ public class Configuracion extends JFrame {
 	private JTabbedPane tabbedPane;
 	private JComboBox cbDriver;
 	private JButton btnTest;
-	private JButton btnOkBd;
-	private JButton btnCancelarBd;
 	private JLabel lblPassword;
 	private JLabel lblDriver;
 	private JLabel lblDatabase;
@@ -61,7 +56,6 @@ public class Configuracion extends JFrame {
 	private JCheckBox chkIntegracionFacturasend;
 	private JLabel lblUrlApi;
 	private JCheckBox chkComunicacionSincrona;
-	private JCheckBox chkHabilitadoEnviar;
 	private JLabel lblAuthorization;
 	private JTextField txtUrlApi;
 	private JTextField txtAuthorization;
@@ -72,31 +66,32 @@ public class Configuracion extends JFrame {
 	private JTextField txtUbicacionPdf;
 	private JTextField txtUbicacionXml;
 	private JPanel paneConfigFacturasendCenter;
-	private JPanel paneBtns;
+	private JPanel buttonsPane;
+	private JButton btnCancelar;
+	private JButton btnOk;
+	private JLabel lblUtilizarComunicacionSincrona;
 
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Configuracion frame = new Configuracion();
-					frame.setVisible(true);
-					frame.setLocationRelativeTo(null); 
-					frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		try {
+			Config dialog = new Config();
+			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			dialog.setVisible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
-	 * Create the frame.
+	 * Create the dialog.
 	 */
-	public Configuracion() {
+	public Config() {
+		setModal(true);
 		setBounds(100, 100, 600, 410);
+		setMinimumSize(new Dimension(600,410));
+		setTitle("Configuracion");
 		initialize();
 		events();
 	}
@@ -152,10 +147,6 @@ public class Configuracion extends JFrame {
 		
 		btnTest = new JButton("Test");
 		
-		btnOkBd = new JButton("Ok");
-		
-		btnCancelarBd = new JButton("Cancelar");
-		
 		pTxtPasswordBd = new JPasswordField();
 		GroupLayout gl_paneBaseDatos = new GroupLayout(paneBaseDatos);
 		gl_paneBaseDatos.setHorizontalGroup(
@@ -174,21 +165,15 @@ public class Configuracion extends JFrame {
 								.addComponent(lblDriver))
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.LEADING)
-								.addComponent(pTxtPasswordBd, GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE)
-								.addComponent(cbDriver, 0, 194, Short.MAX_VALUE)
-								.addComponent(txtHost, GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE)
-								.addComponent(txtUsername, GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE)
-								.addComponent(txtPuerto, GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE)
-								.addComponent(txtDatabase, GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE)
-								.addComponent(cbTipoDb, 0, 481, Short.MAX_VALUE))
-							.addContainerGap())
-						.addGroup(gl_paneBaseDatos.createSequentialGroup()
-							.addComponent(btnTest)
-							.addPreferredGap(ComponentPlacement.RELATED, 361, Short.MAX_VALUE)
-							.addComponent(btnOkBd)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(btnCancelarBd)
-							.addContainerGap())))
+								.addComponent(pTxtPasswordBd, GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
+								.addComponent(cbDriver, 0, 481, Short.MAX_VALUE)
+								.addComponent(txtHost, GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
+								.addComponent(txtUsername, GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
+								.addComponent(txtPuerto, GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
+								.addComponent(txtDatabase, GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
+								.addComponent(cbTipoDb, 0, 481, Short.MAX_VALUE)))
+						.addComponent(btnTest))
+					.addContainerGap())
 		);
 		gl_paneBaseDatos.setVerticalGroup(
 			gl_paneBaseDatos.createParallelGroup(Alignment.LEADING)
@@ -221,12 +206,9 @@ public class Configuracion extends JFrame {
 					.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblDriver)
 						.addComponent(cbDriver, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED, 97, Short.MAX_VALUE)
-					.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnTest)
-						.addComponent(btnCancelarBd)
-						.addComponent(btnOkBd))
-					.addContainerGap())
+					.addGap(18)
+					.addComponent(btnTest)
+					.addContainerGap(41, Short.MAX_VALUE))
 		);
 		paneBaseDatos.setLayout(gl_paneBaseDatos);
 		
@@ -250,15 +232,13 @@ public class Configuracion extends JFrame {
 		paneConfigFacturasendFacElectronica.setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0), 1, true), "Facturaci\u00F3n Electronica - FacturaSend", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		paneConfigFacturasendFacElectronica.setPreferredSize(new Dimension(150,160));
 		
-		chkIntegracionFacturasend = new JCheckBox("Integración con Facturación Electrónica Habilitada");
+		chkIntegracionFacturasend = new JCheckBox("");
 		
 		lblUrlApi = new JLabel("UrlApi");
 		
 		lblAuthorization = new JLabel("Authorization");
 		
-		chkHabilitadoEnviar = new JCheckBox("Habilitado para Enviar");
-		
-		chkComunicacionSincrona = new JCheckBox("Utilizar Comunicacion Sincrona");
+		chkComunicacionSincrona = new JCheckBox("");
 		
 		JLabel lblEmailsParaMensajes = new JLabel("Copiar Mensajes a estos Emails");
 		
@@ -270,53 +250,55 @@ public class Configuracion extends JFrame {
 		
 		txtEmails = new JTextField();
 		txtEmails.setColumns(10);
+		
+		JLabel lblIntegracinConFacturacin = new JLabel("<html><p>Integración con Facturación</p><p>Electrónica Habilitada</p>");
+		
+		lblUtilizarComunicacionSincrona = new JLabel("Utilizar Comunicacion Sincrona");
 		GroupLayout gl_paneConfigFacturasendFacElectronica = new GroupLayout(paneConfigFacturasendFacElectronica);
 		gl_paneConfigFacturasendFacElectronica.setHorizontalGroup(
 			gl_paneConfigFacturasendFacElectronica.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_paneConfigFacturasendFacElectronica.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(gl_paneConfigFacturasendFacElectronica.createParallelGroup(Alignment.TRAILING)
-						.addGroup(gl_paneConfigFacturasendFacElectronica.createSequentialGroup()
-							.addGroup(gl_paneConfigFacturasendFacElectronica.createParallelGroup(Alignment.LEADING)
-								.addComponent(lblUrlApi)
-								.addComponent(lblAuthorization))
-							.addGap(103))
-						.addGroup(gl_paneConfigFacturasendFacElectronica.createSequentialGroup()
-							.addComponent(lblEmailsParaMensajes)
-							.addPreferredGap(ComponentPlacement.RELATED)))
-					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_paneConfigFacturasendFacElectronica.createParallelGroup(Alignment.LEADING)
-						.addComponent(chkComunicacionSincrona)
-						.addComponent(txtAuthorization, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
-						.addComponent(txtEmails, GroupLayout.DEFAULT_SIZE, 332, Short.MAX_VALUE)
-						.addComponent(txtUrlApi, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
+						.addComponent(lblEmailsParaMensajes)
+						.addComponent(lblUrlApi)
+						.addComponent(lblAuthorization)
+						.addComponent(lblIntegracinConFacturacin)
+						.addComponent(lblUtilizarComunicacionSincrona))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGroup(gl_paneConfigFacturasendFacElectronica.createParallelGroup(Alignment.LEADING)
 						.addComponent(chkIntegracionFacturasend)
-						.addComponent(chkHabilitadoEnviar))
+						.addComponent(chkComunicacionSincrona)
+						.addComponent(txtEmails, GroupLayout.DEFAULT_SIZE, 253, Short.MAX_VALUE)
+						.addComponent(txtAuthorization, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 253, Short.MAX_VALUE)
+						.addComponent(txtUrlApi, GroupLayout.DEFAULT_SIZE, 339, Short.MAX_VALUE))
 					.addContainerGap())
 		);
 		gl_paneConfigFacturasendFacElectronica.setVerticalGroup(
-			gl_paneConfigFacturasendFacElectronica.createParallelGroup(Alignment.LEADING)
+			gl_paneConfigFacturasendFacElectronica.createParallelGroup(Alignment.TRAILING)
 				.addGroup(gl_paneConfigFacturasendFacElectronica.createSequentialGroup()
-					.addComponent(chkIntegracionFacturasend)
-					.addGap(10)
-					.addGroup(gl_paneConfigFacturasendFacElectronica.createParallelGroup(Alignment.LEADING)
+					.addContainerGap(12, Short.MAX_VALUE)
+					.addGroup(gl_paneConfigFacturasendFacElectronica.createParallelGroup(Alignment.TRAILING)
 						.addGroup(gl_paneConfigFacturasendFacElectronica.createSequentialGroup()
-							.addGroup(gl_paneConfigFacturasendFacElectronica.createParallelGroup(Alignment.BASELINE)
-								.addComponent(lblUrlApi)
-								.addComponent(txtUrlApi, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+							.addComponent(chkIntegracionFacturasend)
+							.addGap(10)
+							.addComponent(txtUrlApi, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(lblAuthorization))
+							.addComponent(txtAuthorization, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.UNRELATED)
+							.addComponent(chkComunicacionSincrona)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(txtEmails, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 						.addGroup(gl_paneConfigFacturasendFacElectronica.createSequentialGroup()
-							.addGap(27)
-							.addComponent(txtAuthorization, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(chkHabilitadoEnviar)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(chkComunicacionSincrona)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_paneConfigFacturasendFacElectronica.createParallelGroup(Alignment.BASELINE)
-						.addComponent(txtEmails, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblEmailsParaMensajes))
+							.addComponent(lblIntegracinConFacturacin)
+							.addGap(10)
+							.addComponent(lblUrlApi)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(lblAuthorization)
+							.addGap(16)
+							.addComponent(lblUtilizarComunicacionSincrona)
+							.addGap(6)
+							.addComponent(lblEmailsParaMensajes)))
 					.addContainerGap())
 		);
 		paneConfigFacturasendFacElectronica.setLayout(gl_paneConfigFacturasendFacElectronica);
@@ -370,36 +352,46 @@ public class Configuracion extends JFrame {
 		);
 		paneConfigFacturaSendArchivos.setLayout(gl_paneConfigFacturaSendArchivos);
 		
-		paneBtns = new JPanel();
-		paneBtns.setPreferredSize(new Dimension(150,50));
-		paneConfigFacturasend.add(paneBtns, BorderLayout.SOUTH);
+		buttonsPane = new JPanel();
+		contentPane.add(buttonsPane, BorderLayout.SOUTH);
+		buttonsPane.setPreferredSize(new Dimension(100, 50));
 		
-		JButton btnOkFacturaSend = new JButton("Ok");
+		btnCancelar = new JButton("Cancelar");
 		
-		JButton btnCacncelarFacturaSend = new JButton("Cacncelar");
-		GroupLayout gl_paneBtns = new GroupLayout(paneBtns);
-		gl_paneBtns.setHorizontalGroup(
-			gl_paneBtns.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, gl_paneBtns.createSequentialGroup()
-					.addContainerGap(411, Short.MAX_VALUE)
-					.addComponent(btnOkFacturaSend)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addComponent(btnCacncelarFacturaSend)
+		btnOk = new JButton("Ok");
+		GroupLayout gl_buttonsPane = new GroupLayout(buttonsPane);
+		gl_buttonsPane.setHorizontalGroup(
+			gl_buttonsPane.createParallelGroup(Alignment.LEADING)
+				.addGroup(Alignment.TRAILING, gl_buttonsPane.createSequentialGroup()
+					.addContainerGap(377, Short.MAX_VALUE)
+					.addComponent(btnOk)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnCancelar)
 					.addContainerGap())
 		);
-		gl_paneBtns.setVerticalGroup(
-			gl_paneBtns.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_paneBtns.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_paneBtns.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnCacncelarFacturaSend)
-						.addComponent(btnOkFacturaSend))
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+		gl_buttonsPane.setVerticalGroup(
+			gl_buttonsPane.createParallelGroup(Alignment.LEADING)
+				.addGroup(Alignment.TRAILING, gl_buttonsPane.createSequentialGroup()
+					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+					.addGroup(gl_buttonsPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(btnCancelar)
+						.addComponent(btnOk))
+					.addContainerGap())
 		);
-		paneBtns.setLayout(gl_paneBtns);
+		buttonsPane.setLayout(gl_buttonsPane);
 	}
 
 	private void events() {
+		btnOk.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
+		btnCancelar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
 		cbTipoDb.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println(cbTipoDb.getSelectedItem());

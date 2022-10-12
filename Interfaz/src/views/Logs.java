@@ -14,6 +14,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 public class Logs extends JDialog {
+	private JPanel buttonPane;
+	private JScrollPane contentPane;
+	private JButton okButton;
+	private JTextArea txtAreaLogs;
 
 	/**
 	 * Launch the application.
@@ -33,32 +37,41 @@ public class Logs extends JDialog {
 	 * Create the dialog.
 	 */
 	public Logs() {
+		setModal(true);
 		setBounds(100, 100, 450, 300);
+		initialize();
+		events();
+	}
+
+	private void initialize() {
 		getContentPane().setLayout(new BorderLayout());
 		{
-			JPanel buttonPane = new JPanel();
+			buttonPane = new JPanel();
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
-				JButton okButton = new JButton("OK");
-				okButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						System.out.println("salio");
-					}
-				});
+				okButton = new JButton("OK");
 				okButton.setActionCommand("OK");
 				buttonPane.add(okButton);
 				getRootPane().setDefaultButton(okButton);
 			}
 		}
 		{
-			JScrollPane contentPane = new JScrollPane();
+			contentPane = new JScrollPane();
 			getContentPane().add(contentPane, BorderLayout.CENTER);
 			{
-				JTextArea txtAreaLogs = new JTextArea();
+				txtAreaLogs = new JTextArea();
 				contentPane.setViewportView(txtAreaLogs);
 			}
 		}
 	}
+	
+	private void events() {
 
+		okButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
+	}
 }
