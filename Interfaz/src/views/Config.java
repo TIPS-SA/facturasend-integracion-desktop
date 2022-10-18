@@ -465,14 +465,8 @@ public class Config extends JDialog {
 		propertiesFs.put("facturasend.sincrono", chkComunicacionSincrona.isSelected()?"Y":"N");
 		propertiesFs.put("facturasend.url",txtUrlApi.getText());
 		propertiesFs.put("facturasend.token",txtAuthorization.getText());
-		propertiesFs.put("facturasend.emails",txtEmails.)
-		propertiesFs.put("facturasend.carpetaKude",)
-		propertiesFs.put("facturasend.carpetaXML",)
-		txtUrlApi.setText(propertiesFs.get("facturasend.url"));
-		txtAuthorization.setText(propertiesFs.get("facturasend.token"));
-		txtEmails.setText(propertiesFs.get("facturasend.emails"));
-		txtUbicacionPdf.setText(propertiesFs.get("facturasend.carpetaKude"));
-		txtUbicacionXml.setText(propertiesFs.get("facturasend.carpetaXML"));
-		
+		propertiesFs.put("facturasend.emails",txtEmails.getText());
+		propertiesFs.put("facturasend.carpetaKude",txtUbicacionPdf.getText());
+		propertiesFs.put("facturasend.carpetaXML",txtUbicacionXml.getText());
 	}
 }
