@@ -56,6 +56,7 @@ public class Principal extends JFrame {
 	private JPanel tableBtns;
 	private JButton btnSiguiente;
 	private JButton btnAnterior;
+	private JButton btnFacturaImportacion;
 
 	/**
 	 * Launch the application.
@@ -99,6 +100,7 @@ public class Principal extends JFrame {
 		frmFacturaSend.getContentPane().add(paneSouth, BorderLayout.SOUTH);
 		
 		btnLogs = new JButton("Logs");
+		btnLogs.setIcon(new ImageIcon(Principal.class.getResource("/resources/kterm.png")));
 		btnLogs.setPreferredSize(new Dimension(15, 15));
 		
 		btnCondiguracion = new JButton("Configuracion");
@@ -111,29 +113,32 @@ public class Principal extends JFrame {
 		btnReintegrar.setIcon(new ImageIcon(Principal.class.getResource("/resources/reload.png")));
 		
 		btnVerXml = new JButton("Ver XML");
+		btnVerXml.setIcon(new ImageIcon(Principal.class.getResource("/resources/txt.png")));
 		
 		btnVerkude = new JButton("verKUDE");
+		btnVerkude.setIcon(new ImageIcon(Principal.class.getResource("/resources/pdf.png")));
 		
 		btnEnviarEmail = new JButton("Enviar Email");
+		btnEnviarEmail.setIcon(new ImageIcon(Principal.class.getResource("/resources/folder_outbox.png")));
 		GroupLayout gl_paneSouth = new GroupLayout(paneSouth);
 		gl_paneSouth.setHorizontalGroup(
 			gl_paneSouth.createParallelGroup(Alignment.TRAILING)
 				.addGroup(gl_paneSouth.createSequentialGroup()
 					.addContainerGap()
-					.addComponent(btnLogs, GroupLayout.DEFAULT_SIZE, 71, Short.MAX_VALUE)
+					.addComponent(btnLogs, GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnCondiguracion, GroupLayout.DEFAULT_SIZE, 125, Short.MAX_VALUE)
+					.addComponent(btnCondiguracion, GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnNoEnviar, GroupLayout.DEFAULT_SIZE, 98, Short.MAX_VALUE)
+					.addComponent(btnNoEnviar, GroupLayout.DEFAULT_SIZE, 139, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnReintegrar, GroupLayout.DEFAULT_SIZE, 104, Short.MAX_VALUE)
+					.addComponent(btnReintegrar, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnVerXml, GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
+					.addComponent(btnVerXml, GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnVerkude, GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
+					.addComponent(btnVerkude, GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnEnviarEmail, GroupLayout.PREFERRED_SIZE, 118, GroupLayout.PREFERRED_SIZE)
-					.addGap(18))
+					.addComponent(btnEnviarEmail, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+					.addGap(19))
 		);
 		gl_paneSouth.setVerticalGroup(
 			gl_paneSouth.createParallelGroup(Alignment.LEADING)
@@ -163,22 +168,36 @@ public class Principal extends JFrame {
 		btnBuscar = new JButton("");
 		btnBuscar.setIcon(new ImageIcon(Principal.class.getResource("/resources/search.png")));
 		
-		btnFacturas = new JButton("Facturas");
+		btnFacturas = new JButton("");
+		btnFacturas.setIcon(new ImageIcon(Principal.class.getResource("/resources/Factura.png")));
+		btnFacturas.setToolTipText("Facturas");
 		
-		btnAutoFactura = new JButton("<html><p style='text-align: center;'>Auto</p><p>Factura</p></html>");
+		btnAutoFactura = new JButton("");
+		btnAutoFactura.setIcon(new ImageIcon(Principal.class.getResource("/resources/AutoFactura.png")));
+		btnAutoFactura.setToolTipText("Auto Factura");
 		btnAutoFactura.setPreferredSize(new Dimension(50,30));
 		
-		btnNotaCredito = new JButton("<html><p style='text-align: center;'>Nota</p><p>Credito</p></html>");
+		btnNotaCredito = new JButton("");
+		btnNotaCredito.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaCredito.png")));
+		btnNotaCredito.setToolTipText("Nota Credito");
 		
-		btnNotaDebito = new JButton("<html><p style='text-align: center;'>Nota</p><p>Debito</p></html>");
+		btnNotaDebito = new JButton("");
+		btnNotaDebito.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaDebito.png")));
+		btnNotaDebito.setToolTipText("Nota Debito");
 		
-		btnRemision = new JButton("Remision");
+		btnRemision = new JButton("");
+		btnRemision.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaRemision.png")));
+		btnRemision.setToolTipText("Nota de Remision");
 		
-		JButton btnFacturaExportacion = new JButton("<html><p style='text-align:center;'>Factura</p><p>Exportacion</p></html>");
+		JButton btnFacturaExportacion = new JButton("");
+		btnFacturaExportacion.setIcon(new ImageIcon(Principal.class.getResource("/resources/FacturaExportacion.png")));
+		btnFacturaExportacion.setToolTipText("Factura Exportacion");
 		btnFacturaExportacion.setEnabled(false);
 		
-		JButton btnNewButton = new JButton("<html><p style='text-align:center;'>Factura</p><p>Importación</p></html>");
-		btnNewButton.setEnabled(false);
+		btnFacturaImportacion = new JButton("");
+		btnFacturaImportacion.setIcon(new ImageIcon(Principal.class.getResource("/resources/FacturaImportacion.png")));
+		btnFacturaImportacion.setToolTipText("Factura Importacion");
+		btnFacturaImportacion.setEnabled(false);
 		GroupLayout gl_paneNorth = new GroupLayout(paneNorth);
 		gl_paneNorth.setHorizontalGroup(
 			gl_paneNorth.createParallelGroup(Alignment.LEADING)
@@ -186,23 +205,24 @@ public class Principal extends JFrame {
 					.addContainerGap()
 					.addGroup(gl_paneNorth.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_paneNorth.createSequentialGroup()
-							.addComponent(btnFacturas, GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(btnFacturaExportacion, GroupLayout.DEFAULT_SIZE, 163, Short.MAX_VALUE)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(btnNewButton, GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(btnAutoFactura, GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(btnNotaCredito, GroupLayout.PREFERRED_SIZE, 139, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(btnNotaDebito, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(btnRemision, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+							.addComponent(btnFacturas, GroupLayout.PREFERRED_SIZE, 124, Short.MAX_VALUE)
+							.addGap(18)
+							.addComponent(btnFacturaExportacion, GroupLayout.PREFERRED_SIZE, 124, Short.MAX_VALUE)
+							.addGap(18)
+							.addComponent(btnFacturaImportacion, GroupLayout.PREFERRED_SIZE, 124, Short.MAX_VALUE)
+							.addGap(18)
+							.addComponent(btnAutoFactura, GroupLayout.PREFERRED_SIZE, 124, Short.MAX_VALUE)
+							.addGap(18)
+							.addComponent(btnNotaCredito, GroupLayout.PREFERRED_SIZE, 124, Short.MAX_VALUE)
+							.addGap(18)
+							.addComponent(btnNotaDebito, GroupLayout.PREFERRED_SIZE, 124, Short.MAX_VALUE)
+							.addGap(18)
+							.addComponent(btnRemision, GroupLayout.PREFERRED_SIZE, 124, Short.MAX_VALUE)
+							.addGap(20))
 						.addGroup(gl_paneNorth.createSequentialGroup()
 							.addComponent(lblBuscar)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(tfBuscar, GroupLayout.DEFAULT_SIZE, 885, Short.MAX_VALUE)
+							.addComponent(tfBuscar, GroupLayout.DEFAULT_SIZE, 1204, Short.MAX_VALUE)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(btnBuscar)))
 					.addContainerGap())
@@ -218,17 +238,14 @@ public class Principal extends JFrame {
 						.addComponent(btnBuscar))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_paneNorth.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_paneNorth.createParallelGroup(Alignment.BASELINE)
-							.addComponent(btnNotaCredito, GroupLayout.DEFAULT_SIZE, 44, Short.MAX_VALUE)
-							.addComponent(btnAutoFactura, GroupLayout.DEFAULT_SIZE, 44, Short.MAX_VALUE))
-						.addComponent(btnNotaDebito, GroupLayout.DEFAULT_SIZE, 44, Short.MAX_VALUE)
-						.addGroup(gl_paneNorth.createParallelGroup(Alignment.LEADING, false)
-							.addGroup(gl_paneNorth.createParallelGroup(Alignment.BASELINE)
-								.addComponent(btnFacturaExportacion, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(btnNewButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-							.addComponent(btnFacturas, GroupLayout.DEFAULT_SIZE, 44, Short.MAX_VALUE)
-							.addComponent(btnRemision, GroupLayout.DEFAULT_SIZE, 44, Short.MAX_VALUE)))
-					.addContainerGap())
+						.addComponent(btnFacturas, GroupLayout.PREFERRED_SIZE, 52, Short.MAX_VALUE)
+						.addComponent(btnFacturaExportacion, GroupLayout.PREFERRED_SIZE, 52, Short.MAX_VALUE)
+						.addComponent(btnFacturaImportacion, GroupLayout.PREFERRED_SIZE, 52, Short.MAX_VALUE)
+						.addComponent(btnAutoFactura, GroupLayout.PREFERRED_SIZE, 52, Short.MAX_VALUE)
+						.addComponent(btnNotaCredito, GroupLayout.PREFERRED_SIZE, 52, Short.MAX_VALUE)
+						.addComponent(btnNotaDebito, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 52, Short.MAX_VALUE)
+						.addComponent(btnRemision, GroupLayout.PREFERRED_SIZE, 52, Short.MAX_VALUE))
+					.addGap(4))
 		);
 		paneNorth.setLayout(gl_paneNorth);
 		

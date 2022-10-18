@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -25,11 +27,16 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
 import enums.DatabaseType;
+import service.ConfigProperties;
+
 import java.awt.GridLayout;
 
 public class Config extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
+	private ConfigProperties cp = new ConfigProperties();
+	private Map<String, String> propertiesDb = new HashMap<String, String>();
+	private Map<String, String> propertiesFs = new HashMap<String, String>();
 	private JPanel contentPane;
 	private JTextField txtHost;
 	private JTextField txtPuerto;
@@ -249,6 +256,7 @@ public class Config extends JDialog {
 		txtAuthorization.setColumns(10);
 		
 		txtEmails = new JTextField();
+		txtEmails.setToolTipText("Colocar correos separados por comas");
 		txtEmails.setColumns(10);
 		
 		JLabel lblIntegracinConFacturacin = new JLabel("<html><p>Integración con Facturación</p><p>Electrónica Habilitada</p>");
@@ -379,11 +387,33 @@ public class Config extends JDialog {
 					.addContainerGap())
 		);
 		buttonsPane.setLayout(gl_buttonsPane);
+		
+		propertiesDb = cp.readDbProperties();
+		if(!propertiesDb.isEmpty()) {
+			cbTipoDb.setSelectedItem(propertiesDb.get("database.type"));
+			txtDatabase.setText(propertiesDb.get("database.name"));
+			txtUsername.setText(propertiesDb.get("database.username"));
+			txtHost.setText(propertiesDb.get("database.host"));
+			txtPuerto.setText(propertiesDb.get("database.port"));
+			cbDriver.setSelectedItem(propertiesDb.get("database.driver"));
+		}
+		
+		propertiesFs = cp.readFsProperties();
+		if(!propertiesFs.isEmpty()) {
+			chkIntegracionFacturasend.setSelected((propertiesFs.get("facturasend.integracionSet")).toString().equals("Y")?true:false);
+			chkComunicacionSincrona.setSelected((propertiesFs.get("facturasend.sincrono")).toString().equals("Y")?true:false);
+			txtUrlApi.setText(propertiesFs.get("facturasend.url"));
+			txtAuthorization.setText(propertiesFs.get("facturasend.token"));
+			txtEmails.setText(propertiesFs.get("facturasend.emails"));
+			txtUbicacionPdf.setText(propertiesFs.get("facturasend.carpetaKude"));
+			txtUbicacionXml.setText(propertiesFs.get("facturasend.carpetaXML"));
+		}
 	}
 
 	private void events() {
 		btnOk.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				save();
 				dispose();
 			}
 		});
@@ -418,5 +448,31 @@ public class Config extends JDialog {
 				}
 			}
 		});
+	}
+	
+	private void save() {
+		propertiesDb.put("database.type", cbTipoDb.getSelectedItem().toString());
+		propertiesDb.put("database.name", txtDatabase.getText());
+		propertiesDb.put("database.username", txtUsername.getText());
+		propertiesDb.put("database.host", txtHost.getText());
+		propertiesDb.put("database.port", txtPuerto.getText());
+		propertiesDb.put("database.password", pTxtPasswordBd.getPassword().toString());
+		propertiesDb.put("database.driver", cbDriver.getSelectedItem().toString());
+		
+		cp.writeDbProperties(propertiesDb);
+		
+		propertiesFs.put("facturasend.integracionSet", chkIntegracionFacturasend.isSelected()?"Y":"N");
+		propertiesFs.put("facturasend.sincrono", chkComunicacionSincrona.isSelected()?"Y":"N");
+		propertiesFs.put("facturasend.url",txtUrlApi.getText());
+		propertiesFs.put("facturasend.token",txtAuthorization.getText());
+		propertiesFs.put("facturasend.emails",txtEmails.)
+		propertiesFs.put("facturasend.carpetaKude",)
+		propertiesFs.put("facturasend.carpetaXML",)
+		txtUrlApi.setText(propertiesFs.get("facturasend.url"));
+		txtAuthorization.setText(propertiesFs.get("facturasend.token"));
+		txtEmails.setText(propertiesFs.get("facturasend.emails"));
+		txtUbicacionPdf.setText(propertiesFs.get("facturasend.carpetaKude"));
+		txtUbicacionXml.setText(propertiesFs.get("facturasend.carpetaXML"));
+		
 	}
 }
