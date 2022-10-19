@@ -396,6 +396,7 @@ public class Config extends JDialog {
 			txtHost.setText(propertiesDb.get("database.host"));
 			txtPuerto.setText(propertiesDb.get("database.port"));
 			cbDriver.setSelectedItem(propertiesDb.get("database.driver"));
+			pTxtPasswordBd.setText(propertiesDb.get("database.password"));
 		}
 		
 		propertiesFs = cp.readFsProperties();
@@ -431,6 +432,7 @@ public class Config extends JDialog {
 					txtHost.setText(DatabaseType.POSTGRES.defaultHost);
 					txtPuerto.setText(DatabaseType.POSTGRES.defaultPort);
 					cbDriver.setSelectedItem(DatabaseType.POSTGRES.defaultDriver);
+					pTxtPasswordBd.setText(DatabaseType.POSTGRES.defaultPass);
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.MYSQL.name) {
 					txtDatabase.setText(DatabaseType.MYSQL.defaultDatabase);
@@ -438,6 +440,7 @@ public class Config extends JDialog {
 					txtHost.setText(DatabaseType.MYSQL.defaultHost);
 					txtPuerto.setText(DatabaseType.MYSQL.defaultPort);
 					cbDriver.setSelectedItem(DatabaseType.MYSQL.defaultDriver);
+					pTxtPasswordBd.setText(DatabaseType.MYSQL.defaultPass);
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.ORACLE.name) {
 					txtDatabase.setText(DatabaseType.ORACLE.defaultDatabase);
@@ -445,6 +448,7 @@ public class Config extends JDialog {
 					txtHost.setText(DatabaseType.ORACLE.defaultHost);
 					txtPuerto.setText(DatabaseType.ORACLE.defaultPort);
 					cbDriver.setSelectedItem(DatabaseType.ORACLE.defaultDriver);
+					pTxtPasswordBd.setText(DatabaseType.ORACLE.defaultPass);
 				}
 			}
 		});
@@ -456,9 +460,13 @@ public class Config extends JDialog {
 		propertiesDb.put("database.username", txtUsername.getText());
 		propertiesDb.put("database.host", txtHost.getText());
 		propertiesDb.put("database.port", txtPuerto.getText());
-		propertiesDb.put("database.password", pTxtPasswordBd.getPassword().toString());
+		String password="";
+		char[] pass=pTxtPasswordBd.getPassword();
+		for (int i = 0; i < pass.length; i++) {
+			password += pass[i];
+		}
+		propertiesDb.put("database.password", password);
 		propertiesDb.put("database.driver", cbDriver.getSelectedItem().toString());
-		
 		cp.writeDbProperties(propertiesDb);
 		
 		propertiesFs.put("facturasend.integracionSet", chkIntegracionFacturasend.isSelected()?"Y":"N");
@@ -468,5 +476,6 @@ public class Config extends JDialog {
 		propertiesFs.put("facturasend.emails",txtEmails.getText());
 		propertiesFs.put("facturasend.carpetaKude",txtUbicacionPdf.getText());
 		propertiesFs.put("facturasend.carpetaXML",txtUbicacionXml.getText());
+		cp.writeFsProperties(propertiesFs);
 	}
 }

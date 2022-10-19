@@ -3,10 +3,12 @@ package service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -24,11 +26,13 @@ public class ConfigProperties {
 	
 	private InputStream dbProperties= null;
 	private InputStream fsProperties= null;
+	private OutputStream dbPropertiesSave = null;
+	private OutputStream fsPropertiesSave = null;
+	
 	
 	public Map readDbProperties() {
 		prop = new Properties();
 		Map properties = new HashMap<String, String>();
-		Set<String> values = prop.stringPropertyNames();
 		try {
 			dbProperties = new FileInputStream(dbFile);
 			prop.load(dbProperties);
@@ -43,6 +47,7 @@ public class ConfigProperties {
 	
 	public void writeDbProperties(Map<String, String> values) {
 		try {
+			dbPropertiesSave = new FileOutputStream(dbFile);
 			prop = new Properties();
 			reader = new FileReader(dbFile);
 			writer = new FileWriter(dbFile);
@@ -52,6 +57,7 @@ public class ConfigProperties {
 			for (Map.Entry<String, String> entry : values.entrySet()) {
 				prop.setProperty(entry.getKey(), entry.getValue());
 			}
+			prop.store(dbPropertiesSave, null);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}catch (IOException e) {
@@ -77,34 +83,20 @@ public class ConfigProperties {
 	
 	public void writeFsProperties(Map<String, String> values) {
 		try {
+			fsPropertiesSave = new FileOutputStream(fsFile);
 			prop = new Properties();
 			reader = new FileReader(fsFile);
 			writer = new FileWriter(fsFile);
 			
-			prop.load(reader);
-			
 			for (Map.Entry<String, String> entry : values.entrySet()) {
 				prop.setProperty(entry.getKey(), entry.getValue());
 			}
+			prop.store(fsPropertiesSave, null);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-	}
-	
-	public static void main(String[] args) {
-		ConfigProperties cp = new ConfigProperties();
-		Map<String, String> p = new HashMap<String, String>();
-		p = cp.readDbProperties();
-		for (Map.Entry<String,String> entry : p.entrySet()) {
-			System.out.println(entry.getKey()+ " - " +entry.getValue());
-		}
-		System.out.println("\n\n\n");
-		p = cp.readFsProperties();
-		for (Map.Entry<String,String> entry : p.entrySet()) {
-			System.out.println(entry.getKey()+ " - " +entry.getValue());
-		}
 	}
 }
