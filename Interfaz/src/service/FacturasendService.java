@@ -1,12 +1,16 @@
 package service;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.font.TextAttribute;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JCheckBox;
 import javax.swing.JTable;
@@ -118,8 +122,8 @@ public class FacturasendService {
 		returnData.add(de5);
 		returnData.add(de6);
 		*/
-		
-		for (int i = 0; i < 50; i++) {
+		int estado = 0;
+		for (int i = 0; i < 6; i++) {
 			Cliente cli1 = new Cliente();
 			cli1.setId(i);
 			cli1.setNombre("Lucas"+i);
@@ -130,7 +134,45 @@ public class FacturasendService {
 			de1.setNumeroFactura("001-001-0000"+i);
 			de1.setMoneda("GS");
 			de1.setTotal(19000.00 + i*1000);
-			de1.setEstado(-1);
+			switch (i) {
+			case 0:
+				estado = -2;
+				break;
+			case 1:
+				estado = 2;			
+				break;
+			case 2:
+				
+				break;
+			case 3:
+				
+				break;
+			case 4:
+				
+				break;
+			case 5:
+				
+				break;
+
+			default:
+				break;
+			}
+			de1.setEstado(98);
+			returnData.add(de1);
+		}
+		
+		for (int i = 6; i < 50; i++) {
+			Cliente cli1 = new Cliente();
+			cli1.setId(i);
+			cli1.setNombre("Lucas"+i);
+			DocumentoElectronico de1 = new DocumentoElectronico();
+			de1.setNroven(i);
+			de1.setFecha(null);
+			de1.setCliente(cli1);
+			de1.setNumeroFactura("001-001-0000"+i);
+			de1.setMoneda("GS");
+			de1.setTotal(19000.00 + i*1000);
+			de1.setEstado(98);
 			returnData.add(de1);
 			
 		}
@@ -138,7 +180,7 @@ public class FacturasendService {
 	}
 	
 	public void cargar_tabla(JTable table){
-		Object [] titulos = {null,"Vta #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado"};
+		Object [] titulos = {null,"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado"};
 		Object datos[] = {null, null, null, null,null, null, null, null};
 		/*Object datos[][] = {
 				{null, "1", "2022-07-09", "Lucas", "001-001-000001", "Gs", "19.000", "Sincronizado"},
@@ -188,7 +230,7 @@ public class FacturasendService {
 			returnValue= "Aprobado";
 			break;
 		case 3:
-			returnValue= "Aprobao c/ Error";
+			returnValue= "Aprobado c/ Error";
 			break;
 		case 4:
 			returnValue= "Rechazado";
@@ -216,7 +258,7 @@ public class FacturasendService {
 		table.getColumnModel().getColumn(4).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(5).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(6).setCellRenderer(new CurrencyCellRenderer());
-		table.getColumnModel().getColumn(7).setCellRenderer(defaultTableCellRenderer);
+		table.getColumnModel().getColumn(7).setCellRenderer(new CeldaPersonalizada());
 	}
 	
 }
@@ -238,6 +280,63 @@ class CurrencyCellRenderer extends DefaultTableCellRenderer {
         }
         return result;
     }
+}
+
+class CeldaPersonalizada extends DefaultTableCellRenderer {
+	 
+	Font font = new Font("helvetica", Font.PLAIN, 12);
+	Map  attributes = font.getAttributes();
+
+	@Override
+	public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
+		Component componente = super.getTableCellRendererComponent(table, value,
+                isSelected, hasFocus, row, column);
+		if(column == 7) {
+			//String estadoStr = this.getText().toString();
+			switch (this.getText()) {
+			case "Borrador":
+				componente.setBackground(Color.white);
+				componente.setForeground(Color.gray);
+				break;
+			case  "Aprobado":
+				componente.setBackground(Color.green);
+				componente.setForeground(Color.black);
+				break;
+			case "Aprobado c/ Error":
+				componente.setBackground(Color.green);
+				componente.setForeground(Color.black);
+				//resaltar o algo
+				attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON); 
+				componente.setFont( new Font(attributes));
+				break;
+			case "Rechazado":
+				componente.setBackground(Color.red);
+				componente.setForeground(Color.white);
+				break;
+			case "Inexistente":
+				componente.setBackground(Color.white);
+				componente.setForeground(Color.black);
+				//preguntar al profe
+				attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON); 
+				componente.setFont( new Font(attributes));
+				break;
+			case "Cancelado":
+				componente.setBackground(Color.red);
+				componente.setForeground(Color.white);
+				//tachar
+				attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON); 
+				componente.setFont( new Font(attributes));
+				break;
+			case "Desconocido":
+				componente.setBackground(Color.white);
+				componente.setForeground(Color.black);
+				break;
+			}
+		}
+		return componente;
+		
+	}
 }
 
 class HeaderRenderer2 implements TableCellRenderer {
