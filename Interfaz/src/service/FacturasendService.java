@@ -28,177 +28,53 @@ import javax.swing.table.TableModel;
 
 import bean.Cliente;
 import bean.DocumentoElectronico;
+import connect.BDConnect;
+import core.Core;
 
 public class FacturasendService {
 
-	public static List<DocumentoElectronico>  loadDocumentosElectronicos(Integer tipo) {
+	/**
+	 * Busca en el proyecto CORE los datos de la Vista
+	 * en formato MAP, para mostrar en el JTable
+	 * 
+	 * @param tipo
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<Map<String, Object>> loadDocumentosElectronicos(Integer tipo) throws Exception {
 		
-		List<DocumentoElectronico> returnData = new ArrayList<DocumentoElectronico>();
-		/*
-		DocumentoElectronico de1 = new DocumentoElectronico();
-		DocumentoElectronico de2 = new DocumentoElectronico();
-		DocumentoElectronico de3 = new DocumentoElectronico();
-		DocumentoElectronico de4 = new DocumentoElectronico();
-		DocumentoElectronico de5 = new DocumentoElectronico();
-		DocumentoElectronico de6 = new DocumentoElectronico();
+		List<Map<String, Object>> resultList = new ArrayList<Map<String,Object>>();
+		//Llamar a la consulta de Datos
+		ConfigProperties configProperties = new ConfigProperties();
 		
-		//clientes
-		Cliente cli1 = new Cliente();
-		cli1.setId(1);
-		cli1.setNombre("Lucas");
+		Map<String, Object> returnData = Core.listDes("", 1, 10, configProperties.readDbProperties());
 		
-		Cliente cli2 = new Cliente();
-		cli2.setId(2);
-		cli2.setNombre("Pedro");
-		
-		Cliente cli3 = new Cliente();
-		cli3.setId(3);
-		cli3.setNombre("Marcos");
-		
-
-		Cliente cli4 = new Cliente();
-		cli4.setId(4);
-		cli4.setNombre("Sonia");
-		
-		//de1.setXXX
-		de1.setNroven(1);
-		de1.setFecha(null);
-		de1.setCliente(cli1);
-		de1.setNumeroFactura("001-001-000001");
-		de1.setMoneda("GS");
-		de1.setTotal(19000.00);
-		de1.setEstado(-1);//Borrador
-		
-		//de2
-
-		de2.setNroven(2);
-		de2.setFecha(null);
-		de2.setCliente(cli2);
-		de2.setNumeroFactura("001-001-000002");
-		de2.setMoneda("GS");
-		de2.setTotal(19000.00);
-		de2.setEstado(2);//Aprobao
-		
-		//de3
-		de3.setNroven(3);
-		de3.setFecha(null);
-		de3.setCliente(cli3);
-		de3.setNumeroFactura("001-001-000003");
-		de3.setMoneda("GS");
-		de3.setTotal(19000.00);
-		de3.setEstado(3);//Aprobado
-		
-		//de4
-		de4.setNroven(4);
-		de4.setFecha(null);
-		de4.setCliente(cli4);
-		de4.setNumeroFactura("001-001-000004");
-		de4.setMoneda("GS");
-		de4.setTotal(19000.00);
-		de4.setEstado(4);//Rechazado
-		
-		//de5
-		de5.setNroven(5);
-		de5.setFecha(null);
-		de5.setCliente(cli1);
-		de5.setNumeroFactura("001-001-000005");
-		de5.setMoneda("GS");
-		de5.setTotal(19000.00);
-		de5.setEstado(98);//Inexistente
-		
-		//de6
-		de6.setNroven(6);
-		de6.setFecha(null);
-		de6.setCliente(cli2);
-		de6.setNumeroFactura("001-001-000006");
-		de6.setMoneda("GS");
-		de6.setTotal(19000.00);
-		de6.setEstado(99);//Cancelado
-		
-		returnData.add(de1);
-		returnData.add(de2);
-		returnData.add(de3);
-		returnData.add(de4);
-		returnData.add(de5);
-		returnData.add(de6);
-		*/
-		int estado = 0;
-		for (int i = 0; i < 6; i++) {
-			Cliente cli1 = new Cliente();
-			cli1.setId(i);
-			cli1.setNombre("Lucas"+i);
-			DocumentoElectronico de1 = new DocumentoElectronico();
-			de1.setNroven(i);
-			de1.setFecha(null);
-			de1.setCliente(cli1);
-			de1.setNumeroFactura("001-001-0000"+i);
-			de1.setMoneda("GS");
-			de1.setTotal(19000.00 + i*1000);
-			switch (i) {
-			case 0:
-				estado = -2;
-				break;
-			case 1:
-				estado = 2;			
-				break;
-			case 2:
-				
-				break;
-			case 3:
-				
-				break;
-			case 4:
-				
-				break;
-			case 5:
-				
-				break;
-
-			default:
-				break;
-			}
-			de1.setEstado(98);
-			returnData.add(de1);
+		System.out.println(returnData);
+		if (Boolean.valueOf(returnData.get("success")+"") == true) {
+			resultList = (List<Map<String, Object>>)returnData.get("result");
+		} else {
+			throw new Exception(returnData.get("error")+"");
 		}
-		
-		for (int i = 6; i < 50; i++) {
-			Cliente cli1 = new Cliente();
-			cli1.setId(i);
-			cli1.setNombre("Lucas"+i);
-			DocumentoElectronico de1 = new DocumentoElectronico();
-			de1.setNroven(i);
-			de1.setFecha(null);
-			de1.setCliente(cli1);
-			de1.setNumeroFactura("001-001-0000"+i);
-			de1.setMoneda("GS");
-			de1.setTotal(19000.00 + i*1000);
-			de1.setEstado(98);
-			returnData.add(de1);
-			
-		}
-		return returnData;
+		return resultList;
 	}
 	
 	public void cargar_tabla(JTable table){
 		Object [] titulos = {null,"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado"};
 		Object datos[] = {null, null, null, null,null, null, null, null};
-		/*Object datos[][] = {
-				{null, "1", "2022-07-09", "Lucas", "001-001-000001", "Gs", "19.000", "Sincronizado"},
-				{null, "1", "2022-07-09", "Pedro", "001-001-000001", "Gs", "19.000", "Sincronizado"},
-				{null, "1", "2022-07-09", "Marcos",  "001-001-000001", "Gs", "19.000", "Sincronizado"},
-		};*/
 		    
 		DefaultTableModel model = new DefaultTableModel(null, titulos);
 		try {
-			List<DocumentoElectronico> rs = loadDocumentosElectronicos(0);
+			List<Map<String, Object>> rs = loadDocumentosElectronicos(0);
+			System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
-				datos[1] = rs.get(i).getNroven();
-				datos[2] = rs.get(i).getFecha();
-				datos[3] = rs.get(i).getCliente().getNombre();
-				datos[4] = rs.get(i).getNumeroFactura();
-				datos[5] = rs.get(i).getMoneda();
-				datos[6] = rs.get(i).getTotal();
-				datos[7] = getEstadoValue(rs.get(i).getEstado());
+				datos[1] = rs.get(i).get("transaccion_id");
+				datos[2] = rs.get(i).get("fecha");
+				datos[3] = rs.get(i).get("cliente_razon_social");
+				datos[4] = StringUtil.padLeftZeros(rs.get(i).get("establecimiento")+"", 3)  + "-" + StringUtil.padLeftZeros(rs.get(i).get("punto")+"", 3) + "-" + StringUtil.padLeftZeros(rs.get(i).get("numero") + "", 7);
+				datos[5] = rs.get(i).get("moneda");
+				datos[6] = rs.get(i).get("total") != null ? rs.get(i).get("total") : 0;
+				datos[7] = getEstadoValue(0);
+				
 				model.addRow(datos);
 			}
 			
@@ -212,12 +88,12 @@ public class FacturasendService {
 		table.getColumnModel().getColumn(5).setPreferredWidth(20);
 	}
 		
-		private void addCheckBox(int columna, JTable table) {
-			TableColumn tc = table.getColumnModel().getColumn(columna);
-//			tc.setHeaderRenderer(new HeaderRenderer2(table.getTableHeader()));//Esta es la linea que trata de poner el chk pero da error
-			tc.setCellEditor(table.getDefaultEditor(Boolean.class));
-			tc.setCellRenderer(table.getDefaultRenderer(Boolean.class));
-			tc.setPreferredWidth(50);
+	private void addCheckBox(int columna, JTable table) {
+		TableColumn tc = table.getColumnModel().getColumn(columna);
+//		tc.setHeaderRenderer(new HeaderRenderer2(table.getTableHeader()));//Esta es la linea que trata de poner el chk pero da error
+		tc.setCellEditor(table.getDefaultEditor(Boolean.class));
+		tc.setCellRenderer(table.getDefaultRenderer(Boolean.class));
+		tc.setPreferredWidth(50);
 	}
 	
 	private String getEstadoValue(int valor) {
@@ -366,6 +242,7 @@ public HeaderRenderer2(JTableHeader header) {
         }
     });
 }
+
 @Override
 public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 		int row, int column) {

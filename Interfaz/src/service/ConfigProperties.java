@@ -21,8 +21,8 @@ public class ConfigProperties {
 	private FileReader reader = null;
 	private FileWriter writer = null;
 	
-	private File dbFile = new File("/home/lucasf/pgfxDev/git/facturasend-integracion-desktop/Interfaz/srcConfig/config/database.properties");
-	private File fsFile = new File("/home/lucasf/pgfxDev/git/facturasend-integracion-desktop/Interfaz/srcConfig/config/facturasend.properties");
+	private File dbFile = new File(System.getProperty("user.dir") + File.separator + "srcConfig/config/database.properties");
+	private File fsFile = new File(System.getProperty("user.dir") + File.separator + "srcConfig/config/facturasend.properties");
 	
 	private InputStream dbProperties= null;
 	private InputStream fsProperties= null;
@@ -34,6 +34,7 @@ public class ConfigProperties {
 		prop = new Properties();
 		Map properties = new HashMap<String, String>();
 		try {
+			 
 			dbProperties = new FileInputStream(dbFile);
 			prop.load(dbProperties);
 			properties = prop;

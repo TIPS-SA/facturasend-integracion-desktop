@@ -5,5 +5,7 @@
 	<classpathentry kind="src" path="srcConfig"/>
 	<classpathentry kind="lib" path="libs/jgoodies-forms-1.8.0-sources.jar"/>
 	<classpathentry kind="lib" path="libs/jgoodies-forms-1.8.0.jar"/>
+	<classpathentry kind="lib" path="libs/http-2.2.1.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/facturasend-integracion-core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

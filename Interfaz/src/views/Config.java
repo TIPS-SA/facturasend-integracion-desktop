@@ -41,6 +41,7 @@ public class Config extends JDialog {
 	private JTextField txtHost;
 	private JTextField txtPuerto;
 	private JTextField txtDatabase;
+	private JTextField txtSchema;
 	private JTextField txtUsername;
 	private JScrollPane scrollPane;
 	private JPanel paneFacturasend;
@@ -50,7 +51,8 @@ public class Config extends JDialog {
 	private JButton btnTest;
 	private JLabel lblPassword;
 	private JLabel lblDriver;
-	private JLabel lblDatabase;
+	private JLabel lblDatabase;	
+	private JLabel lblSchema;
 	private JLabel lblUsername;
 	private JLabel lblTipo;
 	private JLabel lblHost;
@@ -123,6 +125,8 @@ public class Config extends JDialog {
 		
 		lblDatabase = new JLabel("Database:");
 		
+		lblSchema = new JLabel("Schema:");
+
 		lblUsername = new JLabel("Username:");
 		
 		lblPassword = new JLabel("Password:");
@@ -142,6 +146,9 @@ public class Config extends JDialog {
 		
 		txtDatabase = new JTextField();
 		txtDatabase.setColumns(10);
+		
+		txtSchema = new JTextField();
+		txtSchema.setColumns(10);
 		
 		txtUsername = new JTextField();
 		txtUsername.setColumns(10);
@@ -178,6 +185,7 @@ public class Config extends JDialog {
 								.addComponent(txtUsername, GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
 								.addComponent(txtPuerto, GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
 								.addComponent(txtDatabase, GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
+								.addComponent(txtSchema, GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
 								.addComponent(cbTipoDb, 0, 481, Short.MAX_VALUE)))
 						.addComponent(btnTest))
 					.addContainerGap())
@@ -201,6 +209,10 @@ public class Config extends JDialog {
 					.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblDatabase)
 						.addComponent(txtDatabase, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					//.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.BASELINE)
+					//	.addComponent(lblSchema)
+					//	.addComponent(txtSchema, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblUsername)
@@ -392,6 +404,7 @@ public class Config extends JDialog {
 		if(!propertiesDb.isEmpty()) {
 			cbTipoDb.setSelectedItem(propertiesDb.get("database.type"));
 			txtDatabase.setText(propertiesDb.get("database.name"));
+			txtSchema.setText(propertiesDb.get("database.schema"));
 			txtUsername.setText(propertiesDb.get("database.username"));
 			txtHost.setText(propertiesDb.get("database.host"));
 			txtPuerto.setText(propertiesDb.get("database.port"));
@@ -428,6 +441,7 @@ public class Config extends JDialog {
 				System.out.println(cbTipoDb.getSelectedItem());
 				if (cbTipoDb.getSelectedItem()==DatabaseType.POSTGRES.name) {
 					txtDatabase.setText(DatabaseType.POSTGRES.defaultDatabase);
+					txtSchema.setText(DatabaseType.POSTGRES.defaultSchema);
 					txtUsername.setText(DatabaseType.POSTGRES.defaultUsername);
 					txtHost.setText(DatabaseType.POSTGRES.defaultHost);
 					txtPuerto.setText(DatabaseType.POSTGRES.defaultPort);
@@ -436,6 +450,7 @@ public class Config extends JDialog {
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.MYSQL.name) {
 					txtDatabase.setText(DatabaseType.MYSQL.defaultDatabase);
+					txtSchema.setText(DatabaseType.POSTGRES.defaultSchema);
 					txtUsername.setText(DatabaseType.MYSQL.defaultUsername);
 					txtHost.setText(DatabaseType.MYSQL.defaultHost);
 					txtPuerto.setText(DatabaseType.MYSQL.defaultPort);
@@ -444,6 +459,7 @@ public class Config extends JDialog {
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.ORACLE.name) {
 					txtDatabase.setText(DatabaseType.ORACLE.defaultDatabase);
+					txtSchema.setText(DatabaseType.POSTGRES.defaultSchema);
 					txtUsername.setText(DatabaseType.ORACLE.defaultUsername);
 					txtHost.setText(DatabaseType.ORACLE.defaultHost);
 					txtPuerto.setText(DatabaseType.ORACLE.defaultPort);
@@ -457,6 +473,7 @@ public class Config extends JDialog {
 	private void save() {
 		propertiesDb.put("database.type", cbTipoDb.getSelectedItem().toString());
 		propertiesDb.put("database.name", txtDatabase.getText());
+		propertiesDb.put("database.schema", txtSchema.getText());
 		propertiesDb.put("database.username", txtUsername.getText());
 		propertiesDb.put("database.host", txtHost.getText());
 		propertiesDb.put("database.port", txtPuerto.getText());
