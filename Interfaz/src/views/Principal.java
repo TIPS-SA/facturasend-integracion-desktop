@@ -21,6 +21,7 @@ import javax.swing.border.SoftBevelBorder;
 
 import service.FacturasendService;
 import views.commons.Paginacion;
+import views.commons.Paginacion;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -53,10 +54,12 @@ public class Principal extends JFrame {
 	private JScrollPane scrollPaneCenter;
 	private JTable table;
 	private JPanel paneCenter;
+	private JPanel paneSouthTable;
 	private JPanel tableBtns;
 	private JButton btnSiguiente;
 	private JButton btnAnterior;
 	private JButton btnFacturaImportacion;
+	private JPanel paneSouthTableCenter;
 
 	/**
 	 * Launch the application.
@@ -168,35 +171,35 @@ public class Principal extends JFrame {
 		btnBuscar = new JButton("");
 		btnBuscar.setIcon(new ImageIcon(Principal.class.getResource("/resources/search.png")));
 		
-		btnFacturas = new JButton("");
-		btnFacturas.setIcon(new ImageIcon(Principal.class.getResource("/resources/Factura.png")));
+		btnFacturas = new JButton("Facturas");
+		btnFacturas.setIcon(new ImageIcon(Principal.class.getResource("/resources/FacturaElectronica.png")));
 		btnFacturas.setToolTipText("Facturas");
 		
-		btnAutoFactura = new JButton("");
+		btnAutoFactura = new JButton("<html><p>Auto</p>Factura<p></p></html>");
 		btnAutoFactura.setIcon(new ImageIcon(Principal.class.getResource("/resources/AutoFactura.png")));
 		btnAutoFactura.setToolTipText("Auto Factura");
 		btnAutoFactura.setPreferredSize(new Dimension(50,30));
 		
-		btnNotaCredito = new JButton("");
+		btnNotaCredito = new JButton("<html><p>Nota</p><p>Credito</p></html>");
 		btnNotaCredito.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaCredito.png")));
-		btnNotaCredito.setToolTipText("Nota Credito");
+		btnNotaCredito.setToolTipText("");
 		
-		btnNotaDebito = new JButton("");
+		btnNotaDebito = new JButton("<html><p>Nota</p><p>Debito</p></html>");
 		btnNotaDebito.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaDebito.png")));
-		btnNotaDebito.setToolTipText("Nota Debito");
+		btnNotaDebito.setToolTipText("");
 		
-		btnRemision = new JButton("");
+		btnRemision = new JButton("<html><p>Nota</p><p>Remision</p></html>");
 		btnRemision.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaRemision.png")));
 		btnRemision.setToolTipText("Nota de Remision");
 		
-		JButton btnFacturaExportacion = new JButton("");
-		btnFacturaExportacion.setIcon(new ImageIcon(Principal.class.getResource("/resources/FacturaExportacion.png")));
+		JButton btnFacturaExportacion = new JButton("<html><p>Nota</p><p>Exportacion</p></html>");
+		btnFacturaExportacion.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaExportacion.png")));
 		btnFacturaExportacion.setToolTipText("Factura Exportacion");
 		btnFacturaExportacion.setEnabled(false);
 		
-		btnFacturaImportacion = new JButton("");
-		btnFacturaImportacion.setIcon(new ImageIcon(Principal.class.getResource("/resources/FacturaImportacion.png")));
-		btnFacturaImportacion.setToolTipText("Factura Importacion");
+		btnFacturaImportacion = new JButton("<html><p>Nota</p>Importacion<p></p></html>");
+		btnFacturaImportacion.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaImportacion.png")));
+		btnFacturaImportacion.setToolTipText("");
 		btnFacturaImportacion.setEnabled(false);
 		GroupLayout gl_paneNorth = new GroupLayout(paneNorth);
 		gl_paneNorth.setHorizontalGroup(
@@ -205,21 +208,19 @@ public class Principal extends JFrame {
 					.addContainerGap()
 					.addGroup(gl_paneNorth.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_paneNorth.createSequentialGroup()
-							.addGap(12)
-							.addComponent(btnFacturas, GroupLayout.PREFERRED_SIZE, 112, GroupLayout.PREFERRED_SIZE)
-							.addGap(28)
-							.addComponent(btnFacturaExportacion, GroupLayout.PREFERRED_SIZE, 114, GroupLayout.PREFERRED_SIZE)
-							.addGap(27)
-							.addComponent(btnFacturaImportacion, GroupLayout.PREFERRED_SIZE, 115, GroupLayout.PREFERRED_SIZE)
-							.addGap(18)
-							.addComponent(btnAutoFactura, GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE)
-							.addGap(18)
-							.addComponent(btnNotaCredito, GroupLayout.PREFERRED_SIZE, 124, GroupLayout.PREFERRED_SIZE)
-							.addGap(26)
-							.addComponent(btnNotaDebito, GroupLayout.PREFERRED_SIZE, 116, GroupLayout.PREFERRED_SIZE)
-							.addGap(18)
-							.addComponent(btnRemision, GroupLayout.PREFERRED_SIZE, 124, Short.MAX_VALUE)
-							.addGap(20))
+							.addComponent(btnFacturas, GroupLayout.PREFERRED_SIZE, 136, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnFacturaExportacion, GroupLayout.PREFERRED_SIZE, 142, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnFacturaImportacion, GroupLayout.PREFERRED_SIZE, 136, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnAutoFactura, GroupLayout.PREFERRED_SIZE, 136, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnNotaCredito, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnNotaDebito, GroupLayout.PREFERRED_SIZE, 140, Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnRemision, GroupLayout.PREFERRED_SIZE, 140, Short.MAX_VALUE))
 						.addGroup(gl_paneNorth.createSequentialGroup()
 							.addComponent(lblBuscar)
 							.addPreferredGap(ComponentPlacement.RELATED)
@@ -239,20 +240,20 @@ public class Principal extends JFrame {
 						.addComponent(btnBuscar))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_paneNorth.createParallelGroup(Alignment.LEADING)
-						.addComponent(btnRemision, GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE)
-						.addComponent(btnFacturaExportacion, GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE)
-						.addComponent(btnFacturas, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE)
-						.addComponent(btnFacturaImportacion, GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE)
+						.addComponent(btnFacturas, GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE)
 						.addComponent(btnAutoFactura, GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE)
+						.addComponent(btnFacturaExportacion, GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE)
+						.addComponent(btnRemision, GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE)
+						.addComponent(btnNotaDebito, GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE)
 						.addComponent(btnNotaCredito, GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE)
-						.addComponent(btnNotaDebito, GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE))
+						.addComponent(btnFacturaImportacion, GroupLayout.PREFERRED_SIZE, 44, Short.MAX_VALUE))
 					.addContainerGap())
 		);
 		paneNorth.setLayout(gl_paneNorth);
 		
 		FacturasendService fs = new FacturasendService();
 		
-		filas = 14;//para que se pueda tener como opcion tambien
+		filas = 8;//para que se pueda tener como opcion tambien
 		
 		paneCenter = new JPanel();
 		paneCenter.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
@@ -272,32 +273,15 @@ public class Principal extends JFrame {
 //		tableBtns = new JPanel();
 //		tableBtns.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
 //		tableBtns.setPreferredSize(new Dimension(100,35));
-		Paginacion paginacion = new Paginacion(100,45);
-		JPanel paginacionPane = paginacion.getPaginacion();
-		paneCenter.add(paginacionPane, BorderLayout.SOUTH);
-		/*
-		btnSiguiente = new JButton("Siguiente");
-		
-		btnAnterior = new JButton("Anterior");
-		GroupLayout gl_tableBtns = new GroupLayout(tableBtns);
-		gl_tableBtns.setHorizontalGroup(
-			gl_tableBtns.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, gl_tableBtns.createSequentialGroup()
-					.addGap(232)
-					.addComponent(btnAnterior, GroupLayout.DEFAULT_SIZE, 83, Short.MAX_VALUE)
-					.addGap(93)
-					.addComponent(btnSiguiente, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addGap(227))
-		);
-		gl_tableBtns.setVerticalGroup(
-			gl_tableBtns.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_tableBtns.createSequentialGroup()
-					.addGroup(gl_tableBtns.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnSiguiente)
-						.addComponent(btnAnterior))
-					.addContainerGap(13, Short.MAX_VALUE))
-		);
-		tableBtns.setLayout(gl_tableBtns);*/
+		paneSouthTable = new JPanel();
+		paneSouthTable.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
+		paneSouthTable.setLayout(new BorderLayout(0, 0));
+		Paginacion paginacion = new Paginacion(365,45);
+		paneCenter.add(paneSouthTable, BorderLayout.SOUTH);
+		paneSouthTable.add(paginacion, BorderLayout.EAST);
+//		
+//		paneSouthTableCenter = new JPanel();
+//		paneSouthTable.add(paneSouthTableCenter);
 		
 	}
 	

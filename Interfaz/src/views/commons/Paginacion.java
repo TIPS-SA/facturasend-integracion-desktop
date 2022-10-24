@@ -1,53 +1,41 @@
 package views.commons;
 
+import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.JButton;
-import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JLabel;
-import javax.swing.JTextField;
+import javax.swing.JButton;
 import javax.swing.ImageIcon;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import java.awt.FlowLayout;
+import javax.swing.JTextField;
 
-public class Paginacion{
-
-	private JPanel panel;
-	private JPanel contentPane;
-	private JButton btnAnterior;
+public class Paginacion extends JPanel {
 	private JButton btnFirstPage;
-	private JTextField lblPaginaNumero;
-	private JButton btnLastPage;
-	private JButton btnSiguiente;
-	private JLabel lblCantidadpaginas;
+	private JTextField txtPagina;
+	private JButton btnAnterior;
 	private JLabel lblPagina;
+	private JLabel lblCantidadPaginas;
+	private JButton btnSiguiente;
+	private JButton btnLastPage;
 	private int width;
-	private int heigth;
+	private int height;
+
+	/**
+	 * Create the panel.
+	 */
 	public Paginacion(int w, int h) {
 		this.width=w;
-		this.heigth=h;
-		init();
+		this.height=h;
+		//para editar componente, comentar Este setPreferredSize
+		//setPreferredSize(new  Dimension(width, height));
+		init();	
 	}
 	
-	public JPanel getPaginacion() {
-		return this.panel;
-	}
-	
-	public void init() {
-//		contentPane = new JPanel();
-//		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-//		contentPane.setLayout(new BorderLayout(0, 0));
-		//setContentPane(contentPane);
-		
-		panel = new JPanel();
-		panel.setPreferredSize(new Dimension(width,heigth));
-		//contentPane.add(panel, BorderLayout.CENTER);
-		
+	private void init() {
 		btnFirstPage = new JButton("");
 		btnFirstPage.setIcon(new ImageIcon(Paginacion.class.getResource("/resources/2leftarrow.png")));
 		
@@ -56,50 +44,61 @@ public class Paginacion{
 		
 		lblPagina = new JLabel("Pagina");
 		
-		lblPaginaNumero = new JTextField();
-		lblPaginaNumero.setColumns(10);
+		txtPagina = new JTextField();
+		txtPagina.setColumns(3);
 		
-		lblCantidadpaginas = new JLabel("de 10");
+		lblCantidadPaginas = new JLabel("De 10");
 		
 		btnSiguiente = new JButton("");
 		btnSiguiente.setIcon(new ImageIcon(Paginacion.class.getResource("/resources/1rightarrow.png")));
 		
 		btnLastPage = new JButton("");
 		btnLastPage.setIcon(new ImageIcon(Paginacion.class.getResource("/resources/2rightarrow.png")));
-		GroupLayout gl_panel = new GroupLayout(panel);
-		gl_panel.setHorizontalGroup(
-			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(btnFirstPage, GroupLayout.DEFAULT_SIZE, 48, Short.MAX_VALUE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnAnterior, GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(lblPagina, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(lblPaginaNumero, GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(lblCantidadpaginas, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnSiguiente, GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnLastPage, GroupLayout.DEFAULT_SIZE, 48, Short.MAX_VALUE)
+		GroupLayout groupLayout = new GroupLayout(this);
+		groupLayout.setHorizontalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(9)
+					.addComponent(btnFirstPage, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
+					.addGap(5)
+					.addComponent(btnAnterior, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
+					.addGap(5)
+					.addComponent(lblPagina, GroupLayout.DEFAULT_SIZE, 42, Short.MAX_VALUE)
+					.addGap(5)
+					.addComponent(txtPagina, GroupLayout.DEFAULT_SIZE, 37, Short.MAX_VALUE)
+					.addGap(5)
+					.addComponent(lblCantidadPaginas, GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE)
+					.addGap(5)
+					.addComponent(btnSiguiente, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
+					.addGap(5)
+					.addComponent(btnLastPage, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 					.addGap(10))
 		);
-		gl_panel.setVerticalGroup(
-			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnFirstPage)
-						.addComponent(btnAnterior)
-						.addComponent(lblPagina)
-						.addComponent(lblPaginaNumero, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblCantidadpaginas)
-						.addComponent(btnSiguiente)
-						.addComponent(btnLastPage))
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+		groupLayout.setVerticalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(5)
+					.addComponent(btnFirstPage))
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(5)
+					.addComponent(btnAnterior))
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(9)
+					.addComponent(lblPagina))
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(7)
+					.addComponent(txtPagina, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(9)
+					.addComponent(lblCantidadPaginas))
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(5)
+					.addComponent(btnSiguiente))
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(5)
+					.addComponent(btnLastPage))
 		);
-		panel.setLayout(gl_panel);
+		setLayout(groupLayout);
+
 	}
 }

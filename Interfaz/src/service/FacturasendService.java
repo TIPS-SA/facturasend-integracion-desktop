@@ -142,22 +142,22 @@ public class FacturasendService {
 				estado = 2;			
 				break;
 			case 2:
-				
+				estado = 3;
 				break;
 			case 3:
-				
+				estado = 4;
 				break;
 			case 4:
-				
+				estado = 98;
 				break;
 			case 5:
-				
+				estado = 99;
 				break;
 
 			default:
 				break;
 			}
-			de1.setEstado(98);
+			de1.setEstado(estado);
 			returnData.add(de1);
 		}
 		
@@ -285,7 +285,7 @@ class CurrencyCellRenderer extends DefaultTableCellRenderer {
 class CeldaPersonalizada extends DefaultTableCellRenderer {
 	 
 	Font font = new Font("helvetica", Font.PLAIN, 12);
-	Map  attributes = font.getAttributes();
+	Map  attributes = null;
 
 	@Override
 	public Component getTableCellRendererComponent(JTable table, Object value,
@@ -303,25 +303,28 @@ class CeldaPersonalizada extends DefaultTableCellRenderer {
 				componente.setBackground(Color.green);
 				componente.setForeground(Color.black);
 				break;
-			case "Aprobado c/ Error":
-				componente.setBackground(Color.green);
-				componente.setForeground(Color.black);
-				//resaltar o algo
-				attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON); 
-				componente.setFont( new Font(attributes));
-				break;
 			case "Rechazado":
 				componente.setBackground(Color.red);
 				componente.setForeground(Color.white);
 				break;
 			case "Inexistente":
+				attributes = font.getAttributes();
 				componente.setBackground(Color.white);
 				componente.setForeground(Color.black);
 				//preguntar al profe
 				attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON); 
 				componente.setFont( new Font(attributes));
 				break;
+			case "Aprobado c/ Error":
+				attributes = font.getAttributes();
+				componente.setBackground(Color.green);
+				componente.setForeground(Color.black);
+				//resaltar o algo
+				attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON); 
+				componente.setFont( new Font(attributes));
+				break;
 			case "Cancelado":
+				attributes = font.getAttributes();
 				componente.setBackground(Color.red);
 				componente.setForeground(Color.white);
 				//tachar
