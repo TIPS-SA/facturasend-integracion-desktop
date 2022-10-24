@@ -95,4 +95,21 @@ public class SQLUtil {
 	    generatedKeys.close();
 	    return resultado;
 	}
+	
+	public static Integer getCountFromSQL(Statement statement, String sql) {
+		
+		Integer total = 0;
+		try {
+			String sqlCount = "SELECT COUNT(*) FROM (" + sql + ") AS cnt";
+			ResultSet rs = statement.executeQuery(sqlCount);
+			
+			rs.next();
+			total = rs.getInt(1);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return total; 
+	}
 }
