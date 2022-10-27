@@ -44,9 +44,9 @@ public class FacturasendService {
 	public static Map<String, Object> loadDocumentosElectronicos(String q, Integer tipo, Integer page, Integer size) throws Exception {
 		
 		//Llamar a la consulta de Datos
-		ConfigProperties configProperties = new ConfigProperties();
+		//ConfigProperties configProperties = new ConfigProperties();
 		
-		Map<String, Object> returnData = Core.listDes(q, tipo, page, size, configProperties.readDbProperties());
+		Map<String, Object> returnData = Core.listDes(q, tipo, page, size, readDBProperties());
 		
 		System.out.println(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {
@@ -56,7 +56,7 @@ public class FacturasendService {
 		}
 	}
 	
-	public Integer populateTable(JTable table, String q, Integer tipoDocumento, Integer page, Integer size){
+	public Integer populateTransactionTable(JTable table, String q, Integer tipoDocumento, Integer page, Integer size){
 		Integer retorno = 0;
 		Object [] titulos = {null,"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado"};
 		Object datos[] = {null, null, null, null,null, null, null, null};
@@ -66,14 +66,15 @@ public class FacturasendService {
 			Map<String, Object> result = loadDocumentosElectronicos(q, tipoDocumento, page, size);
 			List<Map<String, Object>> rs = (List<Map<String, Object>>)result.get("result");
 			retorno =  (Integer)result.get("count");
-			System.out.println("rs"  + rs);
+			//System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
-				datos[1] = rs.get(i).get("transaccion_id");
-				datos[2] = rs.get(i).get("fecha");
-				datos[3] = rs.get(i).get("cliente_razon_social");
-				datos[4] = StringUtil.padLeftZeros(rs.get(i).get("establecimiento")+"", 3)  + "-" + StringUtil.padLeftZeros(rs.get(i).get("punto")+"", 3) + "-" + StringUtil.padLeftZeros(rs.get(i).get("numero") + "", 7);
-				datos[5] = rs.get(i).get("moneda");
-				datos[6] = rs.get(i).get("total") != null ? rs.get(i).get("total") : 0;
+				
+				datos[1] = rs.get(i).get(getFieldName("transaccion_id"));
+				datos[2] = rs.get(i).get(getFieldName("fecha"));
+				datos[3] = rs.get(i).get(getFieldName("cliente_razon_social"));
+				datos[4] = StringUtil.padLeftZeros(rs.get(i).get(getFieldName("establecimiento"))+"", 3)  + "-" + StringUtil.padLeftZeros(rs.get(i).get(getFieldName("punto"))+"", 3) + "-" + StringUtil.padLeftZeros(rs.get(i).get(getFieldName("numero")) + "", 7);
+				datos[5] = rs.get(i).get(getFieldName("moneda"));
+				datos[6] = rs.get(i).get(getFieldName("total")) != null ? rs.get(i).get(getFieldName("total")) : 0;
 				datos[7] = getEstadoValue(0);
 				
 				model.addRow(datos);
@@ -91,6 +92,13 @@ public class FacturasendService {
 		return retorno;
 	}
 		
+	private String getFieldName(String fieldName) {
+		boolean fieldsInUpperCase = readDBProperties().get("database.fields_in_uppercase").equals("true");
+		if (fieldsInUpperCase) {
+			fieldName = fieldName.toUpperCase();
+		}
+		return fieldName;
+	}
 	private void addCheckBox(int columna, JTable table) {
 		TableColumn tc = table.getColumnModel().getColumn(columna);
 //		tc.setHeaderRenderer(new HeaderRenderer2(table.getTableHeader()));//Esta es la linea que trata de poner el chk pero da error
@@ -140,6 +148,14 @@ public class FacturasendService {
 		table.getColumnModel().getColumn(7).setCellRenderer(new CeldaPersonalizada());
 	}
 	
+	static ConfigProperties configProperties;
+	public static Map readDBProperties() {
+		if (configProperties == null) {
+			configProperties = new ConfigProperties();	
+		}
+		
+		return configProperties.readDbProperties();
+	}
 }
 
 class CurrencyCellRenderer extends DefaultTableCellRenderer {
@@ -285,6 +301,8 @@ private static class CheckBoxIcon implements Icon {
                 g, check, (Container) c, x, y, getIconWidth(), getIconHeight());
     }
 }*/
+
+
 }
 
 

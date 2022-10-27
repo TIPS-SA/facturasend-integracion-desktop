@@ -25,6 +25,8 @@ import views.commons.PaginacionListener;
 import views.commons.Paginacion;
 
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.ActionEvent;
 import javax.swing.border.EtchedBorder;
 import javax.swing.ImageIcon;
@@ -96,6 +98,11 @@ public class Principal extends JFrame {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		
+		if (FacturasendService.readDBProperties().get("database.rows_per_page") != null) {
+			rowsPerPage = Integer.valueOf(FacturasendService.readDBProperties().get("database.rows_per_page")+"");	
+		}
+		
 		frmFacturaSend = new JFrame();
 		frmFacturaSend.setTitle("Factura Send - Integration Tool");
 		frmFacturaSend.setBounds(0, 0, 1024, 680);
@@ -172,9 +179,25 @@ public class Principal extends JFrame {
 		
 		tfBuscar = new JTextField();
 		tfBuscar.setColumns(10);
+		tfBuscar.addKeyListener(new KeyAdapter() {
+	        @Override
+	        public void keyPressed(KeyEvent e) {
+	            if(e.getKeyCode() == KeyEvent.VK_ENTER){
+	               paginacion.setCurrentPage(1);
+	            }
+	        }
+
+	    });
 		
 		btnBuscar = new JButton("");
 		btnBuscar.setIcon(new ImageIcon(Principal.class.getResource("/resources/search.png")));
+		btnBuscar.addKeyListener(new KeyAdapter() {
+	        @Override
+	        public void keyPressed(KeyEvent e) {
+               paginacion.setCurrentPage(1);
+	        }
+
+	    });
 		
 		btnFacturas = new JButton("Facturas");
 		btnFacturas.setIcon(new ImageIcon(Principal.class.getResource("/resources/FacturaElectronica.png")));
@@ -183,7 +206,8 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				tipoDocumento = 1;
-				paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+				getPaginacion().setCurrentPage(1);
+				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
 			}
 		});
 		
@@ -191,18 +215,50 @@ public class Principal extends JFrame {
 		btnAutoFactura.setIcon(new ImageIcon(Principal.class.getResource("/resources/AutoFactura.png")));
 		btnAutoFactura.setToolTipText("Auto Factura");
 		btnAutoFactura.setPreferredSize(new Dimension(50,30));
+		btnAutoFactura.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tipoDocumento = 4;
+				getPaginacion().setCurrentPage(1);
+				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+			}
+		});
 		
 		btnNotaCredito = new JButton("<html><p>Nota</p><p>Credito</p></html>");
 		btnNotaCredito.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaCredito.png")));
 		btnNotaCredito.setToolTipText("");
+		btnNotaCredito.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tipoDocumento = 5;
+				getPaginacion().setCurrentPage(1);
+				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+			}
+		});
 		
 		btnNotaDebito = new JButton("<html><p>Nota</p><p>Debito</p></html>");
 		btnNotaDebito.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaDebito.png")));
 		btnNotaDebito.setToolTipText("");
+		btnNotaDebito.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tipoDocumento = 6;
+				getPaginacion().setCurrentPage(1);
+				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+			}
+		});
 		
 		btnRemision = new JButton("<html><p>Nota</p><p>Remision</p></html>");
 		btnRemision.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaRemision.png")));
 		btnRemision.setToolTipText("Nota de Remision");
+		btnRemision.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tipoDocumento = 7;
+				getPaginacion().setCurrentPage(1);
+				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+			}
+		});
 		
 		JButton btnFacturaExportacion = new JButton("<html><p>Nota</p><p>Exportacion</p></html>");
 		btnFacturaExportacion.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaExportacion.png")));
@@ -293,7 +349,7 @@ public class Principal extends JFrame {
 		paginacion.addActionListener(new PaginacionListener() {
 			@Override
 			public void goTo(Integer currentPage) {
-				paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage));
+				paginacion.setTotal(fs.populateTransactionTable(table, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage));
 			}
 		});
 		paginacion.setCurrentPage(1);

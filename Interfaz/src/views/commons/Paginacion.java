@@ -30,7 +30,8 @@ public class Paginacion extends JPanel {
 
 	private Integer currentPage;
 
-	private Integer rowsPerPage;
+	private Integer rowsPerPage = 10;
+	private Integer pages;	//Total de Páginas, calculado de acuerdo al total de registros / rowsPerPage
 	private Integer total;
 	
 	/**
@@ -64,7 +65,7 @@ public class Paginacion extends JPanel {
 	        }
 
 	    });
-		lblCantidadPaginas = new JLabel("De 10");
+		lblCantidadPaginas = new JLabel("De " + pages);
 		
 		btnSiguiente = new JButton("");
 		btnSiguiente.setIcon(new ImageIcon(Paginacion.class.getResource("/resources/1rightarrow.png")));
@@ -141,7 +142,7 @@ public class Paginacion extends JPanel {
 		btnLastPage.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				currentPage = 10;
+				currentPage = pages;
 				setCurrentPage(currentPage);
 			}
 		});
@@ -171,6 +172,8 @@ public class Paginacion extends JPanel {
 
 	public void setTotal(Integer total) {
 		this.total = total;
+		this.pages = (Integer) (total / rowsPerPage);
+		this.lblCantidadPaginas.setText("de " + pages);
 	}
 
 	public void addActionListener(IPaginacionListener paginacionListener) {

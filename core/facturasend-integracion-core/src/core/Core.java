@@ -21,7 +21,7 @@ public class Core {
 			
 			Statement statement = conn.createStatement();
 			
-			String sql = getSQLListDes(databaseProperties, q, page, size);
+			String sql = getSQLListDes(databaseProperties, q, tipoDocumento, page, size);
 			
 			result.put("count", SQLUtil.getCountFromSQL(statement, sql));
 
@@ -31,10 +31,6 @@ public class Core {
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> listadoDes = SQLUtil.convertResultSetToList(rs);
-			
-			/*for (Map<String, Object> map : listadoDes) {
-				
-			}*/
 			
 			result.put("success", true);
 			result.put("result", listadoDes);
@@ -48,13 +44,25 @@ public class Core {
 		return result;
 	}
 			
-	private static String getSQLListDes(Map<String, String> databaseProperties, String q, Integer page, Integer size) {
+	private static String getSQLListDes(Map<String, String> databaseProperties, String q, Integer tipoDocumento, Integer page, Integer size) {
 		String tableName = databaseProperties.get("database.transaction_view");
 
-		String sql = "SELECT * FROM " + tableName;
-		
-		//Filter
-		
+		String sql = "SELECT transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
+				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
+				+ "establecimiento, punto, numero, serie, total \n"
+				+ "FROM " + tableName + " \n"
+				+ "WHERE "
+				+ "( \n"
+				+ "	(establecimiento || '-' || punto || '-' || numero || COALESCE(serie, '')) LIKE '%" + q + "%' \n" 
+				+ "	OR UPPER(COALESCE(cliente_ruc, '')) LIKE '%" + q.toUpperCase() + "%' \n"
+				+ "	OR UPPER(COALESCE(cliente_documento_numero, '')) LIKE '%" + q.toUpperCase() + "%' \n"
+				+ "	OR UPPER(cliente_razon_social) LIKE '%" + q.toUpperCase() + "%' \n"
+				+ ") \n"
+				+ "AND tipo_documento = " + tipoDocumento + " \n"
+				+ "GROUP BY transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
+				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
+				+ "establecimiento, punto, numero, serie, total \n"
+				+ "ORDER BY numero DESC \n";		
 		return sql;
 	}
 	
