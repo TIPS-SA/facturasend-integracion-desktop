@@ -23,6 +23,10 @@ public class Core {
 			
 			String sql = getSQLListDes(databaseProperties, q, page, size);
 			
+			result.put("count", SQLUtil.getCountFromSQL(statement, sql));
+
+			sql = getSQLListDesPaginado(databaseProperties, sql, q, page, size);
+			
 			System.out.println("" + sql);
 			ResultSet rs = statement.executeQuery(sql);
 			
@@ -34,7 +38,6 @@ public class Core {
 			
 			result.put("success", true);
 			result.put("result", listadoDes);
-			result.put("count", SQLUtil.getCountFromSQL(statement, sql));
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -51,6 +54,11 @@ public class Core {
 		String sql = "SELECT * FROM " + tableName;
 		
 		//Filter
+		
+		return sql;
+	}
+	
+	private static String getSQLListDesPaginado(Map<String, String> databaseProperties, String sql, String q, Integer page, Integer size) {
 		
 		//Paginacion
 		if (databaseProperties.get("database.type").equals("oracle")) {
