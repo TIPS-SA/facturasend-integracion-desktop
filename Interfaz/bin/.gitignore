@@ -1,4 +1,6 @@
-/service/
-/enums/
+/bean/
 /config/
+/enums/
+/resources/
+/service/
 /views/

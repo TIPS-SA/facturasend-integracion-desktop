@@ -21,6 +21,7 @@ import javax.swing.border.SoftBevelBorder;
 
 import service.FacturasendService;
 import views.commons.Paginacion;
+import views.commons.PaginacionListener;
 import views.commons.Paginacion;
 
 import java.awt.event.ActionListener;
@@ -60,7 +61,11 @@ public class Principal extends JFrame {
 	private JButton btnAnterior;
 	private JButton btnFacturaImportacion;
 	private JPanel paneSouthTableCenter;
-
+	Paginacion paginacion;
+	FacturasendService fs;
+	
+	private Integer rowsPerPage = 10;
+	private Integer tipoDocumento = 1;
 	/**
 	 * Launch the application.
 	 */
@@ -82,7 +87,7 @@ public class Principal extends JFrame {
 	 * Create the application.
 	 */
 	public Principal() {
-		FacturasendService fs = new FacturasendService();
+		fs = new FacturasendService();
 		initialize();
 		events();
 	}
@@ -174,6 +179,13 @@ public class Principal extends JFrame {
 		btnFacturas = new JButton("Facturas");
 		btnFacturas.setIcon(new ImageIcon(Principal.class.getResource("/resources/FacturaElectronica.png")));
 		btnFacturas.setToolTipText("Facturas");
+		btnFacturas.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tipoDocumento = 1;
+				paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+			}
+		});
 		
 		btnAutoFactura = new JButton("<html><p>Auto</p>Factura<p></p></html>");
 		btnAutoFactura.setIcon(new ImageIcon(Principal.class.getResource("/resources/AutoFactura.png")));
@@ -261,7 +273,7 @@ public class Principal extends JFrame {
 		paneCenter.setLayout(new BorderLayout(0, 0));
 		
 		table = new JTable();
-		fs.cargar_tabla(table);
+		//fs.cargar_tabla(table);
 		
 		scrollPaneCenter = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_NEVER,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -276,7 +288,18 @@ public class Principal extends JFrame {
 		paneSouthTable = new JPanel();
 		paneSouthTable.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
 		paneSouthTable.setLayout(new BorderLayout(0, 0));
-		Paginacion paginacion = new Paginacion(365,45);
+		
+		paginacion = new Paginacion(365, 45);
+		paginacion.addActionListener(new PaginacionListener() {
+			@Override
+			public void goTo(Integer currentPage) {
+				paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage));
+			}
+		});
+		paginacion.setCurrentPage(1);
+		paginacion.setRowsPerPage(rowsPerPage);
+		//paginacion.setTotal(100);
+
 		paneCenter.add(paneSouthTable, BorderLayout.SOUTH);
 		paneSouthTable.add(paginacion, BorderLayout.EAST);
 //		
@@ -300,5 +323,9 @@ public class Principal extends JFrame {
 				confView.setVisible(true);
 			}
 		});
+	}
+
+	public Paginacion getPaginacion() {
+		return paginacion;
 	}
 }

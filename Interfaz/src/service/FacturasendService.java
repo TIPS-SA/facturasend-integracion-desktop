@@ -41,30 +41,31 @@ public class FacturasendService {
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<Map<String, Object>> loadDocumentosElectronicos(Integer tipo) throws Exception {
+	public static Map<String, Object> loadDocumentosElectronicos(String q, Integer tipo, Integer page, Integer size) throws Exception {
 		
-		List<Map<String, Object>> resultList = new ArrayList<Map<String,Object>>();
 		//Llamar a la consulta de Datos
 		ConfigProperties configProperties = new ConfigProperties();
 		
-		Map<String, Object> returnData = Core.listDes("", 1, 10, configProperties.readDbProperties());
+		Map<String, Object> returnData = Core.listDes(q, tipo, page, size, configProperties.readDbProperties());
 		
 		System.out.println(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {
-			resultList = (List<Map<String, Object>>)returnData.get("result");
+			return returnData;
 		} else {
 			throw new Exception(returnData.get("error")+"");
 		}
-		return resultList;
 	}
 	
-	public void cargar_tabla(JTable table){
+	public Integer populateTable(JTable table, String q, Integer tipoDocumento, Integer page, Integer size){
+		Integer retorno = 0;
 		Object [] titulos = {null,"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado"};
 		Object datos[] = {null, null, null, null,null, null, null, null};
 		    
 		DefaultTableModel model = new DefaultTableModel(null, titulos);
 		try {
-			List<Map<String, Object>> rs = loadDocumentosElectronicos(0);
+			Map<String, Object> result = loadDocumentosElectronicos(q, tipoDocumento, page, size);
+			List<Map<String, Object>> rs = (List<Map<String, Object>>)result.get("result");
+			retorno =  (Integer)result.get("count");
 			System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
 				datos[1] = rs.get(i).get("transaccion_id");
@@ -86,6 +87,8 @@ public class FacturasendService {
 		addCheckBox(0, table);
 		table.getColumnModel().getColumn(1).setPreferredWidth(10);
 		table.getColumnModel().getColumn(5).setPreferredWidth(20);
+		
+		return retorno;
 	}
 		
 	private void addCheckBox(int columna, JTable table) {

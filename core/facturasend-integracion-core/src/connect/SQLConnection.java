@@ -31,12 +31,11 @@ public class SQLConnection {
 		                   ";create=true",
 		                   connectionProps);
 		    } else if (bdConnect.getTipo().equals("oracle")) {
-		    	Class.forName("com.mysql.jdbc.Driver");  
+		    	Class.forName("oracle.jdbc.driver.OracleDriver");
 		        conn = DriverManager.getConnection(
-		                   "jdbc:oracle:" +
-		                	bdConnect.getDatabase() +
-		                   ";create=true",
-		                   connectionProps);
+		                   "jdbc:oracle:thin:@" + bdConnect.getHost() + ":" + bdConnect.getPort() + ":" +  
+		                	bdConnect.getDatabase(),
+		                	bdConnect.getUsername(), bdConnect.getPassword());
 		    } else if (bdConnect.getTipo().equals("postgres")) {
 		    	//System.out.println("-->" + System.getProperty("user.dir") + File.separator);
 		    	System.out.println(SQLConnection.class.getResource(""));

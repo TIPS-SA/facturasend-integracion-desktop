@@ -1,19 +1,23 @@
 package views.commons;
 
-import javax.swing.JPanel;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.JLabel;
-import javax.swing.JButton;
 import javax.swing.ImageIcon;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import java.awt.FlowLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class Paginacion extends JPanel {
+    private List<IPaginacionListener> listeners = new ArrayList<IPaginacionListener>();
+
 	private JButton btnFirstPage;
 	private JTextField txtPagina;
 	private JButton btnAnterior;
@@ -24,6 +28,11 @@ public class Paginacion extends JPanel {
 	private int width;
 	private int height;
 
+	private Integer currentPage;
+
+	private Integer rowsPerPage;
+	private Integer total;
+	
 	/**
 	 * Create the panel.
 	 */
@@ -46,7 +55,15 @@ public class Paginacion extends JPanel {
 		
 		txtPagina = new JTextField();
 		txtPagina.setColumns(3);
-		
+		txtPagina.addKeyListener(new KeyAdapter() {
+	        @Override
+	        public void keyPressed(KeyEvent e) {
+	            if(e.getKeyCode() == KeyEvent.VK_ENTER){
+	               setCurrentPage(Integer.valueOf(txtPagina.getText()));
+	            }
+	        }
+
+	    });
 		lblCantidadPaginas = new JLabel("De 10");
 		
 		btnSiguiente = new JButton("");
@@ -100,5 +117,70 @@ public class Paginacion extends JPanel {
 		);
 		setLayout(groupLayout);
 
+		btnFirstPage.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				currentPage = 1;
+				setCurrentPage(currentPage);
+			}
+		});
+		btnAnterior.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				currentPage --;
+				setCurrentPage(currentPage);
+			}
+		});
+		btnSiguiente.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				currentPage++;
+				setCurrentPage(currentPage);
+			}
+		});
+		btnLastPage.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				currentPage = 10;
+				setCurrentPage(currentPage);
+			}
+		});
+	}
+	
+	public Integer getCurrentPage() {
+		return currentPage;
+	}
+
+	public void setCurrentPage(Integer currentPage) {
+		this.currentPage = currentPage;
+		txtPagina.setText(this.currentPage + "");
+		this.listeners.stream().forEach( l -> {l.goTo(currentPage);} );
+	}
+
+	public Integer getRowsPerPage() {
+		return rowsPerPage;
+	}
+
+	public void setRowsPerPage(Integer rowsPerPage) {
+		this.rowsPerPage = rowsPerPage;
+	}
+
+	public Integer getTotal() {
+		return total;
+	}
+
+	public void setTotal(Integer total) {
+		this.total = total;
+	}
+
+	public void addActionListener(IPaginacionListener paginacionListener) {
+		listeners.add(paginacionListener);
+	}
+
+	public List<IPaginacionListener> getListeners() {
+		return listeners;
 	}
 }
+
+
+
