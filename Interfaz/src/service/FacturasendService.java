@@ -56,6 +56,29 @@ public class FacturasendService {
 		}
 	}
 	
+	/**
+	 * Ejecuta el proceso de integración desde el Core, el 
+	 * cual tiene su logica propia para mantener las transacciones
+	 * sincronizadas.
+	 * 
+	 * @param tipo
+	 * @return
+	 * @throws Exception
+	 */
+	public static Map<String, Object> iniciarIntegracion(Integer tipoDocumento) throws Exception {
+		
+		//Llamar a la consulta de Datos
+		
+		Map<String, Object> returnData = Core.iniciarIntegracion(tipoDocumento, readDBProperties());
+		
+		System.out.println(returnData);
+		if (Boolean.valueOf(returnData.get("success")+"") == true) {
+			return returnData;
+		} else {
+			throw new Exception(returnData.get("error")+"");
+		}
+	}
+	
 	public Integer populateTransactionTable(JTable table, String q, Integer tipoDocumento, Integer page, Integer size){
 		Integer retorno = 0;
 		Object [] titulos = {null,"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado"};
@@ -69,12 +92,12 @@ public class FacturasendService {
 			//System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
 				
-				datos[1] = rs.get(i).get(getFieldName("transaccion_id"));
-				datos[2] = rs.get(i).get(getFieldName("fecha"));
-				datos[3] = rs.get(i).get(getFieldName("cliente_razon_social"));
-				datos[4] = StringUtil.padLeftZeros(rs.get(i).get(getFieldName("establecimiento"))+"", 3)  + "-" + StringUtil.padLeftZeros(rs.get(i).get(getFieldName("punto"))+"", 3) + "-" + StringUtil.padLeftZeros(rs.get(i).get(getFieldName("numero")) + "", 7);
-				datos[5] = rs.get(i).get(getFieldName("moneda"));
-				datos[6] = rs.get(i).get(getFieldName("total")) != null ? rs.get(i).get(getFieldName("total")) : 0;
+				datos[1] = rs.get(i).get(Core.getFieldName("transaccion_id", readDBProperties()));
+				datos[2] = rs.get(i).get(Core.getFieldName("fecha", readDBProperties()));
+				datos[3] = rs.get(i).get(Core.getFieldName("cliente_razon_social", readDBProperties()));
+				datos[4] = StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("establecimiento", readDBProperties()))+"", 3)  + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("punto", readDBProperties()))+"", 3) + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("numero", readDBProperties())) + "", 7);
+				datos[5] = rs.get(i).get(Core.getFieldName("moneda", readDBProperties()));
+				datos[6] = rs.get(i).get(Core.getFieldName("total", readDBProperties())) != null ? rs.get(i).get(Core.getFieldName("total", readDBProperties())) : 0;
 				datos[7] = getEstadoValue(0);
 				
 				model.addRow(datos);
@@ -92,13 +115,7 @@ public class FacturasendService {
 		return retorno;
 	}
 		
-	private String getFieldName(String fieldName) {
-		boolean fieldsInUpperCase = readDBProperties().get("database.fields_in_uppercase").equals("true");
-		if (fieldsInUpperCase) {
-			fieldName = fieldName.toUpperCase();
-		}
-		return fieldName;
-	}
+	
 	private void addCheckBox(int columna, JTable table) {
 		TableColumn tc = table.getColumnModel().getColumn(columna);
 //		tc.setHeaderRenderer(new HeaderRenderer2(table.getTableHeader()));//Esta es la linea que trata de poner el chk pero da error

@@ -126,6 +126,17 @@ public class Principal extends JFrame {
 		
 		btnReintegrar = new JButton("Reintegrar");
 		btnReintegrar.setIcon(new ImageIcon(Principal.class.getResource("/resources/reload.png")));
+		btnReintegrar.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					fs.iniciarIntegracion(tipoDocumento);	
+				} catch (Exception e2) {
+					System.out.println("Mostrar error en pantalla, " + e2);
+				}
+				
+			}
+		});
 		
 		btnVerXml = new JButton("Ver XML");
 		btnVerXml.setIcon(new ImageIcon(Principal.class.getResource("/resources/txt.png")));
