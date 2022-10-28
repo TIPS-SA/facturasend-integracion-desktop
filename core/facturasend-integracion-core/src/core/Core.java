@@ -118,11 +118,11 @@ public class Core {
 			if (Boolean.valueOf(obtener50registrosNoIntegradosMap.get("success")+"") == true) {
 				List<Map<String, Object>> obtener50registrosNoIntegradosListMap = (List<Map<String, Object>>)obtener50registrosNoIntegradosMap.get("result");
 
-				transaccionIdString = "(";
+				transaccionIdString = "";
 				for (Map<String, Object> map : obtener50registrosNoIntegradosListMap) {
 					transaccionIdString += map.get(getFieldName("transaccion_id", databaseProperties)) + ", ";
 				}
-				transaccionIdString += "-1)";
+				transaccionIdString += "";
 				
 				//System.out.println(transaccionIdString);
 				
@@ -131,17 +131,27 @@ public class Core {
 			}
 			
 			
+			
 			//De acuerdo a los transaccion_id obtendidos, busca todos los registros relacionados.
-			Map<String, Object> documentosParaEnvioMap = procesarTransacciones(transaccionIdString, databaseProperties);
+			String transaccionIdStringInClause = "(" + transaccionIdString + "-1)";
+			Map<String, Object> documentosParaEnvioMap = procesarTransacciones(transaccionIdStringInClause, databaseProperties);
+			List<Map<String, Object>> documentosParaEnvioList = null;
+			
 			if (Boolean.valueOf(documentosParaEnvioMap.get("success")+"") == true) {
-				List<Map<String, Object>> documentosParaEnvioList = (List<Map<String, Object>>)documentosParaEnvioMap.get("result");
+				documentosParaEnvioList = (List<Map<String, Object>>)documentosParaEnvioMap.get("result");
 				System.out.println("resultado lote 2 principal " + documentosParaEnvioList);
+				
 			} else {
 				throw new Exception(documentosParaEnvioMap.get("error")+"");
 
 			}
 			
 			
+			
+			//Generar JSON de documentos electronicos.
+			List<Map<String, Object>> documentosParaEnvioJsonMap = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentosParaEnvioList, databaseProperties);
+
+			//
 		} catch (Exception e) {
 			e.printStackTrace();
 			obtener50registrosNoIntegradosMap.put("success", false);
