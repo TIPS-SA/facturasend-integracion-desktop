@@ -15,7 +15,7 @@ public class DocumentoElectronicoCore {
 	private Gson gson = new Gson();
 
 	public static List<Map<String, Object>> generarJSONLote(String[] transactionIds, List<Map<String, Object>> documentosParaEnvioList, Map<String, String> databaseProperties) throws Exception{
-		
+		 
 		List<Map<String, Object>> jsonDEs = new ArrayList<Map<String,Object>>();
 			
 		for (int i = 0; i < transactionIds.length; i++) {
