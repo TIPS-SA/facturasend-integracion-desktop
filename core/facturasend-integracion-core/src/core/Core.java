@@ -120,7 +120,7 @@ public class Core {
 
 				transaccionIdString = "";
 				for (Map<String, Object> map : obtener50registrosNoIntegradosListMap) {
-					transaccionIdString += map.get(getFieldName("transaccion_id", databaseProperties)) + ", ";
+					transaccionIdString += map.get(getFieldName("transaccion_id", databaseProperties)) + ",";
 				}
 				transaccionIdString += "";
 				
