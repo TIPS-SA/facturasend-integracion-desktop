@@ -24,7 +24,7 @@ public class Core {
 			
 			String sql = getSQLListDes(databaseProperties, q, tipoDocumento, page, size);
 			
-			result.put("count", SQLUtil.getCountFromSQL(statement, sql));
+			result.put("count", SQLUtil.getCountFromSQL(statement, sql)); 
 
 			//sql = getSQLListDesPaginado(databaseProperties, sql, q, page, size);
 			if (databaseProperties.get("database.type").equals("oracle")) {
