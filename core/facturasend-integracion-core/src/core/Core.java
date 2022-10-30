@@ -18,7 +18,7 @@ public class Core {
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
-			Connection conn = SQLConnection.getConnection(BDConnect.fromMap(databaseProperties));
+			Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 			
 			Statement statement = conn.createStatement();
 			
@@ -89,7 +89,7 @@ public class Core {
 	public static List<Map<String, Object>> formasPagosByTransaccion(Integer tipoDocumento, Integer transaccionId, Map<String, String> databaseProperties) throws Exception{
 		
 		List<Map<String, Object>> result = new ArrayList<Map<String,Object>>();
-		Connection conn = SQLConnection.getConnection(BDConnect.fromMap(databaseProperties));
+		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 		
 		Statement statement = conn.createStatement();
 		
@@ -206,7 +206,7 @@ public class Core {
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
-			Connection conn = SQLConnection.getConnection(BDConnect.fromMap(databaseProperties));
+			Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 			
 			Statement statement = conn.createStatement();
 			
@@ -319,7 +319,7 @@ public class Core {
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
-			Connection conn = SQLConnection.getConnection(BDConnect.fromMap(databaseProperties));
+			Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 			
 			Statement statement = conn.createStatement();
 			

@@ -5,5 +5,8 @@
 	<classpathentry kind="lib" path="libs/oracle.jar"/>
 	<classpathentry kind="lib" path="libs/postgresql-9.3-1104.jdbc4.jar"/>
 	<classpathentry kind="lib" path="libs/gson-2.3.jar"/>
+	<classpathentry kind="lib" path="libs/commons-dbcp2-2.9.0.jar"/>
+	<classpathentry kind="lib" path="libs/commons-pool2-2.11.1.jar"/>
+	<classpathentry kind="lib" path="libs/commons-logging-1.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

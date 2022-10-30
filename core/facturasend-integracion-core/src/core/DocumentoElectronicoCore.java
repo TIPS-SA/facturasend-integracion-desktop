@@ -76,7 +76,7 @@ public class DocumentoElectronicoCore {
 			dataMap.put("serie", getValueForKey(transaccionCabecera, "serie"));
 			dataMap.put("descripcion", getValueForKey(transaccionCabecera, "descripcion", "descrip"));
 			dataMap.put("observacion", getValueForKey(transaccionCabecera,"observacion","observ"));
-			dataMap.put("fecha", getValueForKey(transaccionCabecera,"fecha"));
+			dataMap.put("fecha", sdf.format((Date) getValueForKey(transaccionCabecera,"fecha")) );
 			dataMap.put("tipoEmision", getValueForKey(transaccionCabecera, "tipo_emision", "tip_emi"));
 			dataMap.put("tipoTransaccion", getValueForKey(transaccionCabecera, "tipo_transaccion", "tip_tra"));
 			dataMap.put("tipoImpuesto", getValueForKey(transaccionCabecera, "tipo_impuesto", "tip_imp"));
@@ -92,7 +92,7 @@ public class DocumentoElectronicoCore {
 			// Cliente
 			Map<String, Object> cliente = new HashMap<String, Object>();
 			
-			cliente.put("contribuyente",  getValueForKey(transaccionCabecera,"cliente_contribuyente","c_contribu"));
+			cliente.put("contribuyente", Boolean.valueOf(getValueForKey(transaccionCabecera,"cliente_contribuyente","c_contribu")+""));
 			
 			cliente.put("ruc", getValueForKey(transaccionCabecera,"cliente_ruc","c_ruc"));
 			cliente.put("razonSocial", getValueForKey(transaccionCabecera,"cliente_razon_social","c_raz_soc"));
@@ -134,50 +134,57 @@ public class DocumentoElectronicoCore {
 			//finUsuario
 			
 			//Factura
-			Map<String, Object> dataMapFactura1 = new HashMap<String, Object>();
-			dataMapFactura1.put("presencia", getValueForKey(transaccionCabecera,"factura_presencia","fa_pre"));
-			dataMapFactura1.put("fechaEnvio", getValueForKey(transaccionCabecera,"factura_fecha_envio","fa_fec_env"));
-			dataMapFactura1.put("ticket", getValueForKey(transaccionCabecera,"factura_ticket","fa_ticket"));				
-			dataMap.put("factura", dataMapFactura1);
-
+			if (tipoDocumento == 1) {
+				Map<String, Object> dataMapFactura1 = new HashMap<String, Object>();
+				dataMapFactura1.put("presencia", getValueForKey(transaccionCabecera,"factura_presencia","fa_pre"));
+				dataMapFactura1.put("fechaEnvio", getValueForKey(transaccionCabecera,"factura_fecha_envio","fa_fec_env"));
+				dataMapFactura1.put("ticket", getValueForKey(transaccionCabecera,"factura_ticket","fa_ticket"));				
+				dataMap.put("factura", dataMapFactura1);
+			}
 			
 			//AutoFactura
-			Map<String, Object> dataMapFactura = new HashMap<String, Object>();
-			dataMapFactura.put("tipoVendedor", getValueForKey(transaccionCabecera,"autofactura_tipo_vendedor","af_tip_ven"));
-			dataMapFactura.put("documentoTipo", getValueForKey(transaccionCabecera,"autofactura_documento_tipo","af_doc_tip"));
-			dataMapFactura.put("documentoNumero", getValueForKey(transaccionCabecera,"autofactura_documento_numero","af_doc_num"));
-			dataMapFactura.put("nombre", getValueForKey(transaccionCabecera,"autofactura_nombre","af_tip_ven"));				
-			dataMapFactura.put("direccion", getValueForKey(transaccionCabecera,"autofactura_direccion","af_tip_ven"));
-			dataMapFactura.put("numeroCasa", getValueForKey(transaccionCabecera,"autofactura_numero_casa","af_num_cas"));
-			dataMapFactura.put("departamento", getValueForKey(transaccionCabecera,"autofactura_departamento","af_depart"));
-			dataMapFactura.put("distrito", getValueForKey(transaccionCabecera,"autofactura_distrito","af_distri"));
-			dataMapFactura.put("ciudad", getValueForKey(transaccionCabecera,"autofactura_ciudad","af_ciudad"));
-			dataMapFactura.put("pais", getValueForKey(transaccionCabecera,"autofactura_pais","af_pais"));
-			
-			Map<String, Object> ubicacion = new HashMap<String, Object>();
-			
-			//Ubicacion de la Autofactura, local del cliente.
-			ubicacion.put("lugar", getValueForKey(transaccionCabecera,"cliente_direccion","c_direcc"));
-			ubicacion.put("ciudad", getValueForKey(transaccionCabecera,"cliente_ciudad","c_ciudad"));
-			ubicacion.put("distrito", getValueForKey(transaccionCabecera,"cliente_distrito","c_distri"));				
-			ubicacion.put("departamento", getValueForKey(transaccionCabecera,"cliente_departamento","c_depart"));
-			dataMapFactura.put("ubicacion", ubicacion);
-			
-			dataMap.put("autoFactura", dataMapFactura);
-			
-			
+			if (tipoDocumento == 4) {
+				Map<String, Object> dataMapFactura = new HashMap<String, Object>();
+				dataMapFactura.put("tipoVendedor", getValueForKey(transaccionCabecera,"autofactura_tipo_vendedor","af_tip_ven"));
+				dataMapFactura.put("documentoTipo", getValueForKey(transaccionCabecera,"autofactura_documento_tipo","af_doc_tip"));
+				dataMapFactura.put("documentoNumero", getValueForKey(transaccionCabecera,"autofactura_documento_numero","af_doc_num"));
+				dataMapFactura.put("nombre", getValueForKey(transaccionCabecera,"autofactura_nombre","af_tip_ven"));				
+				dataMapFactura.put("direccion", getValueForKey(transaccionCabecera,"autofactura_direccion","af_tip_ven"));
+				dataMapFactura.put("numeroCasa", getValueForKey(transaccionCabecera,"autofactura_numero_casa","af_num_cas"));
+				dataMapFactura.put("departamento", getValueForKey(transaccionCabecera,"autofactura_departamento","af_depart"));
+				dataMapFactura.put("distrito", getValueForKey(transaccionCabecera,"autofactura_distrito","af_distri"));
+				dataMapFactura.put("ciudad", getValueForKey(transaccionCabecera,"autofactura_ciudad","af_ciudad"));
+				dataMapFactura.put("pais", getValueForKey(transaccionCabecera,"autofactura_pais","af_pais"));
+				
+				Map<String, Object> ubicacion = new HashMap<String, Object>();
+				
+				//Ubicacion de la Autofactura, local del cliente.
+				ubicacion.put("lugar", getValueForKey(transaccionCabecera,"cliente_direccion","c_direcc"));
+				ubicacion.put("ciudad", getValueForKey(transaccionCabecera,"cliente_ciudad","c_ciudad"));
+				ubicacion.put("distrito", getValueForKey(transaccionCabecera,"cliente_distrito","c_distri"));				
+				ubicacion.put("departamento", getValueForKey(transaccionCabecera,"cliente_departamento","c_depart"));
+				dataMapFactura.put("ubicacion", ubicacion);
+				
+				dataMap.put("autoFactura", dataMapFactura);
+			}				
+				
 			//NotaCredito y Debito
-			Map<String, Object> dataMapNotaCreditoDebito = new HashMap<String, Object>();
-			dataMapNotaCreditoDebito.put("motivo", getValueForKey(transaccionCabecera,"nc_motivo","nc_motivo"));
-			dataMap.put("notaCreditoDebito", dataMapFactura);
-
+			if (tipoDocumento == 5) {
+				Map<String, Object> dataMapNotaCreditoDebito = new HashMap<String, Object>();
+				dataMapNotaCreditoDebito.put("motivo", getValueForKey(transaccionCabecera,"nc_motivo","nc_motivo"));
+			
+				dataMap.put("notaCreditoDebito", dataMapNotaCreditoDebito);		
+			}
+			
 			//NotaRemision			
-			Map<String, Object> dataMapNotaRemision = new HashMap<String, Object>();
-			dataMapNotaRemision.put("motivo", getValueForKey(transaccionCabecera,"nota_remision_motivo","nr_motivo"));
-			dataMapNotaRemision.put("tipoResponsable", getValueForKey(transaccionCabecera,"nota_remision_tipo_responsable","nr_tip_res"));
-			dataMapNotaRemision.put("kms", getValueForKey(transaccionCabecera,"nota_remision_kms","nr_kms"));
-
-			dataMap.put("remision", dataMapNotaRemision);
+			if (tipoDocumento == 1) {
+				Map<String, Object> dataMapNotaRemision = new HashMap<String, Object>();
+				dataMapNotaRemision.put("motivo", getValueForKey(transaccionCabecera,"nota_remision_motivo","nr_motivo"));
+				dataMapNotaRemision.put("tipoResponsable", getValueForKey(transaccionCabecera,"nota_remision_tipo_responsable","nr_tip_res"));
+				dataMapNotaRemision.put("kms", getValueForKey(transaccionCabecera,"nota_remision_kms","nr_kms"));
+	
+				dataMap.put("remision", dataMapNotaRemision);
+			}
 			
 			// Items de la compra
 			List<Map<String, Object>> lista = new ArrayList<Map<String, Object>>();
@@ -390,11 +397,12 @@ public class DocumentoElectronicoCore {
 				// CREDITO
 				if (creditoTipo == 1) {
 					//A Plazo
-					Map<String, Object> creditoPlazoMap = new HashMap<String, Object>();
+					//Map<String, Object> creditoMap = new HashMap<String, Object>();
 
-					creditoPlazoMap.put("tipo", 2);	//Plazo
-					creditoPlazoMap.put("plazo", getValueForKey(formaCobro,"credito_plazo","c_plazo") + "");
-					entregasListMap.add(creditoPlazoMap);
+					creditoMap.put("tipo", 2);	//Plazo
+					creditoMap.put("plazo", getValueForKey(formaCobro,"credito_plazo","c_plazo") + "");
+					
+					//creditoMap.put("credito", creditoMap);
 
 				} else {
 					//A Cuotas
@@ -429,7 +437,7 @@ public class DocumentoElectronicoCore {
 		if (entregasListMap != null && entregasListMap.size() > 0) {
 			condicionMap.put("entregas", entregasListMap);
 		}
-		if (infoCuotasListMap.size() > 0) {
+		if (esACredito) {
 			condicionMap.put("credito", creditoMap);
 		}
 		
