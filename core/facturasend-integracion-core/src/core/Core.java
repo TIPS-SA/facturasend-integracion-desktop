@@ -3,6 +3,7 @@ package core;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,23 +69,55 @@ public class Core {
 		return sql;
 	}
 	
-	/*private static String getSQLListDesPaginado(Map<String, String> databaseProperties, String sql, String q, Integer page, Integer size) {
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static List<Map<String, Object>> formasPagosByTransaccion(Integer tipoDocumento, Integer transaccionId, Map<String, String> databaseProperties) throws Exception{
 		
-		//Paginacion
-		if (databaseProperties.get("database.type").equals("oracle")) {
-			sql = "SELECT * FROM \n" +  
-		    "( SELECT \n" +  
-		    "      ROWNUM rn, a.* \n" + 
-		    "  FROM \n" +  
-		     "   ( " + sql + " ) a \n" +  
-		      "WHERE \n" +  
-		        "ROWNUM <= " + (size * page) + " \n" + 
-		    ") \n" + 
-		"WHERE \n" +
-		    "rn  >= " + (page == 1 ? 1 : (size * (page-1)) + 1) + "\n";
-		}
+		List<Map<String, Object>> result = new ArrayList<Map<String,Object>>();
+		Connection conn = SQLConnection.getConnection(BDConnect.fromMap(databaseProperties));
+		
+		Statement statement = conn.createStatement();
+		
+		String sql = formasPagosSQLByTransaccion(databaseProperties, tipoDocumento, transaccionId);
+		System.out.println("" + sql);
+		ResultSet rs = statement.executeQuery(sql);
+		
+		result = SQLUtil.convertResultSetToList(rs);
+			
+		return result;
+	}
+			
+	private static String formasPagosSQLByTransaccion(Map<String, String> databaseProperties, Integer tipoDocumento, Integer transaccionId) {
+		String tableName = databaseProperties.get("database.payment_view");
+
+		String sql = "SELECT * \n"
+				+ "FROM " + tableName + " \n"
+				+ "WHERE 1=1 \n"
+				+ "AND tipo_documento = " + tipoDocumento + " \n"
+				+ "AND id = " + transaccionId + " \n"
+				+ "";		
 		return sql;
-	}*/
+	}
+	
+	
+	
+	
+	
 	
 	
 	

@@ -3,6 +3,7 @@ package core;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ import com.google.gson.Gson;
 
 public class DocumentoElectronicoCore {
 	
-	private Gson gson = new Gson();
+	private static Gson gson = new Gson();
 
 	public static List<Map<String, Object>> generarJSONLote(String[] transactionIds, List<Map<String, Object>> documentosParaEnvioList, Map<String, String> databaseProperties) throws Exception{
 		 
@@ -30,34 +31,16 @@ public class DocumentoElectronicoCore {
 					return transaccionIdIterate == transaccionId.intValue();
 				}).collect(Collectors.toList());
 				
-				/*List<Map<String, Object>> documentosParaEnvioFiltradoList = new ArrayList<Map<String,Object>>();
-				for (int j = 0; j < documentosParaEnvioList.size(); j++) {
-					Map<String, Object> map = documentosParaEnvioList.get(j);
-					String transaccionIdString = map.get(Core.getFieldName("transaccion_id", databaseProperties)) + "";
-					
-					Integer transaccionIdIterate = new BigDecimal(transaccionIdString).intValue();
-					
-					System.out.println("comparacion 222 " + transaccionIdIterate + "=" + transaccionId);
-					
-					if (transaccionIdIterate == transaccionId.intValue()) {
-						System.out.println("coincide...!");
-						documentosParaEnvioFiltradoList.add(map);
-					}
-					
-				}*/
-				
-				System.out.println("documentosParaEnvioFiltradoList " + documentosParaEnvioFiltradoList);
-				
-				System.out.println("documentosParaEnvioFiltradoList SIZE " + documentosParaEnvioFiltradoList.size());
-
 				if (documentosParaEnvioFiltradoList.size() > 0) {
-					Map<String, Object> jsonDE = invocarDocumentoElectronicoAutoFacturaCompra(documentosParaEnvioFiltradoList);
+					Map<String, Object> jsonDE = invocarDocumentoElectronicoAutoFacturaCompra(documentosParaEnvioFiltradoList, databaseProperties);
 					jsonDEs.add(jsonDE);					
 				}
 			}
 		}
 	
-		System.out.println("JSON===>>" + jsonDEs);
+		//System.out.println("JSON===>>" + jsonDEs);
+		System.out.println("JSON===>>" + gson.toJson(jsonDEs));
+		
 		return jsonDEs;
 	}
 			
@@ -69,352 +52,189 @@ public class DocumentoElectronicoCore {
 	 * @param sucursal
 	 * @throws InfoException
 	 */
-	public static Map<String, Object> invocarDocumentoElectronicoAutoFacturaCompra(List<Map<String, Object>> transaccionMap) throws Exception{
+	public static Map<String, Object> invocarDocumentoElectronicoAutoFacturaCompra(List<Map<String, Object>> transaccionMap, Map<String, String> databaseProperties) throws Exception{
 		Map<String, Object> dataMap = new HashMap<String, Object>();
 
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 		if (transaccionMap != null && transaccionMap.size() > 0) {
 			
-			Map<String, Object> compraItemCabecera = transaccionMap.get(0);
+			Map<String, Object> transaccionCabecera = transaccionMap.get(0);
 			
-			dataMap.put("tipoDocumento", 4); // AutoFactura
-			String cdcGenerado = (String) getValueForKey(compraItemCabecera, "cdc");
+			Integer transaccionId = Integer.valueOf(getValueForKey(transaccionCabecera, "transaccion_id", "tra_id") + "");
+			Integer tipoDocumento = Integer.valueOf(getValueForKey(transaccionCabecera, "tipo_documento", "tip_doc") + "");
+
+			dataMap.put("tipoDocumento", tipoDocumento);
+			String cdcGenerado = (String) getValueForKey(transaccionCabecera, "cdc");
 			
 			if (cdcGenerado != null && cdcGenerado.length() == 44) {
 				dataMap.put("cdc", cdcGenerado); //Si ya fue generado con un CDC, entonces envía para utilizar el mismo.
 			}
-			dataMap.put("ruc", getValueForKey(compraItemCabecera, "ruc"));
-			dataMap.put("establecimiento", getValueForKey(compraItemCabecera, "establecimiento", "establec"));
-			dataMap.put("punto", getValueForKey(compraItemCabecera, "punto"));
-			dataMap.put("numero", getValueForKey(compraItemCabecera, "numero"));
-			dataMap.put("serie", getValueForKey(compraItemCabecera, "serie"));
-			dataMap.put("descripcion", getValueForKey(compraItemCabecera, "descripcion", "descrip"));
-			/*dataMap.put("observacion", compraItemCabecera[6]);
-			dataMap.put("fecha", sdf.format((Date) compraItemCabecera[7]));
-			dataMap.put("tipoEmision", compraItemCabecera[8]);
-			dataMap.put("tipoTransaccion", compraItemCabecera[9]);
-			dataMap.put("tipoImpuesto", compraItemCabecera[10]);
-			dataMap.put("moneda", compraItemCabecera[11]);
-			dataMap.put("condicionAnticipo", compraItemCabecera[12]);
-			dataMap.put("condicionTipoCambio", compraItemCabecera[13]);
-			//dataMap.put("cambio", compraItemCabecera[14]);
-			if (!compraItemCabecera[11].equals("PYG")) {
-				//dataMap.put("condicionTipoCambio", operacionIngresoCabecera[13]);
-				dataMap.put("condicionTipoCambio", 1);
-				Cotizacion cotizacion = cfr.consultarCotizacionFechaMoneda((Date)compraItemCabecera[7],
-																			Integer.valueOf (String.valueOf(compraItemCabecera[81])),
-																			monedaPredeterminada.getCodigo());
-				if (cotizacion == null) {
-					throw new Exception("No existe cotización en fecha '" 
-							+ new SimpleDateFormat("dd/MM/yyyy").format((Date)compraItemCabecera[7])
-							+ "' entre la Moneda (" + compraItemCabecera[81] + "" + ") y la Moneda (" 
-							+ monedaPredeterminada.getCodigo() + ")");
+			dataMap.put("ruc", getValueForKey(transaccionCabecera, "ruc"));
+			dataMap.put("establecimiento", getValueForKey(transaccionCabecera, "establecimiento", "establec"));
+			dataMap.put("punto", getValueForKey(transaccionCabecera, "punto"));
+			dataMap.put("numero", getValueForKey(transaccionCabecera, "numero"));
+			dataMap.put("serie", getValueForKey(transaccionCabecera, "serie"));
+			dataMap.put("descripcion", getValueForKey(transaccionCabecera, "descripcion", "descrip"));
+			dataMap.put("observacion", getValueForKey(transaccionCabecera,"observacion","observ"));
+			dataMap.put("fecha", getValueForKey(transaccionCabecera,"fecha"));
+			dataMap.put("tipoEmision", getValueForKey(transaccionCabecera, "tipo_emision", "tip_emi"));
+			dataMap.put("tipoTransaccion", getValueForKey(transaccionCabecera, "tipo_transaccion", "tip_tra"));
+			dataMap.put("tipoImpuesto", getValueForKey(transaccionCabecera, "tipo_impuesto", "tip_imp"));
+			dataMap.put("moneda", getValueForKey(transaccionCabecera, "moneda"));
+			dataMap.put("condicionAnticipo", getValueForKey(transaccionCabecera, "anticipo"));
+			dataMap.put("descuentoGlobal", getValueForKey(transaccionCabecera, "descuento_global", "des_glo"));
+			dataMap.put("anticipoGlobal", getValueForKey(transaccionCabecera, "anticipo_global", "ant_glo"));
+			dataMap.put("total", getValueForKey(transaccionCabecera, "total"));
 
-				}
-				
-				dataMap.put("cambio",Double.valueOf(cotizacion.getCompra()));
-			}
-			// Cliente
+			dataMap.put("condicionTipoCambio", getValueForKey(transaccionCabecera,"tipo_cambio","tip_cam"));			
+			dataMap.put("cambio", getValueForKey(transaccionCabecera,"cambio"));
 			
+			// Cliente
 			Map<String, Object> cliente = new HashMap<String, Object>();
 			
-			if (compraItemCabecera[78] == null) {
-				throw new Exception("Debe especificar la Empresa en Opciones del Sistema");
-			}
-
-			Persona clienteAFacturar = em.find(Cliente.class, compraItemCabecera[78]);
+			cliente.put("contribuyente",  getValueForKey(transaccionCabecera,"cliente_contribuyente","c_contribu"));
 			
-			if (clienteAFacturar == null) {
-				throw new Exception("Debe cargar a la persona con codigo #" + compraItemCabecera[78] + " como Cliente");
-			}
-			if (clienteAFacturar.getTipoDocumento() != null ) {
-				if (clienteAFacturar.getTipoDocumento() == 1) {
-					cliente.put("contribuyente", true);
-				} else {
-					cliente.put("contribuyente", false);
-				}
-			}
-			cliente.put("ruc", clienteAFacturar.getDocumento());
-			cliente.put("razonSocial", clienteAFacturar.getNombre());
-			cliente.put("nombreFantasia", clienteAFacturar.getNombreFantasia());
+			cliente.put("ruc", getValueForKey(transaccionCabecera,"cliente_ruc","c_ruc"));
+			cliente.put("razonSocial", getValueForKey(transaccionCabecera,"cliente_razon_social","c_raz_soc"));
+			cliente.put("nombreFantasia", getValueForKey(transaccionCabecera,"cliente_nombre_fantasia","c_nom_fan"));
 
-			cliente.put("tipoOperacion", 2);//D202
-			cliente.put("direccion", clienteAFacturar.getDireccion());
+			cliente.put("tipoOperacion", getValueForKey(transaccionCabecera,"cliente_tipo_operacion","c_tip_ope"));
+			cliente.put("direccion", getValueForKey(transaccionCabecera,"cliente_direccion","c_direcc"));
+			cliente.put("numeroCasa", getValueForKey(transaccionCabecera,"cliente_numero_casa","c_num_cas"));
+
+			cliente.put("ciudad", getValueForKey(transaccionCabecera,"cliente_ciudad","c_ciudad"));
+			cliente.put("departamento", getValueForKey(transaccionCabecera,"cliente_departamento","c_depart"));
+			cliente.put("distrito", getValueForKey(transaccionCabecera,"cliente_distrito","c_distri"));
+			cliente.put("pais", getValueForKey(transaccionCabecera,"cliente_pais","c_pais"));
+
+			cliente.put("tipoContribuyente", getValueForKey(transaccionCabecera,"cliente_tipo_contribuyente","c_tip_con"));
+					
+			cliente.put("documentoTipo", getValueForKey(transaccionCabecera,"cliente_documento_tipo","c_doc_tip"));
 			
-			if (clienteAFacturar.getNumeroCasa() != null && clienteAFacturar.getNumeroCasa() != "" ) {
-				cliente.put("numeroCasa", clienteAFacturar.getNumeroCasa());
-
-			} else {
-				cliente.put("numeroCasa", 0);
-			}
+			cliente.put("documentoNumero", getValueForKey(transaccionCabecera,"cliente_documento_numero","c_doc_num"));
 			
-			if (clienteAFacturar.getCiudad() != null && clienteAFacturar.getCiudad().getCodigo() != null) {
-
-				Ciudad ciudad = em.find(Ciudad.class, clienteAFacturar.getCiudad().getCodigo());
-				if (ciudad != null) {
-					cliente.put("ciudad", ciudad.getCodigo());
-					cliente.put("ciudadDescripcion", ciudad.getNombre());
-
-					if (ciudad.getDistrito() != null && ciudad.getDistrito().getCodigo() != null) {
-						ClasificadorGenerico distrito = em.find(ClasificadorGenerico.class,
-								ciudad.getDistrito().getCodigo());
-						if (distrito.getClasificador() != null && distrito.getClasificador().getCodigo() != null) {
-							ClasificadorGenerico departamento = em.find(ClasificadorGenerico.class,
-									distrito.getClasificador().getCodigo());
-							if (departamento != null) {
-								cliente.put("departamento", departamento.getReferencia());
-								cliente.put("departamentoDescripcion", departamento.getNombre());
-							}
-						}
-						cliente.put("distrito", distrito.getReferencia());
-						cliente.put("distritoDescripcion", distrito.getNombre());
-					}
-				}
-				if (clienteAFacturar.getNacionalidad() != null
-						&& clienteAFacturar.getNacionalidad().getCodigo() != null) {
-					ClasificadorGenerico pais = em.find(ClasificadorGenerico.class,
-							clienteAFacturar.getNacionalidad().getCodigo());
-					cliente.put("pais", pais.getReferencia());
-					cliente.put("pais_descripcion", pais.getNombre());
-
-				}
-
-			}
-
-			// String tipoPersona = clienteAFacturar.getTipo();
-			if (clienteAFacturar.getTipo().equals("F")) // D205 1=Fisica, 2=Juridica
-			{
-				cliente.put("tipoContribuyente", 1);
-			} else {
-				cliente.put("tipoContribuyente", 2);
-			}
-			
-			if (clienteAFacturar.getTipoDocumento().intValue() == 0) {
-				cliente.put("documentoTipo", 1);// Cedula de identidad
-			} else if (clienteAFacturar.getTipoDocumento().intValue() == 2
-					|| clienteAFacturar.getTipoDocumento().intValue() == 4) {
-				cliente.put("documentoTipo", 3);// Cedula Extranjera
-			} else if (clienteAFacturar.getTipoDocumento().intValue() == 3) {
-				cliente.put("documentoTipo", 2);// Pasaporte
-			} else if (clienteAFacturar.getTipoDocumento().intValue() == 5) {
-				cliente.put("documentoTipo", 4);// Carnet de Residencia
-			} else if (clienteAFacturar.getTipoDocumento().intValue() == 6) {
-				cliente.put("documentoTipo", 6);// Tarjeta diplomatica
-			} else if (clienteAFacturar.getTipoDocumento().intValue() == 7) {
-				cliente.put("documentoTipo", 5);// Innominado
-			} else {
-				cliente.put("documentoTipo", 9);// Otros
-			}
-			cliente.put("documentoNumero", clienteAFacturar.getDocumento());
-			cliente.put("telefono", clienteAFacturar.getTelefono());
-			cliente.put("celular", clienteAFacturar.getCelular());
-			cliente.put("email", clienteAFacturar.getEmail());
-			cliente.put("codigo", StringUtil.leftPadding(clienteAFacturar.getCodigo() + "", 3));
+			cliente.put("telefono", getValueForKey(transaccionCabecera,"cliente_telefono","c_tel"));
+			cliente.put("celular", getValueForKey(transaccionCabecera,"cliente_celular","c_cel") );
+			cliente.put("email", getValueForKey(transaccionCabecera,"cliente_email","c_ema"));
+			cliente.put("codigo", getValueForKey(transaccionCabecera,"cliente_codigo","c_cod"));
 			
 			dataMap.put("cliente", cliente );
 			//FIN CLIENTE
 			
+			
 			// inicioUsuario
 			Map<String, Object> dataMapUsuario = new HashMap<String, Object>();
 
-			Integer documentoTipoUsuario = Integer.valueOf(compraItemCabecera[36] + "");
-
-			if (documentoTipoUsuario == 0 || documentoTipoUsuario == 1) {
-				dataMapUsuario.put("documentoTipo", 1);// Cedula de identidad
-			} else if (documentoTipoUsuario == 2 || documentoTipoUsuario == 4) {
-				dataMapUsuario.put("documentoTipo", 3);// Cedula Extranjera
-			} else if (documentoTipoUsuario == 3) {
-				dataMapUsuario.put("documentoTipo", 2);// Pasaporte
-			} else if (documentoTipoUsuario == 5) {
-				dataMapUsuario.put("documentoTipo", 4);// Carnet de Residencia
-			} else if (documentoTipoUsuario == 6) {
-				dataMapUsuario.put("documentoTipo", 6);// Tarjeta diplomatica
-			} else if (documentoTipoUsuario == 7) {
-				dataMapUsuario.put("documentoTipo", 5);// Innominado
-			} else {
-				dataMapUsuario.put("documentoTipo", 9);// Otros
-			}
-			dataMapUsuario.put("documentoNumero", compraItemCabecera[37]);
-			dataMapUsuario.put("nombre", compraItemCabecera[38]);
-			dataMapUsuario.put("cargo", compraItemCabecera[39]);
+			dataMapUsuario.put("documentoTipo", getValueForKey(transaccionCabecera,"usuario_documento_tipo","u_doc_tip"));
+			
+			dataMapUsuario.put("documentoNumero", getValueForKey(transaccionCabecera,"usuario_documento_numero","u_doc_num"));
+			dataMapUsuario.put("nombre", getValueForKey(transaccionCabecera,"usuario_nombre","u_nom"));
+			dataMapUsuario.put("cargo", getValueForKey(transaccionCabecera,"usuario_cargo","u_car"));
 			dataMap.put("usuario", dataMapUsuario);
 			//finUsuario
 			
-			//DATOS DEL VENDEDOR
+			//Factura
+			Map<String, Object> dataMapFactura1 = new HashMap<String, Object>();
+			dataMapFactura1.put("presencia", getValueForKey(transaccionCabecera,"factura_presencia","fa_pre"));
+			dataMapFactura1.put("fechaEnvio", getValueForKey(transaccionCabecera,"factura_fecha_envio","fa_fec_env"));
+			dataMapFactura1.put("ticket", getValueForKey(transaccionCabecera,"factura_ticket","fa_ticket"));				
+			dataMap.put("factura", dataMapFactura1);
+
+			
+			//AutoFactura
 			Map<String, Object> dataMapFactura = new HashMap<String, Object>();
-			dataMapFactura.put("tipoVendedor", 1);	//Tiene que ser dinamico
-			dataMapFactura.put("documentoNumero", compraItemCabecera[17]);
-			dataMapFactura.put("nombre", compraItemCabecera[18]);				
-			Integer documentoTipoVendedor = Integer.valueOf(compraItemCabecera[16] + "");
-			Integer institucionEstado = 0;
-			
-			
-			if (compraItemCabecera[29] == null) {
-				throw new Exception("Debe asignar un PAIS al Proveedor");
-			}
-			String paisVnd = String.valueOf(compraItemCabecera[29] + "");
-			String tipoPersonaVnd = String.valueOf(compraItemCabecera[31] + "");
-
-			if (documentoTipoVendedor != null && documentoTipoVendedor == 1 ) {
-				throw new Exception("Imposible Autofacturar, El Tipo de Documento del Vendedor es RUC");
-			}
-			dataMapFactura.put("tipoOperacion", 2); // B2C
-
-
-			dataMapFactura.put("direccion", compraItemCabecera[21]);
-
-			if (compraItemCabecera[22] != null && compraItemCabecera[22] != "") {
-				dataMapFactura.put("numeroCasa", compraItemCabecera[22]);
-			} else {
-				dataMapFactura.put("numeroCasa", 0);
-			}
-
-			//dataMapFactura.put("numeroCasa", compraItemItemCabecera[22]);
-			dataMapFactura.put("departamento", compraItemCabecera[23]);
-			dataMapFactura.put("departamentoDescripcion", compraItemCabecera[24]);
-			dataMapFactura.put("distrito", compraItemCabecera[25]);
-			dataMapFactura.put("distritoDescripcion", compraItemCabecera[26]);
-			dataMapFactura.put("ciudad", compraItemCabecera[27]);
-			dataMapFactura.put("ciudadDescripcion", compraItemCabecera[28]);
-			dataMapFactura.put("pais", paisVnd);
-			dataMapFactura.put("pais_descripcion", compraItemCabecera[30]);
-			
-			
-			if (tipoPersonaVnd.equals("F")) // D205 1=Fisica, 2=Juridica
-			{
-				dataMapFactura.put("tipoContribuyente", 1);
-			} else {
-				dataMapFactura.put("tipoContribuyente", 2);
-			}
-			if (documentoTipoVendedor != 1) {
-				if (documentoTipoVendedor == 0) {
-					dataMapFactura.put("documentoTipo", 1);// Cedula de identidad
-				} else if (documentoTipoVendedor == 2 || documentoTipoVendedor == 4) {
-					dataMapFactura.put("documentoTipo", 3);// Cedula Extranjera
-				} else if (documentoTipoVendedor == 3) {
-					dataMapFactura.put("documentoTipo", 2);// Pasaporte
-				} else if (documentoTipoVendedor == 5) {
-					dataMapFactura.put("documentoTipo", 4);// Carnet de Residencia
-				} else if (documentoTipoVendedor == 6) {
-					dataMapFactura.put("documentoTipo", 6);// Tarjeta diplomatica
-				} else if (documentoTipoVendedor == 7) {
-					dataMapFactura.put("documentoTipo", 5);// Innominado
-				} else {
-					dataMapFactura.put("documentoTipo", 9);// Otros
-				}
-			}
-
-			dataMapFactura.put("documentoNumero", compraItemCabecera[17]);
-			dataMapFactura.put("telefono", compraItemCabecera[32]);
-			dataMapFactura.put("celular", compraItemCabecera[33]);
-			dataMapFactura.put("email", compraItemCabecera[34]);
-			dataMapFactura.put("codigo", compraItemCabecera[35] + "");
+			dataMapFactura.put("tipoVendedor", getValueForKey(transaccionCabecera,"autofactura_tipo_vendedor","af_tip_ven"));
+			dataMapFactura.put("documentoTipo", getValueForKey(transaccionCabecera,"autofactura_documento_tipo","af_doc_tip"));
+			dataMapFactura.put("documentoNumero", getValueForKey(transaccionCabecera,"autofactura_documento_numero","af_doc_num"));
+			dataMapFactura.put("nombre", getValueForKey(transaccionCabecera,"autofactura_nombre","af_tip_ven"));				
+			dataMapFactura.put("direccion", getValueForKey(transaccionCabecera,"autofactura_direccion","af_tip_ven"));
+			dataMapFactura.put("numeroCasa", getValueForKey(transaccionCabecera,"autofactura_numero_casa","af_num_cas"));
+			dataMapFactura.put("departamento", getValueForKey(transaccionCabecera,"autofactura_departamento","af_depart"));
+			dataMapFactura.put("distrito", getValueForKey(transaccionCabecera,"autofactura_distrito","af_distri"));
+			dataMapFactura.put("ciudad", getValueForKey(transaccionCabecera,"autofactura_ciudad","af_ciudad"));
+			dataMapFactura.put("pais", getValueForKey(transaccionCabecera,"autofactura_pais","af_pais"));
 			
 			Map<String, Object> ubicacion = new HashMap<String, Object>();
-			//Ubicacion de la Autofactura, local del cliente.
-			ubicacion.put("lugar", clienteAFacturar.getDireccion());
-			if (clienteAFacturar.getCiudad() != null && clienteAFacturar.getCiudad().getCodigo() != null) {
-				
-				Ciudad ciudad = em.find(Ciudad.class, clienteAFacturar.getCiudad().getCodigo());
-				if (ciudad != null) {
-					ubicacion.put("ciudad", ciudad.getCodigo());
-					ubicacion.put("ciudadDescripcion", ciudad.getNombre());
-					
-					if (ciudad.getDistrito() != null && ciudad.getDistrito().getCodigo() != null) {
-						ClasificadorGenerico distrito = em.find(ClasificadorGenerico.class, ciudad.getDistrito().getCodigo());
-						if (distrito.getClasificador() != null && distrito.getClasificador().getCodigo() != null) {
-							ClasificadorGenerico departamento = em.find(ClasificadorGenerico.class, distrito.getClasificador().getCodigo());
-							if (departamento != null) {
-								ubicacion.put("departamento", departamento.getReferencia());
-								ubicacion.put("departamentoDescripcion", departamento.getNombre());
-							}
-						}
-						ubicacion.put("distrito", distrito.getReferencia());
-						ubicacion.put("distritoDescripcion", distrito.getNombre());
-					}	
-				}
-			}
 			
+			//Ubicacion de la Autofactura, local del cliente.
+			ubicacion.put("lugar", getValueForKey(transaccionCabecera,"cliente_direccion","c_direcc"));
+			ubicacion.put("ciudad", getValueForKey(transaccionCabecera,"cliente_ciudad","c_ciudad"));
+			ubicacion.put("distrito", getValueForKey(transaccionCabecera,"cliente_distrito","c_distri"));				
+			ubicacion.put("departamento", getValueForKey(transaccionCabecera,"cliente_departamento","c_depart"));
 			dataMapFactura.put("ubicacion", ubicacion);
 			
-			
 			dataMap.put("autoFactura", dataMapFactura);
+			
+			
+			//NotaCredito y Debito
+			Map<String, Object> dataMapNotaCreditoDebito = new HashMap<String, Object>();
+			dataMapNotaCreditoDebito.put("motivo", getValueForKey(transaccionCabecera,"nc_motivo","nc_motivo"));
+			dataMap.put("notaCreditoDebito", dataMapFactura);
+
+			//NotaRemision			
+			Map<String, Object> dataMapNotaRemision = new HashMap<String, Object>();
+			dataMapNotaRemision.put("motivo", getValueForKey(transaccionCabecera,"nota_remision_motivo","nr_motivo"));
+			dataMapNotaRemision.put("tipoResponsable", getValueForKey(transaccionCabecera,"nota_remision_tipo_responsable","nr_tip_res"));
+			dataMapNotaRemision.put("kms", getValueForKey(transaccionCabecera,"nota_remision_kms","nr_kms"));
+
+			dataMap.put("remision", dataMapNotaRemision);
+			
 			// Items de la compra
 			List<Map<String, Object>> lista = new ArrayList<Map<String, Object>>();
 
-			for (int i = 0; i < comprasItems.size(); i++) {
+			for (int i = 0; i < transaccionMap.size(); i++) {
 				// Items de la compra
 				Map<String, Object> dataMapProducto = new HashMap<String, Object>();
-				Object[] comprasCompraItems = comprasItems.get(i);
-				dataMapProducto.put("codigo", comprasCompraItems[42]);
-				//dataMapProducto.put("descripcion", comprasCompraItems[43]);
-				String descripcion = String.valueOf(comprasCompraItems[43] + "");
-				if(descripcion.length()> 120) {
-					dataMapProducto.put("descripcion", descripcion.substring(0, 120));
-				} else {
-					dataMapProducto.put("descripcion", descripcion);
-				}
-				dataMapProducto.put("observacion", comprasCompraItems[44]);
-				dataMapProducto.put("partidaArancelaria", comprasCompraItems[49]);
-				dataMapProducto.put("ncm", comprasCompraItems[50]);
-				dataMapProducto.put("unidadMedida", comprasCompraItems[51]);
-				dataMapProducto.put("cantidad", comprasCompraItems[45]);
-				dataMapProducto.put("precioUnitario", comprasCompraItems[46]);
-				dataMapProducto.put("cambio", comprasCompraItems[52]);
-				dataMapProducto.put("descuento", comprasCompraItems[47]);
-				//dataMapProducto.put("descuentoPorcentaje", comprasCompraItems[48]);
-				dataMapProducto.put("anticipo", comprasCompraItems[53]);
-				dataMapProducto.put("subtotal", comprasCompraItems[54]);
-				dataMapProducto.put("pais", comprasCompraItems[55]);
-				dataMapProducto.put("paisDescripcion", comprasCompraItems[56]);
-				dataMapProducto.put("tolerancia", comprasCompraItems[57]);
-				dataMapProducto.put("toleranciaCantidad", comprasCompraItems[58]);
-				dataMapProducto.put("toleranciaPorcentaje", comprasCompraItems[59]);
-				dataMapProducto.put("cdcAnticipo", comprasCompraItems[60]);
-				Map<String, Object> dataMapDncp = new HashMap<String, Object>();
-
-				dataMapDncp.put("codigoNivelGeneral", comprasCompraItems[61]);
-				dataMapDncp.put("codigoNivelEspecifico", comprasCompraItems[62]);
-				dataMapDncp.put("codigoGtinProducto", comprasCompraItems[63]);
-				dataMapDncp.put("codigoNivelPaquete", comprasCompraItems[64]);
-
-				dataMapProducto.put("dncp", dataMapDncp);
-				// IVA
-				int ivaBase = Double.valueOf(comprasCompraItems[66] + "").intValue();
-				int iva = Integer.valueOf(comprasCompraItems[65] + "").intValue();
+				Map<String, Object> transaccionItems = transaccionMap.get(i);
 				
-				if (iva == 0) {
-					
-					dataMapProducto.put("ivaTipo", 3);
-					
-				} else if (iva == 5 || iva == 10) {
+				dataMapProducto.put("codigo", getValueForKey(transaccionItems,"item_codigo","i_codigo"));
+				dataMapProducto.put("descripcion", getValueForKey(transaccionItems,"item_descripcion","i_descrip"));
+				
+				dataMapProducto.put("observacion", getValueForKey(transaccionItems,"item_observacion","i_obs"));
+				dataMapProducto.put("partidaArancelaria", getValueForKey(transaccionItems,"item_partida_arancelaria","i_par_ara"));
+				dataMapProducto.put("ncm", getValueForKey(transaccionItems,"item_ncm","i_ncm"));
+				dataMapProducto.put("unidadMedida", getValueForKey(transaccionItems,"item_unidad_medida","i_uni_med"));
+				dataMapProducto.put("cantidad", getValueForKey(transaccionItems,"item_cantidad","i_cantidad"));
+				dataMapProducto.put("precioUnitario", getValueForKey(transaccionItems,"item_precio_unitario","i_pre_uni"));
+				dataMapProducto.put("cambio", getValueForKey(transaccionItems,"item_cambio", "i_cambio"));
+				dataMapProducto.put("descuento", getValueForKey(transaccionItems,"item_descuento","i_descue"));
+				dataMapProducto.put("anticipo", getValueForKey(transaccionItems,"item_anticipo","i_anti"));
+				dataMapProducto.put("pais", getValueForKey(transaccionItems,"item_pais","i_pais"));
+				dataMapProducto.put("tolerancia", getValueForKey(transaccionItems,"item_tolerancia","i_tol"));
+				dataMapProducto.put("toleranciaCantidad", getValueForKey(transaccionItems,"item_tolerancia_cantidad","i_tol_can"));
+				dataMapProducto.put("toleranciaPorcentaje", getValueForKey(transaccionItems,"item_tolerancia_porcentaje","i_tol_por"));
+				dataMapProducto.put("cdcAnticipo", getValueForKey(transaccionItems,"item_cdc_anticipo","i_cdc_ant"));
+				
+				dataMapProducto.put("ivaTipo", getValueForKey(transaccionItems,"item_iva_tipo","i_iva_tip"));
+				dataMapProducto.put("ivaBase", getValueForKey(transaccionItems,"item_iva_base","i_iva_bas"));
+				dataMapProducto.put("iva", getValueForKey(transaccionItems,"item_iva","i_iva"));
+				dataMapProducto.put("lote", getValueForKey(transaccionItems,"item_lote","i_lote"));
+				dataMapProducto.put("vencimiento", getValueForKey(transaccionItems,"item_vencimiento","i_venci"));
+				dataMapProducto.put("numeroSerie", getValueForKey(transaccionItems,"item_numero_serie","i_num_ser"));
+				dataMapProducto.put("numeroPedido", getValueForKey(transaccionItems,"item_numero_pedido","i_num_ped"));
+				dataMapProducto.put("numeroSeguimiento", getValueForKey(transaccionItems,"item_numero_seguimiento","i_num_seg"));
+				dataMapProducto.put("registroSenave", getValueForKey(transaccionItems,"item_registro_senave","i_reg_sen"));
+				dataMapProducto.put("registroEntidadComercial", getValueForKey(transaccionItems,"item_registro_entidad_comercial","i_reg_ent"));
+				
+				Map<String, Object> dataMapDncp = new HashMap<String, Object>();
+				dataMapDncp.put("codigoNivelGeneral", getValueForKey(transaccionItems,"item_dncp_codigo_nivel_general","i_dncp_cng"));
+				dataMapDncp.put("codigoNivelEspecifico", getValueForKey(transaccionItems,"item_dncp_codigo_nivel_especifico","i_dncp_cne"));
+				dataMapDncp.put("codigoGtinProducto", getValueForKey(transaccionItems,"item_dncp_codigo_gtin_producto","i_dncp_cgp"));
+				dataMapDncp.put("codigoNivelPaquete", getValueForKey(transaccionItems,"item_dncp_codigo_nivel_paquete","i_dncp_cnp"));
 
-					if (ivaBase == 100) {
-						
-						dataMapProducto.put("ivaTipo", 1);
-						
-					} else {
-						
-						dataMapProducto.put("ivaTipo", 4);
-					}
-
+				if (getValueForKey(transaccionItems,"item_dncp_codigo_nivel_general","i_dncp_cng") != null) {
+					dataMapProducto.put("dncp", dataMapDncp);	
 				}
-				dataMapProducto.put("ivaBase", ivaBase);
-				dataMapProducto.put("iva", iva);
-				dataMapProducto.put("lote", comprasCompraItems[67]);
-				dataMapProducto.put("vencimiento", comprasCompraItems[68]);
-				dataMapProducto.put("numeroSerie", comprasCompraItems[69]);
-				dataMapProducto.put("numeroPedido", comprasCompraItems[70]);
-				dataMapProducto.put("numeroSeguimiento", comprasCompraItems[71]);
 				
 				Map<String, Object> dataMapImportador = new HashMap<String, Object>();
 				
-				dataMapImportador.put("nombre", comprasCompraItems[72]);
-				dataMapImportador.put("direccion", comprasCompraItems[73]);
-				dataMapImportador.put("registroImportador", comprasCompraItems[74]);
-				dataMapImportador.put("registroSenave", comprasCompraItems[75]);
-				dataMapImportador.put("registroEntidadComercial", comprasCompraItems[76]);
-				dataMapProducto.put("importador", dataMapImportador);
+				dataMapImportador.put("nombre", getValueForKey(transaccionItems,"item_importador_nombre","i_imp_nom"));
+				dataMapImportador.put("direccion", getValueForKey(transaccionItems,"item_importador_direccion","i_imp_dir"));
+				dataMapImportador.put("registroImportador", getValueForKey(transaccionItems,"item_registro_importador","i_reg_imp"));
+				
+				if (getValueForKey(transaccionItems,"item_importador_nombre","i_imp_nom") != null) {
+					dataMapProducto.put("importador", dataMapImportador);	
+				}
 			
 				dataMapProducto.put("sectorAutomotor", null);
 				
@@ -423,29 +243,44 @@ public class DocumentoElectronicoCore {
 			}
 
 			dataMap.put("items", lista);
-			Integer egresoNumero = timbradoFacturacionMovimiento.getIngresoEgresoNumero() ;
-			Integer egreso = timbradoFacturacionMovimiento.getEgreso().getEgreso();
 			
-			Map<String, Object> condicionMap = documentoElectronicoFinancieroFacade.recuperarFormasDePagoParaCondicion(egreso, egresoNumero);
+			Map<String, Object> condicionMap = recuperarFormasDePagoParaCondicion(tipoDocumento, transaccionId, databaseProperties);
 			dataMap.put("condicion", condicionMap);
 
+			//DocumentoAsociado
+			Map<String, Object> documentoAsociadoMap = new HashMap<String, Object>();
+			documentoAsociadoMap.put("formato", getValueForKey(transaccionCabecera,"documento_asociado_formato","d_aso_for"));
+			documentoAsociadoMap.put("cdc", getValueForKey(transaccionCabecera,"documento_asociado_cdc","d_aso_cdc"));
+
+			documentoAsociadoMap.put("tipoDocumentoImpreso", getValueForKey(transaccionCabecera,"documento_asociado_cdc","d_aso_tdi"));
+			documentoAsociadoMap.put("timbrado", getValueForKey(transaccionCabecera,"documento_asociado_timbrado","d_aso_tim"));
+			documentoAsociadoMap.put("establecimiento", getValueForKey(transaccionCabecera,"documento_asociado_establecimiento","d_aso_est"));
+			documentoAsociadoMap.put("punto", getValueForKey(transaccionCabecera,"documento_asociado_punto","d_aso_pun"));
+			documentoAsociadoMap.put("numero", getValueForKey(transaccionCabecera,"documento_asociado_numero","d_aso_num"));
+			documentoAsociadoMap.put("fecha", getValueForKey(transaccionCabecera,"documento_asociado_fecha","d_aso_fec"));
+			documentoAsociadoMap.put("numeroRetencion", getValueForKey(transaccionCabecera,"documento_asociado_numero_retencion","d_aso_ret"));
+			documentoAsociadoMap.put("resolucionCreditoFiscal", getValueForKey(transaccionCabecera,"documento_asociado_resolucion_credito_fiscal","d_aso_rcf"));
+			documentoAsociadoMap.put("constanciaTipo", getValueForKey(transaccionCabecera,"documento_asociado_constancia_tipo","d_aso_cti"));
+			documentoAsociadoMap.put("constanciaNumero", getValueForKey(transaccionCabecera,"documento_asociado_constancia_numero","d_aso_cnu"));
+			documentoAsociadoMap.put("constanciaControl", getValueForKey(transaccionCabecera,"documento_asociado_constancia_control","d_aso_cco"));
+			
+			if (getValueForKey(transaccionCabecera,"documento_asociado_formato","d_aso_for") != null) {
+				dataMap.put("documentoAsociado", documentoAsociadoMap);	
+			}
+			
+
+			//Implementar Pedro
+			dataMap.put("detalleTransporte", null);
+
+			//A futuro
 			dataMap.put("sectorEnergiaElectrica", null);
 			dataMap.put("sectorSeguros", null);
 			dataMap.put("sectorSupermercados", null);
 			dataMap.put("sectorAdicional", null);
-			dataMap.put("detalleTransporte", null);
 			dataMap.put("complementarios", null);
 			
-			Map<String, Object> documentoAsociadoMap = new HashMap<String, Object>();
-			documentoAsociadoMap.put("formato", 3);
-			documentoAsociadoMap.put("constanciaTipo", 1);
-			//documentoAsociadoMap.put("constanciaNumero", Integer.valueOf(compraItemCabecera[79]+""));
-			documentoAsociadoMap.put("constanciaNumero", compraItemCabecera[79]+"");
-			documentoAsociadoMap.put("constanciaControl", compraItemCabecera[80]+"");
-			
-			dataMap.put("documentoAsociado", documentoAsociadoMap);
 
-			*/
+			
 			
 			
 		}
@@ -454,6 +289,182 @@ public class DocumentoElectronicoCore {
 		
 
 	}
+	
+
+	/**
+	 * Busca en la Base de datos las forma de pago de la Transaccion 
+	 * de acuerdo al Tipo de Documento y retorna un map de condicion.
+	 * 
+	 * @param tipoDocumento
+	 * @param transaccionId
+	 * @return
+	 */
+	private static Map<String, Object> recuperarFormasDePagoParaCondicion(Integer tipoDocumento, Integer transaccionId, Map<String, String> databaseProperties) throws Exception {
+		
+		List<Map<String, Object>> paymentViewMap = Core.formasPagosByTransaccion(tipoDocumento, transaccionId, databaseProperties);
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		boolean esACredito = false;
+		boolean yaEntroEnCredito = false;
+		// Averiguar si hay forma de pago a credito
+		for (int i = 0; i < paymentViewMap.size(); i++) {
+			Map<String, Object> formaCobro = paymentViewMap.get(i);
+
+			Integer tipo = Integer.valueOf(getValueForKey(formaCobro,"tipo")+"");
+			
+			if (tipo.intValue() == 2) {
+				esACredito = true;
+			}
+
+		}
+		
+		Map<String, Object> condicionMap = new HashMap<String, Object>();
+		List<Map<String, Object>> entregasListMap = new ArrayList<Map<String, Object>>();
+		Map<String, Object> creditoMap = new HashMap<String, Object>();
+		List<Map<String, Object>> infoCuotasListMap = new ArrayList<Map<String, Object>>();
+		
+		//Map<String, Object> creditoMap = new HashMap<String, Object>();
+	
+		condicionMap.put("tipo", esACredito ? 2 : 1);
+				
+		// Forma de Cobro
+		Integer tipoFormaPagoAnterior = Integer.valueOf(getValueForKey(paymentViewMap.get(0),"tipo") + "");
+		//Integer monedaFormaPagoAnterior = Integer.valueOf(getValueForKey(paymentViewMap.get(0),"moneda") + "");
+		double sumatoriaMontoEntrega = 0.0;
+		for (int i = 0; i < paymentViewMap.size(); i++) {
+			Map<String, Object> formaCobro = paymentViewMap.get(i);
+
+			Integer tipo = Integer.valueOf( getValueForKey(formaCobro,"tipo") + "" );
+			Integer creditoTipo = Integer.valueOf( getValueForKey(formaCobro,"credito_tipo","c_tipo") + "" );
+			
+			if (tipo == 1) {
+				Map<String, Object> efectivoMap = new HashMap<String, Object>();
+
+				double monto = Double.valueOf(getValueForKey(formaCobro,"monto")+"");
+				efectivoMap.put("tipo", 1);
+				efectivoMap.put("monto", monto);
+				efectivoMap.put("moneda", getValueForKey(formaCobro,"moneda"));
+				efectivoMap.put("cambio", getValueForKey(formaCobro,"cambio"));
+				entregasListMap.add(efectivoMap);
+
+				sumatoriaMontoEntrega += monto;
+			}
+			/*if (tipo == 6) { // Tarjeta de Credito
+				Map<String, Object> tarjetaCreditoMap = new HashMap<String, Object>();
+				tarjetaCreditoMap.put("tipo", 3);
+				tarjetaCreditoMap.put("monto", formaCobro[1]);
+				tarjetaCreditoMap.put("moneda", formaCobro[2]);
+				tarjetaCreditoMap.put("monedaDescripcion", formaCobro[3]);
+				tarjetaCreditoMap.put("cambio", formaCobro[4]);
+
+				tarjetaCreditoMap.put("tipoTarjeta",formaCobro[17] );//codigo
+				tarjetaCreditoMap.put("tipoDescripcion", formaCobro[18]);//tipo
+				tarjetaCreditoMap.put("numeroTarjeta", formaCobro[8]);
+				tarjetaCreditoMap.put("titular", formaCobro[11]);
+				tarjetaCreditoMap.put("ruc", formaCobro[12]);
+				// dataMapCobro.put("razonSocial", formaCobros.get(j)[]); 0/1 se podria enviar nulo, hablar con marcos
+				tarjetaCreditoMap.put("medioPago", 1);
+				tarjetaCreditoMap.put("codigoAutorizacion", formaCobro[9]);
+				entregasListMap.add(tarjetaCreditoMap);
+
+				sumatoriaMontoEntrega += Double.valueOf(formaCobro[1] + "").doubleValue();
+
+			}
+			if (tipo == 3) { // Cheques
+				Map<String, Object> chequeMap = new HashMap<String, Object>();
+				chequeMap.put("tipo", 2);
+				chequeMap.put("monto", formaCobro[1]);
+				chequeMap.put("moneda", formaCobro[2]);
+				chequeMap.put("monedaDescripcion", formaCobro[3]);
+				chequeMap.put("cambio", formaCobro[4]);
+				chequeMap.put("numeroCheque", formaCobros.get(0)[5]);
+				chequeMap.put("banco", formaCobros.get(0)[6]);
+
+				entregasListMap.add(chequeMap);
+
+				sumatoriaMontoEntrega += Double.valueOf(formaCobro[1] + "").doubleValue();
+
+			}*/
+
+			if (tipo == 2) { 
+				// CREDITO
+				if (creditoTipo == 1) {
+					//A Plazo
+					Map<String, Object> creditoPlazoMap = new HashMap<String, Object>();
+
+					creditoPlazoMap.put("tipo", 2);	//Plazo
+					creditoPlazoMap.put("plazo", getValueForKey(formaCobro,"credito_plazo","c_plazo") + "");
+					entregasListMap.add(creditoPlazoMap);
+
+				} else {
+					//A Cuotas
+					if (!yaEntroEnCredito) {
+						//List<Object[]> creditos = filtrarElementosCredito(formaCobros);
+						List<Object[]> creditos = new ArrayList<Object[]>();	//Para que no de error
+						//Map<String, Object> creditoMap = new HashMap<String, Object>();
+
+						creditoMap.put("tipo", 2); // Siempre fijo, en "Cuotas"
+						creditoMap.put("cuotas", creditos.size());
+						System.out.println("cantidad de cuotas " + creditos.size());
+						creditoMap.put("montoEntrega", sumatoriaMontoEntrega);
+						// infoCuotas
+						System.out.println("creditos " + creditos.size());
+						for (int j = 0; j < creditos.size(); j++) {
+							Map<String, Object> dataMapCobroCredito = new HashMap<String, Object>();
+							Object[] formasCobros = creditos.get(j);
+							dataMapCobroCredito.put("moneda", formasCobros[14]);
+							dataMapCobroCredito.put("monto", formasCobros[1]);
+							dataMapCobroCredito.put("vencimiento", sdf.format((Date) formasCobros[15]));
+
+							infoCuotasListMap.add(dataMapCobroCredito);
+
+						}
+						creditoMap.put("infoCuotas", entregasListMap);
+						yaEntroEnCredito = true;
+					}					
+				}
+			}
+
+		}
+		if (entregasListMap != null && entregasListMap.size() > 0) {
+			condicionMap.put("entregas", entregasListMap);
+		}
+		if (infoCuotasListMap.size() > 0) {
+			condicionMap.put("credito", creditoMap);
+		}
+		
+		return 	(condicionMap);
+	}
+	
+	//Analizar como usar este aqui.
+	private List<Object[]> filtrarElementosCredito(List<Object[]> formaCobrosOriginal) {
+		List<Object[]> formaCobrosReplicados = new ArrayList<Object[]>();
+		for (int i = 0; i < formaCobrosOriginal.size(); i++) {
+			Object[] formaCobro = formaCobrosOriginal.get(i);
+			if (Integer.valueOf(formaCobro[0] + "").intValue() == 2) {
+				formaCobrosReplicados.add(formaCobro);
+			}
+		}
+		return formaCobrosReplicados;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	private static Object getValueForKey(Map<String, Object> map, String key1) {
 		
