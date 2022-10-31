@@ -1,12 +1,19 @@
 package core;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.google.gson.Gson;
 
@@ -18,6 +25,7 @@ import util.HttpUtil;
 public class Core {
 	
 	private static Gson gson = new Gson();
+	public static Log log = LogFactory.getLog(Core.class);
 	
 	public static Map<String, Object> listDes(String q, Integer tipoDocumento, Integer page, Integer size, Map<String, String> databaseProperties) {
 		
@@ -177,8 +185,7 @@ public class Core {
 			
 			if (Boolean.valueOf(documentosParaEnvioMap.get("success")+"") == true) {
 				documentosParaEnvioList = (List<Map<String, Object>>)documentosParaEnvioMap.get("result");
-				System.out.println("resultado lote 2 principal " + documentosParaEnvioList);
-				
+				//System.out.println("resultado lote 2 principal " + documentosParaEnvioList);
 			} else {
 				throw new Exception(documentosParaEnvioMap.get("error")+"");
 
@@ -197,7 +204,42 @@ public class Core {
 			} else {
 				url += "/lote/create";
 			}
-			HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
+			
+			Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
+			
+			if (resultadoJson != null) {
+				
+				String tableToUpdate = databaseProperties.get("database.facturasend_table");
+				if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
+					
+				} else {
+					//Si hay errores
+					//log.debug(arg0);
+					if (resultadoJson.get("errores") != null) {
+						List<Map<String, Object>> errores = (List<Map<String, Object>>)resultadoJson.get("errores");
+
+
+						for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
+							Map<String, Object> de = documentosParaEnvioJsonMap.get(i);
+							Map<String, Object> viewRec = documentosParaEnvioList.get(i);
+							
+							
+							for (int j = 0; j < errores.size(); j++) {
+								if (i == j) {
+									
+									//Borrar registros previamente cargados, para evitar duplicidad
+									borrarPorTransaccionId(viewRec, databaseProperties);
+
+									String error = errores.get(j).get("error") + "";
+									
+									guardarError(viewRec, error, databaseProperties);
+								}
+							}	
+						}
+						
+					}
+				}
+			}
 			
 			//
 		} catch (Exception e) {
@@ -208,6 +250,120 @@ public class Core {
 		//Cambiar éste resultado, por el resultado del lote
 		
 		return obtener50registrosNoIntegradosMap;
+	}
+	
+	/**
+	 * 
+	 * @param de
+	 * @param error
+	 * @param databaseProperties
+	 * @return
+	 */
+	public static Integer borrarPorTransaccionId(Map<String, Object> de, Map<String, String> databaseProperties) throws Exception{
+		System.out.println("de " + de);
+		Integer result = 0;
+
+		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+		
+		String tableToUpdate = databaseProperties.get("database.facturasend_table");
+		
+		String pk = "";
+		//Buscar el campo que relaciona con el transaccion_id
+		Iterator itr = databaseProperties.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry e = (Map.Entry)itr.next();
+			
+			String key = e.getKey()+"";
+			String value = e.getValue()+""; 
+			if ( value == "transaccion_id" || value == "tra_id") {
+				pk = key.substring("database.facturasend_table.field.".length(), key.length()) + "";
+			}
+		}
+		
+		String sql = "DELETE FROM " + tableToUpdate + " WHERE " + pk + " = "+ getValueForKey(de, "transsacion_id", "tra_id");
+		
+		System.out.println("" + sql);
+		PreparedStatement statement = conn.prepareStatement(sql);
+
+		result = statement.executeUpdate();
+
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @param de
+	 * @param error
+	 * @param databaseProperties
+	 * @return
+	 */
+	public static Integer guardarError(Map<String, Object> de, String error, Map<String, String> databaseProperties) throws Exception{
+		System.out.println("de " + de);
+		Integer result = 0;
+		//try {
+			Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+			
+			
+			
+			String tableToUpdate = databaseProperties.get("database.facturasend_table");
+			
+			
+			String sql = "INSERT INTO " + tableToUpdate + " (";
+			
+			//Buscar fields adicionales
+			Iterator itr = databaseProperties.entrySet().iterator();
+			while (itr.hasNext()) {
+				Map.Entry e = (Map.Entry)itr.next();
+				
+				String key = e.getKey()+""; 
+				if ((key).startsWith("database.facturasend_table.field.")) {
+					sql += key.substring("database.facturasend_table.field.".length(), key.length()) + ", ";
+				}
+			}
+					
+			sql += "moli_name, ";
+			sql += "moli_value) VALUES ( ";
+			
+			//Buscar fields value adicionales
+			itr = databaseProperties.entrySet().iterator();
+			while (itr.hasNext()) {
+				Map.Entry e = (Map.Entry)itr.next();
+				
+				String key = e.getKey()+""; 
+				if ((key).startsWith("database.facturasend_table.field.")) {
+					sql += "?, ";
+				}
+			}
+			
+			sql += "?, ?)";
+			
+			System.out.println("" + sql);
+			PreparedStatement statement = conn.prepareStatement(sql);
+
+			//Buscar fields value adicionales
+			itr = databaseProperties.entrySet().iterator();
+			int f = 1;
+			while (itr.hasNext()) {
+				Map.Entry e = (Map.Entry)itr.next();
+				
+				String key = e.getKey()+""; 
+				if ((key).startsWith("database.facturasend_table.field.")) {
+					statement.setObject(f++, getValueForKey(de, e.getValue()+""));
+				}
+			}
+
+			statement.setString(f++, "Error");
+			statement.setString(f++, error);
+			
+			result = statement.executeUpdate();
+			
+			
+			
+		/*} catch (Exception e) {
+			
+			
+		}*/
+		return result;
 	}
 	
 	/**
@@ -436,5 +592,27 @@ public class Core {
 		}
 		return fieldName;
 	}
+
+	public static Object getValueForKey(Map<String, Object> map, String key1) {
+		
+		return getValueForKey( map, key1, null);
+	}
 	
+	public static Object getValueForKey(Map<String, Object> map, String key1, String key2) {
+		if (map.get(key1) != null) {
+			return map.get(key1);
+		}
+		if (map.get(key1.toUpperCase()) != null) {
+			return map.get(key1.toUpperCase());
+		}
+		if (key2 != null) {
+			if (map.get(key2) != null) {
+				return map.get(key2);
+			}
+			if (map.get(key2.toUpperCase()) != null) {
+				return map.get(key2.toUpperCase());
+			}			
+		}
+		return null;
+	}
 }
