@@ -89,7 +89,7 @@ public class Config extends JDialog {
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println(e);
 		}
 	}
 
@@ -176,6 +176,7 @@ public class Config extends JDialog {
 								.addComponent(lblHost)
 								.addComponent(lblPuerto)
 								.addComponent(lblPassword)
+								.addComponent(lblSchema)
 								.addComponent(lblDriver))
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.LEADING)
@@ -210,9 +211,9 @@ public class Config extends JDialog {
 						.addComponent(lblDatabase)
 						.addComponent(txtDatabase, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addPreferredGap(ComponentPlacement.RELATED)
-					//.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.BASELINE)
-					//	.addComponent(lblSchema)
-					//	.addComponent(txtSchema, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblSchema)
+						.addComponent(txtSchema, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblUsername)
