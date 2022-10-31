@@ -3,13 +3,20 @@ package connect;
 import java.util.Map;
 
 public class BDConnect {
-	private String tipo;	//mysql, derby, oracle, postgres, sqlserver 
+	private String tipo;	//mysql, derby, oracle, postgres, sqlserver, dbf
 	private String host;
 	private Integer port;
 	private String database;
 	private String username;
 	private String password;
 	
+	private Integer poolMinIdle;
+	private Integer poolMaxIdle;
+	private Integer poolMaxTotal;
+	private Integer poolMaxWaitMillis;
+	
+	private String dbfFilePath;
+						
 	public BDConnect() {
 	
 	}
@@ -61,6 +68,46 @@ public class BDConnect {
 		this.password = passwrod;
 	}
 	
+	public Integer getPoolMinIdle() {
+		return poolMinIdle;
+	}
+
+	public void setPoolMinIdle(Integer poolMinIdle) {
+		this.poolMinIdle = poolMinIdle;
+	}
+
+	public Integer getPoolMaxIdle() {
+		return poolMaxIdle;
+	}
+
+	public void setPoolMaxIdle(Integer poolMaxIdle) {
+		this.poolMaxIdle = poolMaxIdle;
+	}
+
+	public Integer getPoolMaxTotal() {
+		return poolMaxTotal;
+	}
+
+	public void setPoolMaxTotal(Integer poolMaxTotal) {
+		this.poolMaxTotal = poolMaxTotal;
+	}
+
+	public Integer getPoolMaxWaitMillis() {
+		return poolMaxWaitMillis;
+	}
+
+	public void setPoolMaxWaitMillis(Integer poolMaxWaitMillis) {
+		this.poolMaxWaitMillis = poolMaxWaitMillis;
+	}
+
+	public String getDbfFilePath() {
+		return dbfFilePath;
+	}
+
+	public void setDbfFilePath(String dbfFilePath) {
+		this.dbfFilePath = dbfFilePath;
+	}
+
 	@Override
 	public String toString() {
 		return "BDConnect [tipo=" + tipo + ", host=" + host + ", port=" + port + ", database=" + database
@@ -76,6 +123,13 @@ public class BDConnect {
 		bdConnect.setUsername(map.get("database.username"));
 		bdConnect.setPassword(map.get("database.password"));
 		
+		bdConnect.setPoolMinIdle(Integer.valueOf(map.get("database.pool.minIdle")+""));
+		bdConnect.setPoolMaxIdle(Integer.valueOf(map.get("database.pool.maxIdle")+""));
+		bdConnect.setPoolMaxTotal(Integer.valueOf(map.get("database.pool.maxTotal")+""));
+		bdConnect.setPoolMaxWaitMillis(Integer.valueOf(map.get("database.pool.maxWaitMillis")+""));
+				
+		bdConnect.setDbfFilePath(map.get("database.dbf_file_path"));
+
 		return bdConnect;
 	}
 }

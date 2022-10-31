@@ -8,5 +8,10 @@
 	<classpathentry kind="lib" path="libs/commons-dbcp2-2.9.0.jar"/>
 	<classpathentry kind="lib" path="libs/commons-pool2-2.11.1.jar"/>
 	<classpathentry kind="lib" path="libs/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="libs/javadbf-1.13.2.jar"/>
+	<classpathentry kind="lib" path="libs/dbschema-dbf-jdbc1.0.jar"/>
+	<classpathentry kind="lib" path="libs/httpclient-4.5.3.jar"/>
+	<classpathentry kind="lib" path="libs/httpcore-4.4.6.jar"/>
+	<classpathentry kind="lib" path="libs/bcprov-jdk15on-160.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

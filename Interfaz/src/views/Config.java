@@ -36,7 +36,7 @@ public class Config extends JDialog {
 	private final JPanel contentPanel = new JPanel();
 	private ConfigProperties cp = new ConfigProperties();
 	private Map<String, String> propertiesDb = new HashMap<String, String>();
-	private Map<String, String> propertiesFs = new HashMap<String, String>();
+	//private Map<String, String> propertiesDb = new HashMap<String, String>();
 	private JPanel contentPane;
 	private JTextField txtHost;
 	private JTextField txtPuerto;
@@ -412,15 +412,15 @@ public class Config extends JDialog {
 			pTxtPasswordBd.setText(propertiesDb.get("database.password"));
 		}
 		
-		propertiesFs = cp.readFsProperties();
-		if(!propertiesFs.isEmpty()) {
-			chkIntegracionFacturasend.setSelected((propertiesFs.get("facturasend.integracionSet")).toString().equals("Y")?true:false);
-			chkComunicacionSincrona.setSelected((propertiesFs.get("facturasend.sincrono")).toString().equals("Y")?true:false);
-			txtUrlApi.setText(propertiesFs.get("facturasend.url"));
-			txtAuthorization.setText(propertiesFs.get("facturasend.token"));
-			txtEmails.setText(propertiesFs.get("facturasend.emails"));
-			txtUbicacionPdf.setText(propertiesFs.get("facturasend.carpetaKude"));
-			txtUbicacionXml.setText(propertiesFs.get("facturasend.carpetaXML"));
+		//propertiesDb = cp.readFsProperties();
+		if(!propertiesDb.isEmpty()) {
+			chkIntegracionFacturasend.setSelected((propertiesDb.get("facturasend.integracionSet")).toString().equals("Y")?true:false);
+			chkComunicacionSincrona.setSelected((propertiesDb.get("facturasend.sincrono")).toString().equals("Y")?true:false);
+			txtUrlApi.setText(propertiesDb.get("facturasend.url"));
+			txtAuthorization.setText(propertiesDb.get("facturasend.token"));
+			txtEmails.setText(propertiesDb.get("facturasend.emails"));
+			txtUbicacionPdf.setText(propertiesDb.get("facturasend.carpetaKude"));
+			txtUbicacionXml.setText(propertiesDb.get("facturasend.carpetaXML"));
 		}
 	}
 
@@ -484,15 +484,17 @@ public class Config extends JDialog {
 		}
 		propertiesDb.put("database.password", password);
 		propertiesDb.put("database.driver", cbDriver.getSelectedItem().toString());
-		cp.writeDbProperties(propertiesDb);
 		
-		propertiesFs.put("facturasend.integracionSet", chkIntegracionFacturasend.isSelected()?"Y":"N");
-		propertiesFs.put("facturasend.sincrono", chkComunicacionSincrona.isSelected()?"Y":"N");
-		propertiesFs.put("facturasend.url",txtUrlApi.getText());
-		propertiesFs.put("facturasend.token",txtAuthorization.getText());
-		propertiesFs.put("facturasend.emails",txtEmails.getText());
-		propertiesFs.put("facturasend.carpetaKude",txtUbicacionPdf.getText());
-		propertiesFs.put("facturasend.carpetaXML",txtUbicacionXml.getText());
-		cp.writeFsProperties(propertiesFs);
+		
+		propertiesDb.put("facturasend.integracionSet", chkIntegracionFacturasend.isSelected()?"Y":"N");
+		propertiesDb.put("facturasend.sincrono", chkComunicacionSincrona.isSelected()?"Y":"N");
+		propertiesDb.put("facturasend.url",txtUrlApi.getText());
+		propertiesDb.put("facturasend.token",txtAuthorization.getText());
+		propertiesDb.put("facturasend.emails",txtEmails.getText());
+		propertiesDb.put("facturasend.carpetaKude",txtUbicacionPdf.getText());
+		propertiesDb.put("facturasend.carpetaXML",txtUbicacionXml.getText());
+		
+		cp.writeDbProperties(propertiesDb);
+		//cp.writeFsProperties(propertiesDb);
 	}
 }

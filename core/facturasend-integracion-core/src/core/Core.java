@@ -8,11 +8,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gson.Gson;
+
 import connect.BDConnect;
 import connect.FSConnect;
 import connect.SQLConnection;
+import util.HttpUtil;
 
 public class Core {
+	
+	private static Gson gson = new Gson();
 	
 	public static Map<String, Object> listDes(String q, Integer tipoDocumento, Integer page, Integer size, Map<String, String> databaseProperties) {
 		
@@ -184,6 +189,16 @@ public class Core {
 			//Generar JSON de documentos electronicos.
 			List<Map<String, Object>> documentosParaEnvioJsonMap = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentosParaEnvioList, databaseProperties);
 
+			Map header = new HashMap();
+			header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
+			String url = databaseProperties.get("facturasend.url");
+			if (databaseProperties.get("facturasend.sincrono").equalsIgnoreCase("S")) {
+				url += "/de/create";
+			} else {
+				url += "/lote/create";
+			}
+			HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
+			
 			//
 		} catch (Exception e) {
 			e.printStackTrace();

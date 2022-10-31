@@ -37,9 +37,6 @@ public class DocumentoElectronicoCore {
 				}
 			}
 		}
-	
-		//System.out.println("JSON===>>" + jsonDEs);
-		System.out.println("JSON===>>" + gson.toJson(jsonDEs));
 		
 		return jsonDEs;
 	}
