@@ -19,6 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import connect.BDConnect;
 import connect.FSConnect;
@@ -28,6 +29,7 @@ import util.HttpUtil;
 public class Core {
 	
 	private static Gson gson = new Gson();
+	private static Gson gsonPP = new GsonBuilder().setPrettyPrinting().create();
 	public static Log log = LogFactory.getLog(Core.class);
 	
 	public static Map<String, Object> listDes(String q, Integer tipoDocumento, Integer page, Integer size, Map<String, String> databaseProperties) {
@@ -81,7 +83,7 @@ public class Core {
 				+ "GROUP BY transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
 				+ "establecimiento, punto, numero, serie, total \n"
-				+ "ORDER BY numero DESC \n";		
+				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";		
 		return sql;
 	}
 	
@@ -184,11 +186,10 @@ public class Core {
 			//De acuerdo a los transaccion_id obtendidos, busca todos los registros relacionados.
 			String transaccionIdStringInClause = "(" + transaccionIdString + "-1)";
 			Map<String, Object> documentosParaEnvioMap = procesarTransacciones(transaccionIdStringInClause, databaseProperties);
-			List<Map<String, Object>> documentosParaEnvioList = null;
+			List<Map<String, Object>> documentoParaEnvioJsonMap = null;
 			
 			if (Boolean.valueOf(documentosParaEnvioMap.get("success")+"") == true) {
-				documentosParaEnvioList = (List<Map<String, Object>>)documentosParaEnvioMap.get("result");
-				//System.out.println("resultado lote 2 principal " + documentosParaEnvioList);
+				documentoParaEnvioJsonMap = (List<Map<String, Object>>)documentosParaEnvioMap.get("result");
 			} else {
 				throw new Exception(documentosParaEnvioMap.get("error")+"");
 
@@ -197,7 +198,7 @@ public class Core {
 			
 			
 			//Generar JSON de documentos electronicos.
-			List<Map<String, Object>> documentosParaEnvioJsonMap = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentosParaEnvioList, databaseProperties);
+			List<Map<String, Object>> documentosParaEnvioJsonMap = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentoParaEnvioJsonMap, databaseProperties);
 
 			Map header = new HashMap();
 			header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
@@ -205,7 +206,7 @@ public class Core {
 			if (databaseProperties.get("facturasend.sincrono").equalsIgnoreCase("S")) {
 				url += "/de/create";
 			} else {
-				url += "/lote/create";
+				url += "/lote/create?xml=true&qr=true";
 			}
 			
 			Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
@@ -215,12 +216,14 @@ public class Core {
 				String tableToUpdate = databaseProperties.get("database.facturasend_table");
 				if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
 
-					List<Map<String, Object>> deList = (List<Map<String, Object>>)resultadoJson.get("deList");
-
+					Map<String, Object> result = (Map<String, Object>)resultadoJson.get("result");
+					
+					List<Map<String, Object>> deList = (List<Map<String, Object>>)result.get("deList");
+					
 					for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
 						Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
-						Map<String, Object> viewRec = documentosParaEnvioList.get(i);
-
+						Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
+						System.out.println("Indice--- " + deList + " " + i);
 						Map<String, Object> respuestaDE = deList.get(i);	//Utiliza el mismo Indice de List de Json
 								
 						//Borrar registros previamente cargados, para evitar duplicidad
@@ -230,21 +233,24 @@ public class Core {
 						datosGuardar.put("CDC", respuestaDE.get("cdc") + "");
 						guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
 
+						String estado = respuestaDE.get("estado") != null ? respuestaDE.get("estado") + "" : "0";
 						Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
-						datosGuardar.put("ESTADO", respuestaDE.get("cdc") + "");
+						datosGuardar1.put("ESTADO", estado);
 						guardarFacturaSendData(viewRec, datosGuardar1, databaseProperties);
 
-						Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
-						datosGuardar.put("ESTADO", respuestaDE.get("estado") + "");
+						/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
+						datosGuardar2.put("JSON", gsonPP.toJson(viewRec) + "");
 						guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);
-
-						Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
-						datosGuardar.put("QR", respuestaDE.get("qr") + "");
-						guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
-
+						 */
+						
 						Map<String, Object> datosGuardar4 = new HashMap<String, Object>();
-						datosGuardar.put("XML", respuestaDE.get("xml") + "");
+						datosGuardar4.put("XML", respuestaDE.get("xml") + "");
 						guardarFacturaSendData(viewRec, datosGuardar4, databaseProperties);
+						
+						
+						Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
+						datosGuardar3.put("QR", respuestaDE.get("qr") + "");
+						guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
 
 					}
 
@@ -258,7 +264,7 @@ public class Core {
 
 						for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
 							Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
-							Map<String, Object> viewRec = documentosParaEnvioList.get(i);
+							Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
 							
 							
 							for (int j = 0; j < errores.size(); j++) {
@@ -269,8 +275,14 @@ public class Core {
 
 									Map<String, Object> datosGuardar = new HashMap<String, Object>();
 									datosGuardar.put("ERROR", errores.get(j).get("error") + "");
-									
 									guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
+									
+									/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
+//									datosGuardar.put("JSON", gsonPP.toJson(viewRec) + "");
+									System.out.println(viewRec);
+									datosGuardar.put("JSON", gson.toJson(viewRec) + "");
+									System.out.println("despues del error");
+									guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);*/
 								}
 							}	
 						}
@@ -320,7 +332,7 @@ public class Core {
 		}
 		
 		String sql = "DELETE FROM " + tableToUpdate + " WHERE " + pk + " = "+ getValueForKey(de, "transaccion_id", "tra_id") + " "
-				+ " AND " + tableToUpdateKey + " IN ('ERROR','ESTADO', 'XML', 'QR')";
+				+ " AND " + tableToUpdateKey + " IN ('ERROR','ESTADO', 'XML', 'JSON', 'QR', 'CDC')";
 		
 		System.out.println("" + sql);
 		PreparedStatement statement = conn.prepareStatement(sql);
@@ -527,8 +539,8 @@ public class Core {
 						+ "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"
 						+ "AND tipo_documento = " + tipoDocumento + " \n"
-						+ "GROUP BY transaccion_id, numero \n"
-						+ "ORDER BY numero DESC \n";		
+						+ "GROUP BY transaccion_id, establecimiento, punto, numero \n"
+						+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";		
 		return sql;
 	}
 	

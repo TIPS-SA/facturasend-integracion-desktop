@@ -32,7 +32,7 @@ public class DocumentoElectronicoCore {
 				}).collect(Collectors.toList());
 				
 				if (documentosParaEnvioFiltradoList.size() > 0) {
-					Map<String, Object> jsonDE = invocarDocumentoElectronicoAutoFacturaCompra(documentosParaEnvioFiltradoList, databaseProperties);
+					Map<String, Object> jsonDE = invocarDocumentoElectronicoDesdeView(documentosParaEnvioFiltradoList, databaseProperties);
 					jsonDEs.add(jsonDE);					
 				}
 			}
@@ -49,7 +49,7 @@ public class DocumentoElectronicoCore {
 	 * @param sucursal
 	 * @throws InfoException
 	 */
-	public static Map<String, Object> invocarDocumentoElectronicoAutoFacturaCompra(List<Map<String, Object>> transaccionMap, Map<String, String> databaseProperties) throws Exception{
+	public static Map<String, Object> invocarDocumentoElectronicoDesdeView(List<Map<String, Object>> transaccionMap, Map<String, String> databaseProperties) throws Exception{
 		Map<String, Object> dataMap = new HashMap<String, Object>();
 
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -174,7 +174,7 @@ public class DocumentoElectronicoCore {
 			}
 			
 			//NotaRemision			
-			if (tipoDocumento == 1) {
+			if (tipoDocumento == 7) {
 				Map<String, Object> dataMapNotaRemision = new HashMap<String, Object>();
 				dataMapNotaRemision.put("motivo", Core.getValueForKey(transaccionCabecera,"nota_remision_motivo","nr_motivo"));
 				dataMapNotaRemision.put("tipoResponsable", Core.getValueForKey(transaccionCabecera,"nota_remision_tipo_responsable","nr_tip_res"));
@@ -396,7 +396,7 @@ public class DocumentoElectronicoCore {
 					//A Plazo
 					//Map<String, Object> creditoMap = new HashMap<String, Object>();
 
-					creditoMap.put("tipo", 2);	//Plazo
+					creditoMap.put("tipo", 1);	//1=Plazo,2=Cuotas
 					creditoMap.put("plazo", Core.getValueForKey(formaCobro,"credito_plazo","c_plazo") + "");
 					
 					//creditoMap.put("credito", creditoMap);
