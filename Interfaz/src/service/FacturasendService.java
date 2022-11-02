@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -115,7 +116,7 @@ public class FacturasendService {
 			e.printStackTrace();
 		}
 		table.setModel(model);
-		tb.setCellAlignPositiion(table);
+		tb.setPrincipalTableCellsStyle(table);
 		tb.addCheckBox(0, table);
 		table.getColumnModel().getColumn(1).setPreferredWidth(10);
 		table.getColumnModel().getColumn(5).setPreferredWidth(20);
@@ -123,6 +124,40 @@ public class FacturasendService {
 		return retorno;
 	}
 		
+	public Integer populateTransactionDetailsTable(JTable table, BigDecimal nroMov) {
+		Object [] titulos = {"Codigo" , "Descripcion", "Cantidad", "Precio Unitario", "Descuento", "SubTotal"};
+		Object datos[] = {null, null, null, null,null, null};
+		    
+		DefaultTableModel model = new DefaultTableModel(null, titulos) {
+			 @Override
+			    public boolean isCellEditable(int row, int column) {
+			       //all cells false
+			       return false;
+			    }
+		};
+		try {
+			//Map<String, Object> result = loadDocumentosElectronicos(q, tipoDocumento, page, size);
+			//List<Map<String, Object>> rs = (List<Map<String, Object>>)result.get("result");
+			//retorno =  (Integer)result.get("count");
+			//System.out.println("rs"  + rs);
+			for (int i = 0; i < 10/*rs.size()*/; i++) {
+				
+				datos[0] = 1;//rs.get(i).get(Core.getFieldName("transaccion_id", readDBProperties()));
+				datos[1] = 2;//rs.get(i).get(Core.getFieldName("fecha", readDBProperties()));
+				datos[2] = 3;//rs.get(i).get(Core.getFieldName("cliente_razon_social", readDBProperties()));
+				datos[3] = 4;//StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("establecimiento", readDBProperties()))+"", 3)  + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("punto", readDBProperties()))+"", 3) + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("numero", readDBProperties())) + "", 7);
+				datos[4] = 5;//rs.get(i).get(Core.getFieldName("moneda", readDBProperties()));
+				datos[5] = 6;//rs.get(i).get(Core.getFieldName("total", readDBProperties())) != null ? rs.get(i).get(Core.getFieldName("total", readDBProperties())) : 0;
+				
+				model.addRow(datos);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		table.setModel(model);
+		return null;
+	}
 	
 	
 	

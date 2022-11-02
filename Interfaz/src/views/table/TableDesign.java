@@ -57,7 +57,7 @@ public class TableDesign {
 		return returnValue;
 	}
 	
-	public void setCellAlignPositiion(JTable table) {
+	public void setPrincipalTableCellsStyle(JTable table) {
 		final DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
 		defaultTableCellRenderer.setHorizontalTextPosition(0);
 		table.setDefaultRenderer(getClass(), defaultTableCellRenderer);

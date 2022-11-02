@@ -1,9 +1,11 @@
 package views;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 
+import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -16,8 +18,8 @@ import javax.swing.JTextField;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
-import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
+import javax.swing.table.DefaultTableModel;
 
 import service.FacturasendService;
 import views.commons.Paginacion;
@@ -32,6 +34,7 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.ImageIcon;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.math.BigDecimal;
 
 public class Principal extends JFrame {
 
@@ -65,11 +68,7 @@ public class Principal extends JFrame {
 	private JButton btnAnterior;
 	private JButton btnFacturaImportacion;
 	private JPanel paneSouthTableCenter;
-	private boolean isBtnFacturaSelected = false;
-	private boolean isBtnAutoFacturaSelected = false;
-	private boolean isBtnNotaCreditoSelected = false;
-	private boolean isBtnNotaDebitoSelected = false;
-	private boolean isBtnNotaRemisionSelected = false;
+	InfoMovimiento movDetails;
 	Paginacion paginacion;
 	FacturasendService fs;
 	
@@ -349,6 +348,19 @@ public class Principal extends JFrame {
 	}
 	
 	private void events() {
+		
+		table.addMouseListener(new java.awt.event.MouseAdapter() {
+			 public void mouseClicked(java.awt.event.MouseEvent evt) {
+				 if(evt.getClickCount()>1) {
+					//obtener la fila
+		            int row = table.getSelectedRow();
+	                DefaultTableModel model = (DefaultTableModel) table.getModel();
+	                BigDecimal nroMov = (BigDecimal) model.getValueAt(row, 1);
+	                movDetails = new InfoMovimiento(nroMov);
+	                movDetails.setVisible(true);
+				 }
+		    }
+		});
 
 		btnLogs.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -363,23 +375,10 @@ public class Principal extends JFrame {
 				confView.setVisible(true);
 			}
 		});
-//		btnFacturas.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				selectedButton("Factura");
-//				btnFacturas.setSelected(isBtnFacturaSelected);
-//				System.out.println(isBtnFacturaSelected);
-//				tipoDocumento = 1;
-//				getPaginacion().setCurrentPage(1);
-//				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
-//			}
-//		});
-		btnFacturas.addMouseListener(new MouseAdapter() {
+		btnFacturas.addActionListener(new ActionListener() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
-				selectedButton("Factura");	
-				btnFacturas.setSelected(false);
-				System.out.println(isBtnFacturaSelected);
+			public void actionPerformed(ActionEvent e) {
+				selectedButton("Factura");
 				tipoDocumento = 1;
 				getPaginacion().setCurrentPage(1);
 				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
@@ -389,7 +388,6 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				selectedButton("Auto Factura");
-				btnFacturas.setSelected(isBtnAutoFacturaSelected);
 				tipoDocumento = 4;
 				getPaginacion().setCurrentPage(1);
 				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
@@ -399,7 +397,6 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				selectedButton("Nota Credito");
-				btnFacturas.setSelected(isBtnNotaCreditoSelected);
 				tipoDocumento = 5;
 				getPaginacion().setCurrentPage(1);
 				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
@@ -409,7 +406,6 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				selectedButton("Nota Debito");
-				btnFacturas.setSelected(isBtnNotaDebitoSelected);
 				tipoDocumento = 6;
 				getPaginacion().setCurrentPage(1);
 				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
@@ -419,7 +415,6 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				selectedButton("Nota Remision");
-				btnFacturas.setSelected(isBtnNotaRemisionSelected);
 				tipoDocumento = 7;
 				getPaginacion().setCurrentPage(1);
 				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
@@ -430,39 +425,39 @@ public class Principal extends JFrame {
 	private void selectedButton(String  btn) {
 		switch (btn) {
 		case "Factura":
-			isBtnFacturaSelected = true;
-			isBtnAutoFacturaSelected = false;
-			isBtnNotaCreditoSelected = false;
-			isBtnNotaDebitoSelected = false;
-			isBtnNotaRemisionSelected = false;
+			btnFacturas.setBorder(BorderFactory.createLoweredBevelBorder());
+			btnAutoFactura.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnNotaCredito.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnNotaDebito.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnRemision.setBorder(BorderFactory.createLineBorder(Color.gray));
 			break;
 		case "Auto Factura":
-			isBtnFacturaSelected = false;
-			isBtnAutoFacturaSelected = true;
-			isBtnNotaCreditoSelected = false;
-			isBtnNotaDebitoSelected = false;
-			isBtnNotaRemisionSelected = false;
+			btnAutoFactura.setBorder(BorderFactory.createLoweredBevelBorder());
+			btnFacturas.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnNotaCredito.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnNotaDebito.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnRemision.setBorder(BorderFactory.createLineBorder(Color.gray));
 			break;
 		case "Nota Credito":
-			isBtnFacturaSelected = false;
-			isBtnAutoFacturaSelected = false;
-			isBtnNotaCreditoSelected = true;
-			isBtnNotaDebitoSelected = false;
-			isBtnNotaRemisionSelected = false;
+			btnNotaCredito.setBorder(BorderFactory.createLoweredBevelBorder());
+			btnAutoFactura.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnFacturas.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnNotaDebito.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnRemision.setBorder(BorderFactory.createLineBorder(Color.gray));
 			break;
 		case "Nota Debito":
-			isBtnFacturaSelected = false;
-			isBtnAutoFacturaSelected = false;
-			isBtnNotaCreditoSelected = false;
-			isBtnNotaDebitoSelected = true;
-			isBtnNotaRemisionSelected = false;
+			btnNotaDebito.setBorder(BorderFactory.createLoweredBevelBorder());
+			btnAutoFactura.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnNotaCredito.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnFacturas.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnRemision.setBorder(BorderFactory.createLineBorder(Color.gray));
 			break;
 		case "Nota Remision":
-			isBtnFacturaSelected = false;
-			isBtnAutoFacturaSelected = false;
-			isBtnNotaCreditoSelected = false;
-			isBtnNotaDebitoSelected = false;
-			isBtnNotaRemisionSelected = true;
+			btnRemision.setBorder(BorderFactory.createLoweredBevelBorder());
+			btnAutoFactura.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnNotaCredito.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnNotaDebito.setBorder(BorderFactory.createLineBorder(Color.gray));
+			btnFacturas.setBorder(BorderFactory.createLineBorder(Color.gray));
 			break;
 
 		default:
