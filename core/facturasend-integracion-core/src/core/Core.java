@@ -307,7 +307,7 @@ public class Core {
 		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
 
 		String pk = "";
-		//Buscar el campo que relaciona con el transaccion_id
+		//Buscar el campo que relaciona con el transaccion_id 
 		Iterator itr = databaseProperties.entrySet().iterator();
 		while (itr.hasNext()) {
 			Map.Entry e = (Map.Entry)itr.next();
