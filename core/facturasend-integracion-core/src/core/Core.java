@@ -1,6 +1,9 @@
 package core;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -223,8 +226,26 @@ public class Core {
 						//Borrar registros previamente cargados, para evitar duplicidad
 						borrarPorTransaccionId(viewRec, databaseProperties);
 
-						//Guarda los datos en la Tabla, asi mismo como se obtiene la respuesta de facturasend
-						guardarFacturaSendData(viewRec, respuestaDE, databaseProperties);
+						Map<String, Object> datosGuardar = new HashMap<String, Object>();
+						datosGuardar.put("CDC", respuestaDE.get("cdc") + "");
+						guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
+
+						Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
+						datosGuardar.put("ESTADO", respuestaDE.get("cdc") + "");
+						guardarFacturaSendData(viewRec, datosGuardar1, databaseProperties);
+
+						Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
+						datosGuardar.put("ESTADO", respuestaDE.get("estado") + "");
+						guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);
+
+						Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
+						datosGuardar.put("QR", respuestaDE.get("qr") + "");
+						guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
+
+						Map<String, Object> datosGuardar4 = new HashMap<String, Object>();
+						datosGuardar.put("XML", respuestaDE.get("xml") + "");
+						guardarFacturaSendData(viewRec, datosGuardar4, databaseProperties);
+
 					}
 
 					
@@ -247,7 +268,7 @@ public class Core {
 									borrarPorTransaccionId(viewRec, databaseProperties);
 
 									Map<String, Object> datosGuardar = new HashMap<String, Object>();
-									datosGuardar.put("error", errores.get(j).get("error") + "");
+									datosGuardar.put("ERROR", errores.get(j).get("error") + "");
 									
 									guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
 								}
@@ -277,13 +298,14 @@ public class Core {
 	 * @return
 	 */
 	public static Integer borrarPorTransaccionId(Map<String, Object> de, Map<String, String> databaseProperties) throws Exception{
-		System.out.println("de " + de);
 		Integer result = 0;
 
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 		
 		String tableToUpdate = databaseProperties.get("database.facturasend_table");
-		
+		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
+
 		String pk = "";
 		//Buscar el campo que relaciona con el transaccion_id
 		Iterator itr = databaseProperties.entrySet().iterator();
@@ -297,7 +319,8 @@ public class Core {
 			}
 		}
 		
-		String sql = "DELETE FROM " + tableToUpdate + " WHERE " + pk + " = "+ getValueForKey(de, "transaccion_id", "tra_id");
+		String sql = "DELETE FROM " + tableToUpdate + " WHERE " + pk + " = "+ getValueForKey(de, "transaccion_id", "tra_id") + " "
+				+ " AND " + tableToUpdateKey + " IN ('ERROR','ESTADO', 'XML', 'QR')";
 		
 		System.out.println("" + sql);
 		PreparedStatement statement = conn.prepareStatement(sql);
@@ -309,20 +332,42 @@ public class Core {
 	
 	/**
 	 * 
-	 * @param de
+	 * @param viewPrincipal
 	 * @param error
 	 * @param databaseProperties
 	 * @return
 	 */
-	public static Integer guardarFacturaSendData(Map<String, Object> de, Map<String, Object> datosGuardar, Map<String, String> databaseProperties) throws Exception{
-		System.out.println("de " + de);
+	public static Integer guardarFacturaSendData(Map<String, Object> viewPrincipal, Map<String, Object> datosGuardar, Map<String, String> databaseProperties) throws Exception{
 		Integer result = 0;
 	
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 		
-		String tableToUpdate = databaseProperties.get("database.facturasend_table");
 		
-		String sql = "INSERT INTO " + tableToUpdate + " (";
+		String preUpdateSQL = databaseProperties.get("database.facturasend_table.pre_update_sql");
+		if (preUpdateSQL != null) {
+			PreparedStatement statement2 = conn.prepareStatement(preUpdateSQL);
+			ResultSet rs = statement2.executeQuery();
+			List<Map<String, Object>> preSQLListMap = SQLUtil.convertResultSetToList(rs);
+
+			for (int i = 0; i < preSQLListMap.size(); i++) {
+				Map<String, Object> preSQLMap = preSQLListMap.get(i); 
+				
+				Iterator itrPreSQL = preSQLMap.entrySet().iterator();
+				while (itrPreSQL.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
+					
+					Map.Entry eDato = (Map.Entry)itrPreSQL.next();
+					viewPrincipal.put(eDato.getKey()+"", eDato.getValue());	//Si en el array hay mas de una fila, entonces el ultimo perdurará
+				}
+			}
+			
+		}
+		
+		
+		String tableToUpdate = databaseProperties.get("database.facturasend_table");
+		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
+		
+		String sqlUpdate = "INSERT INTO " + tableToUpdate + " (";
 		
 		//Buscar fields adicionales
 		Iterator itr = databaseProperties.entrySet().iterator();
@@ -331,19 +376,19 @@ public class Core {
 			
 			String key = e.getKey()+""; 
 			if ((key).startsWith("database.facturasend_table.field.")) {
-				sql += key.substring("database.facturasend_table.field.".length(), key.length()) + ", ";
+				sqlUpdate += key.substring("database.facturasend_table.field.".length(), key.length()) + ", ";
 			}
 		}
 				
-		sql += "moli_name, ";
-		sql += "moli_value) VALUES ";
+		sqlUpdate += tableToUpdateKey + ", ";
+		sqlUpdate += tableToUpdateValue + ") VALUES ";
 		
 		//Buscar fields value adicionales
 		Iterator itrDato = datosGuardar.entrySet().iterator();
 		while (itrDato.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
 			Map.Entry eDato = (Map.Entry)itrDato.next();
 
-			sql += "( ";
+			sqlUpdate += "( ";
 			itr = databaseProperties.entrySet().iterator();
 			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
 				Map.Entry e = (Map.Entry)itr.next();
@@ -353,23 +398,29 @@ public class Core {
 				if ((key).startsWith("database.facturasend_table.field.")) {
 					if (value.startsWith("@SQL(")) {
 						//Si es un SQL debe colocar directo la sentencia
-						sql += "" + value.substring(4, value.length() ) +  ", ";
+						sqlUpdate += "" + value.substring(4, value.length() ) +  ", ";
+						
 					} else {
-						sql += "?, ";	
+						sqlUpdate += "?, ";	
 					}
 				}
 			}
 		
-			sql += "?, ?), ";
+			sqlUpdate += "?, ? ";
+			sqlUpdate += "), ";
 		}
 		
 		//Al final retirar la coma restante
-		sql = sql.substring(0, sql.length() - 2);
+		sqlUpdate = sqlUpdate.substring(0, sqlUpdate.length() - 2);
 		
-		System.out.println("" + sql);
-		PreparedStatement statement = conn.prepareStatement(sql);
+		PreparedStatement statement = conn.prepareStatement(sqlUpdate);
 
-		//Buscar fields value adicionales
+		
+
+		
+		
+		//Agregar los parametros.
+		
 		itrDato = datosGuardar.entrySet().iterator();
 		while (itrDato.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
 			Map.Entry eDato = (Map.Entry)itrDato.next();
@@ -386,19 +437,25 @@ public class Core {
 						//Como ya coloco el SQL, entonces aqui no inserta los parámetros.
 						
 					} else {
-						statement.setObject(f++, getValueForKey(de, e.getValue()+""));
+						statement.setObject(f++, getValueForKey(viewPrincipal, e.getValue()+""));
 					}
 				}
 			}
-	
+		
 			statement.setString(f++, eDato.getKey() + "");
-			statement.setString(f++, eDato.getValue() + "");
-			System.out.println("fINALMENTE K VALE " + f );
-		}		
+			
+			Clob clob = conn.createClob();
+			clob.setString(1, eDato.getValue()+"" );
+
+			statement.setClob(f++, clob );
+		}
+	
+		System.out.println("" + sqlUpdate);
 		result = statement.executeUpdate();
 		
 		String posUpdateSQL = databaseProperties.get("database.facturasend_table.pos_update_sql");
 		if (posUpdateSQL != null) {
+			System.out.println(posUpdateSQL);
 			PreparedStatement statement2 = conn.prepareStatement(posUpdateSQL);
 			statement2.executeQuery();
 			
@@ -407,81 +464,6 @@ public class Core {
 		return result;
 	}
 	
-	/**
-	 * 
-	 * @param de
-	 * @param error
-	 * @param databaseProperties
-	 * @return
-	 */
-	/*public static Integer guardarError(Map<String, Object> de, String error, Map<String, String> databaseProperties) throws Exception{
-		System.out.println("de " + de);
-		Integer result = 0;
-		//try {
-			Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
-			
-			
-			
-			String tableToUpdate = databaseProperties.get("database.facturasend_table");
-			
-			
-			String sql = "INSERT INTO " + tableToUpdate + " (";
-			
-			//Buscar fields adicionales
-			Iterator itr = databaseProperties.entrySet().iterator();
-			while (itr.hasNext()) {
-				Map.Entry e = (Map.Entry)itr.next();
-				
-				String key = e.getKey()+""; 
-				if ((key).startsWith("database.facturasend_table.field.")) {
-					sql += key.substring("database.facturasend_table.field.".length(), key.length()) + ", ";
-				}
-			}
-					
-			sql += "moli_name, ";
-			sql += "moli_value) VALUES ( ";
-			
-			//Buscar fields value adicionales
-			itr = databaseProperties.entrySet().iterator();
-			while (itr.hasNext()) {
-				Map.Entry e = (Map.Entry)itr.next();
-				
-				String key = e.getKey()+""; 
-				if ((key).startsWith("database.facturasend_table.field.")) {
-					sql += "?, ";
-				}
-			}
-			
-			sql += "?, ?)";
-			
-			System.out.println("" + sql);
-			PreparedStatement statement = conn.prepareStatement(sql);
-
-			//Buscar fields value adicionales
-			itr = databaseProperties.entrySet().iterator();
-			int f = 1;
-			while (itr.hasNext()) {
-				Map.Entry e = (Map.Entry)itr.next();
-				
-				String key = e.getKey()+""; 
-				if ((key).startsWith("database.facturasend_table.field.")) {
-					statement.setObject(f++, getValueForKey(de, e.getValue()+""));
-				}
-			}
-
-			statement.setString(f++, "Error");
-			statement.setString(f++, error);
-			
-			result = statement.executeUpdate();
-			
-			
-			
-		/*} catch (Exception e) {
-			
-			
-		}*/
-		//return result;
-	//}
 	
 	/**
 	 * Paso 1.1 - Obtener 50 registros no integrados
