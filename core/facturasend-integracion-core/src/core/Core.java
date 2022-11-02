@@ -1,18 +1,34 @@
 package core;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.sql.Clob;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.google.gson.Gson;
 
 import connect.BDConnect;
 import connect.FSConnect;
 import connect.SQLConnection;
+import util.HttpUtil;
 
 public class Core {
+	
+	private static Gson gson = new Gson();
+	public static Log log = LogFactory.getLog(Core.class);
 	
 	public static Map<String, Object> listDes(String q, Integer tipoDocumento, Integer page, Integer size, Map<String, String> databaseProperties) {
 		
@@ -172,8 +188,7 @@ public class Core {
 			
 			if (Boolean.valueOf(documentosParaEnvioMap.get("success")+"") == true) {
 				documentosParaEnvioList = (List<Map<String, Object>>)documentosParaEnvioMap.get("result");
-				System.out.println("resultado lote 2 principal " + documentosParaEnvioList);
-				
+				//System.out.println("resultado lote 2 principal " + documentosParaEnvioList);
 			} else {
 				throw new Exception(documentosParaEnvioMap.get("error")+"");
 
@@ -184,6 +199,86 @@ public class Core {
 			//Generar JSON de documentos electronicos.
 			List<Map<String, Object>> documentosParaEnvioJsonMap = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentosParaEnvioList, databaseProperties);
 
+			Map header = new HashMap();
+			header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
+			String url = databaseProperties.get("facturasend.url");
+			if (databaseProperties.get("facturasend.sincrono").equalsIgnoreCase("S")) {
+				url += "/de/create";
+			} else {
+				url += "/lote/create";
+			}
+			
+			Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
+			
+			if (resultadoJson != null) {
+				
+				String tableToUpdate = databaseProperties.get("database.facturasend_table");
+				if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
+
+					List<Map<String, Object>> deList = (List<Map<String, Object>>)resultadoJson.get("deList");
+
+					for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
+						Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
+						Map<String, Object> viewRec = documentosParaEnvioList.get(i);
+
+						Map<String, Object> respuestaDE = deList.get(i);	//Utiliza el mismo Indice de List de Json
+								
+						//Borrar registros previamente cargados, para evitar duplicidad
+						borrarPorTransaccionId(viewRec, databaseProperties);
+
+						Map<String, Object> datosGuardar = new HashMap<String, Object>();
+						datosGuardar.put("CDC", respuestaDE.get("cdc") + "");
+						guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
+
+						Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
+						datosGuardar.put("ESTADO", respuestaDE.get("cdc") + "");
+						guardarFacturaSendData(viewRec, datosGuardar1, databaseProperties);
+
+						Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
+						datosGuardar.put("ESTADO", respuestaDE.get("estado") + "");
+						guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);
+
+						Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
+						datosGuardar.put("QR", respuestaDE.get("qr") + "");
+						guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
+
+						Map<String, Object> datosGuardar4 = new HashMap<String, Object>();
+						datosGuardar.put("XML", respuestaDE.get("xml") + "");
+						guardarFacturaSendData(viewRec, datosGuardar4, databaseProperties);
+
+					}
+
+					
+				} else {
+					//Si hay errores
+					//log.debug(arg0);
+					if (resultadoJson.get("errores") != null) {
+						List<Map<String, Object>> errores = (List<Map<String, Object>>)resultadoJson.get("errores");
+
+
+						for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
+							Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
+							Map<String, Object> viewRec = documentosParaEnvioList.get(i);
+							
+							
+							for (int j = 0; j < errores.size(); j++) {
+								if (i == j) {
+									
+									//Borrar registros previamente cargados, para evitar duplicidad
+									borrarPorTransaccionId(viewRec, databaseProperties);
+
+									Map<String, Object> datosGuardar = new HashMap<String, Object>();
+									datosGuardar.put("ERROR", errores.get(j).get("error") + "");
+									
+									guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
+								}
+							}	
+						}
+						
+					}
+				}
+			}
+			
 			//
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -194,6 +289,181 @@ public class Core {
 		
 		return obtener50registrosNoIntegradosMap;
 	}
+	
+	/**
+	 * 
+	 * @param de
+	 * @param error
+	 * @param databaseProperties
+	 * @return
+	 */
+	public static Integer borrarPorTransaccionId(Map<String, Object> de, Map<String, String> databaseProperties) throws Exception{
+		Integer result = 0;
+
+		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+		
+		String tableToUpdate = databaseProperties.get("database.facturasend_table");
+		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
+
+		String pk = "";
+		//Buscar el campo que relaciona con el transaccion_id 
+		Iterator itr = databaseProperties.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry e = (Map.Entry)itr.next();
+			
+			String key = e.getKey()+"";
+			String value = e.getValue()+""; 
+			if ( value.equalsIgnoreCase("transaccion_id") || value.equalsIgnoreCase("tra_id")) {
+				pk = key.substring("database.facturasend_table.field.".length(), key.length()) + "";
+			}
+		}
+		
+		String sql = "DELETE FROM " + tableToUpdate + " WHERE " + pk + " = "+ getValueForKey(de, "transaccion_id", "tra_id") + " "
+				+ " AND " + tableToUpdateKey + " IN ('ERROR','ESTADO', 'XML', 'QR')";
+		
+		System.out.println("" + sql);
+		PreparedStatement statement = conn.prepareStatement(sql);
+
+		result = statement.executeUpdate();
+
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @param viewPrincipal
+	 * @param error
+	 * @param databaseProperties
+	 * @return
+	 */
+	public static Integer guardarFacturaSendData(Map<String, Object> viewPrincipal, Map<String, Object> datosGuardar, Map<String, String> databaseProperties) throws Exception{
+		Integer result = 0;
+	
+		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+		
+		
+		String preUpdateSQL = databaseProperties.get("database.facturasend_table.pre_update_sql");
+		if (preUpdateSQL != null) {
+			PreparedStatement statement2 = conn.prepareStatement(preUpdateSQL);
+			ResultSet rs = statement2.executeQuery();
+			List<Map<String, Object>> preSQLListMap = SQLUtil.convertResultSetToList(rs);
+
+			for (int i = 0; i < preSQLListMap.size(); i++) {
+				Map<String, Object> preSQLMap = preSQLListMap.get(i); 
+				
+				Iterator itrPreSQL = preSQLMap.entrySet().iterator();
+				while (itrPreSQL.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
+					
+					Map.Entry eDato = (Map.Entry)itrPreSQL.next();
+					viewPrincipal.put(eDato.getKey()+"", eDato.getValue());	//Si en el array hay mas de una fila, entonces el ultimo perdurará
+				}
+			}
+			
+		}
+		
+		
+		String tableToUpdate = databaseProperties.get("database.facturasend_table");
+		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
+		
+		String sqlUpdate = "INSERT INTO " + tableToUpdate + " (";
+		
+		//Buscar fields adicionales
+		Iterator itr = databaseProperties.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry e = (Map.Entry)itr.next();
+			
+			String key = e.getKey()+""; 
+			if ((key).startsWith("database.facturasend_table.field.")) {
+				sqlUpdate += key.substring("database.facturasend_table.field.".length(), key.length()) + ", ";
+			}
+		}
+				
+		sqlUpdate += tableToUpdateKey + ", ";
+		sqlUpdate += tableToUpdateValue + ") VALUES ";
+		
+		//Buscar fields value adicionales
+		Iterator itrDato = datosGuardar.entrySet().iterator();
+		while (itrDato.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
+			Map.Entry eDato = (Map.Entry)itrDato.next();
+
+			sqlUpdate += "( ";
+			itr = databaseProperties.entrySet().iterator();
+			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
+				Map.Entry e = (Map.Entry)itr.next();
+				
+				String key = e.getKey()+""; 
+				String value = e.getValue()+"";
+				if ((key).startsWith("database.facturasend_table.field.")) {
+					if (value.startsWith("@SQL(")) {
+						//Si es un SQL debe colocar directo la sentencia
+						sqlUpdate += "" + value.substring(4, value.length() ) +  ", ";
+						
+					} else {
+						sqlUpdate += "?, ";	
+					}
+				}
+			}
+		
+			sqlUpdate += "?, ? ";
+			sqlUpdate += "), ";
+		}
+		
+		//Al final retirar la coma restante
+		sqlUpdate = sqlUpdate.substring(0, sqlUpdate.length() - 2);
+		
+		PreparedStatement statement = conn.prepareStatement(sqlUpdate);
+
+		
+
+		
+		
+		//Agregar los parametros.
+		
+		itrDato = datosGuardar.entrySet().iterator();
+		while (itrDato.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
+			Map.Entry eDato = (Map.Entry)itrDato.next();
+			
+			itr = databaseProperties.entrySet().iterator();
+			int f = 1;
+			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
+				Map.Entry e = (Map.Entry)itr.next();
+				
+				String key = e.getKey()+""; 
+				String value = e.getValue()+"";
+				if ((key).startsWith("database.facturasend_table.field.")) {
+					if (value.startsWith("@SQL(")) {
+						//Como ya coloco el SQL, entonces aqui no inserta los parámetros.
+						
+					} else {
+						statement.setObject(f++, getValueForKey(viewPrincipal, e.getValue()+""));
+					}
+				}
+			}
+		
+			statement.setString(f++, eDato.getKey() + "");
+			
+			Clob clob = conn.createClob();
+			clob.setString(1, eDato.getValue()+"" );
+
+			statement.setClob(f++, clob );
+		}
+	
+		System.out.println("" + sqlUpdate);
+		result = statement.executeUpdate();
+		
+		String posUpdateSQL = databaseProperties.get("database.facturasend_table.pos_update_sql");
+		if (posUpdateSQL != null) {
+			System.out.println(posUpdateSQL);
+			PreparedStatement statement2 = conn.prepareStatement(posUpdateSQL);
+			statement2.executeQuery();
+			
+		}
+		
+		return result;
+	}
+	
 	
 	/**
 	 * Paso 1.1 - Obtener 50 registros no integrados
@@ -421,5 +691,27 @@ public class Core {
 		}
 		return fieldName;
 	}
+
+	public static Object getValueForKey(Map<String, Object> map, String key1) {
+		
+		return getValueForKey( map, key1, null);
+	}
 	
+	public static Object getValueForKey(Map<String, Object> map, String key1, String key2) {
+		if (map.get(key1) != null) {
+			return map.get(key1);
+		}
+		if (map.get(key1.toUpperCase()) != null) {
+			return map.get(key1.toUpperCase());
+		}
+		if (key2 != null) {
+			if (map.get(key2) != null) {
+				return map.get(key2);
+			}
+			if (map.get(key2.toUpperCase()) != null) {
+				return map.get(key2.toUpperCase());
+			}			
+		}
+		return null;
+	}
 }

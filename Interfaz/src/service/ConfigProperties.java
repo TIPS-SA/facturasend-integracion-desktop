@@ -21,8 +21,8 @@ public class ConfigProperties {
 	private FileReader reader = null;
 	private FileWriter writer = null;
 	
-	private File dbFile = new File(System.getProperty("user.dir") + File.separator + "srcConfig/config/database.properties");
-	private File fsFile = new File(System.getProperty("user.dir") + File.separator + "srcConfig/config/facturasend.properties");
+	private File dbFile = new File(System.getProperty("user.dir") + File.separator + "srcConfig/config/config.properties");
+	//private File fsFile = new File(System.getProperty("user.dir") + File.separator + "srcConfig/config/facturasend.properties");
 	
 	private InputStream dbProperties= null;
 	private InputStream fsProperties= null;
@@ -67,7 +67,7 @@ public class ConfigProperties {
 		
 	}
 	
-	public Map readFsProperties() {
+	/*public Map readFsProperties() {
 		prop = new Properties();
 		Map properties = new HashMap<String, String>();
 		try {
@@ -80,9 +80,9 @@ public class ConfigProperties {
 			e.printStackTrace();
 		}
 		return properties;
-	}
+	}*/
 	
-	public void writeFsProperties(Map<String, String> values) {
+	/*public void writeFsProperties(Map<String, String> values) {
 		try {
 			fsPropertiesSave = new FileOutputStream(fsFile);
 			prop = new Properties();
@@ -99,5 +99,5 @@ public class ConfigProperties {
 			e.printStackTrace();
 		}
 		
-	}
+	}*/
 }
