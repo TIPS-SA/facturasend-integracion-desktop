@@ -66,7 +66,7 @@ public class TableDesign {
 		table.getColumnModel().getColumn(3).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(4).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(5).setCellRenderer(defaultTableCellRenderer);
-		table.getColumnModel().getColumn(6).setCellRenderer(new CurrencyCellRenderer());
+		table.getColumnModel().getColumn(6).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(7).setCellRenderer(new CeldaPersonalizada());
 	}
 }

@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +16,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -25,6 +28,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import enums.DatabaseType;
 import service.ConfigProperties;
@@ -79,6 +83,8 @@ public class Config extends JDialog {
 	private JButton btnCancelar;
 	private JButton btnOk;
 	private JLabel lblUtilizarComunicacionSincrona;
+	private JButton btnAbrirArchivodbf;
+	private JFileChooser fileChooser;
 
 	/**
 	 * Launch the application.
@@ -138,6 +144,8 @@ public class Config extends JDialog {
 		cbTipoDb.addItem(DatabaseType.POSTGRES.name);
 		cbTipoDb.addItem(DatabaseType.MYSQL.name);
 		cbTipoDb.addItem(DatabaseType.ORACLE.name);
+		cbTipoDb.addItem(DatabaseType.DBF_CONSULTA.name);
+		cbTipoDb.addItem(DatabaseType.DBF_ESCRITURA.name);
 		
 		txtHost = new JTextField();
 		
@@ -162,6 +170,10 @@ public class Config extends JDialog {
 		btnTest = new JButton("Test");
 		
 		pTxtPasswordBd = new JPasswordField();
+		
+		btnAbrirArchivodbf = new JButton("Abrir Archivo .DBF");
+		btnAbrirArchivodbf.setVisible(false);
+		
 		GroupLayout gl_paneBaseDatos = new GroupLayout(paneBaseDatos);
 		gl_paneBaseDatos.setHorizontalGroup(
 			gl_paneBaseDatos.createParallelGroup(Alignment.LEADING)
@@ -188,7 +200,10 @@ public class Config extends JDialog {
 								.addComponent(txtDatabase, GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
 								.addComponent(txtSchema, GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
 								.addComponent(cbTipoDb, 0, 481, Short.MAX_VALUE)))
-						.addComponent(btnTest))
+						.addGroup(gl_paneBaseDatos.createSequentialGroup()
+							.addComponent(btnTest)
+							.addPreferredGap(ComponentPlacement.RELATED, 356, Short.MAX_VALUE)
+							.addComponent(btnAbrirArchivodbf)))
 					.addContainerGap())
 		);
 		gl_paneBaseDatos.setVerticalGroup(
@@ -226,9 +241,15 @@ public class Config extends JDialog {
 					.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblDriver)
 						.addComponent(cbDriver, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addGap(18)
-					.addComponent(btnTest)
-					.addContainerGap(41, Short.MAX_VALUE))
+					.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_paneBaseDatos.createSequentialGroup()
+							.addGap(18, 18, Short.MAX_VALUE)
+							.addComponent(btnTest)
+							.addGap(14))
+						.addGroup(Alignment.TRAILING, gl_paneBaseDatos.createSequentialGroup()
+							.addPreferredGap(ComponentPlacement.UNRELATED)
+							.addComponent(btnAbrirArchivodbf)
+							.addContainerGap())))
 		);
 		paneBaseDatos.setLayout(gl_paneBaseDatos);
 		
@@ -426,6 +447,18 @@ public class Config extends JDialog {
 	}
 
 	private void events() {
+		btnAbrirArchivodbf.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				fileChooser = new JFileChooser();
+				FileNameExtensionFilter filtroArchivo=new FileNameExtensionFilter("DBF","dbf");
+			    fileChooser.setFileFilter(filtroArchivo);
+			    int r=fileChooser.showOpenDialog(null);
+			    if(r==JFileChooser.APPROVE_OPTION){
+			    	File f=fileChooser.getSelectedFile();
+					//Aca se le da el tratamiento al archivo
+			    }
+			}
+		});
 		btnOk.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				save();
@@ -441,6 +474,7 @@ public class Config extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println(cbTipoDb.getSelectedItem());
 				if (cbTipoDb.getSelectedItem()==DatabaseType.POSTGRES.name) {
+					isDBF(false);
 					txtDatabase.setText(DatabaseType.POSTGRES.defaultDatabase);
 					txtSchema.setText(DatabaseType.POSTGRES.defaultSchema);
 					txtUsername.setText(DatabaseType.POSTGRES.defaultUsername);
@@ -450,6 +484,7 @@ public class Config extends JDialog {
 					pTxtPasswordBd.setText(DatabaseType.POSTGRES.defaultPass);
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.MYSQL.name) {
+					isDBF(false);
 					txtDatabase.setText(DatabaseType.MYSQL.defaultDatabase);
 					txtSchema.setText(DatabaseType.POSTGRES.defaultSchema);
 					txtUsername.setText(DatabaseType.MYSQL.defaultUsername);
@@ -459,6 +494,7 @@ public class Config extends JDialog {
 					pTxtPasswordBd.setText(DatabaseType.MYSQL.defaultPass);
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.ORACLE.name) {
+					isDBF(false);
 					txtDatabase.setText(DatabaseType.ORACLE.defaultDatabase);
 					txtSchema.setText(DatabaseType.POSTGRES.defaultSchema);
 					txtUsername.setText(DatabaseType.ORACLE.defaultUsername);
@@ -467,8 +503,32 @@ public class Config extends JDialog {
 					cbDriver.setSelectedItem(DatabaseType.ORACLE.defaultDriver);
 					pTxtPasswordBd.setText(DatabaseType.ORACLE.defaultPass);
 				}
+				if (cbTipoDb.getSelectedItem()==DatabaseType.DBF_CONSULTA.name) {
+					isDBF(true);
+				}
+				if (cbTipoDb.getSelectedItem()==DatabaseType.DBF_ESCRITURA.name) {
+					isDBF(true);
+				}
 			}
 		});
+	}
+	
+	private void isDBF(boolean flag) {
+		lblDatabase.setVisible(!flag);
+		lblSchema.setVisible(!flag);
+		lblUsername.setVisible(!flag);
+		lblHost.setVisible(!flag);
+		lblPuerto.setVisible(!flag);
+		lblDriver.setVisible(!flag);
+		lblPassword.setVisible(!flag);
+		txtDatabase.setVisible(!flag);
+		txtSchema.setVisible(!flag);
+		txtUsername.setVisible(!flag);
+		txtHost.setVisible(!flag);
+		txtPuerto.setVisible(!flag);
+		cbDriver.setVisible(!flag);
+		pTxtPasswordBd.setVisible(!flag);
+		btnAbrirArchivodbf.setVisible(flag);
 	}
 	
 	private void save() {

@@ -86,7 +86,13 @@ public class FacturasendService {
 		Object [] titulos = {null,"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado"};
 		Object datos[] = {null, null, null, null,null, null, null, null};
 		    
-		DefaultTableModel model = new DefaultTableModel(null, titulos);
+		DefaultTableModel model = new DefaultTableModel(null, titulos) {
+			 @Override
+			    public boolean isCellEditable(int row, int column) {
+			       //all cells false
+			       return column==0;
+			    }
+		};
 		try {
 			Map<String, Object> result = loadDocumentosElectronicos(q, tipoDocumento, page, size);
 			List<Map<String, Object>> rs = (List<Map<String, Object>>)result.get("result");

@@ -4,7 +4,10 @@ public enum DatabaseType
 	
     POSTGRES ("postgres","localhost", "5432", "postgres", "root", "pgdriver" ,"" ), 
     MYSQL ("mysql","localhost", "3306", "system", "root", "mysqldriver","" ), 
-    ORACLE ("oracle","localhost", "1411", "system", "root", "oradriver","" );
+    ORACLE ("oracle","localhost", "1411", "system", "root", "oradriver","" ),
+	DBF_CONSULTA("Seleccioinar Archivo de Consulta DBF","","","","","",""),
+	DBF_ESCRITURA("Seleccioinar Archivo de Escritura DBF","","","","","","");
+	
     
 	public String name;
 	public String defaultHost;

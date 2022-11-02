@@ -30,6 +30,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.ActionEvent;
 import javax.swing.border.EtchedBorder;
 import javax.swing.ImageIcon;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class Principal extends JFrame {
 
@@ -63,6 +65,11 @@ public class Principal extends JFrame {
 	private JButton btnAnterior;
 	private JButton btnFacturaImportacion;
 	private JPanel paneSouthTableCenter;
+	private boolean isBtnFacturaSelected = false;
+	private boolean isBtnAutoFacturaSelected = false;
+	private boolean isBtnNotaCreditoSelected = false;
+	private boolean isBtnNotaDebitoSelected = false;
+	private boolean isBtnNotaRemisionSelected = false;
 	Paginacion paginacion;
 	FacturasendService fs;
 	
@@ -211,65 +218,31 @@ public class Principal extends JFrame {
 	    });
 		
 		btnFacturas = new JButton("Facturas");
+		
 		btnFacturas.setIcon(new ImageIcon(Principal.class.getResource("/resources/FacturaElectronica.png")));
 		btnFacturas.setToolTipText("Facturas");
-		btnFacturas.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				tipoDocumento = 1;
-				getPaginacion().setCurrentPage(1);
-				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
-			}
-		});
+		
 		
 		btnAutoFactura = new JButton("<html><p>Auto</p>Factura<p></p></html>");
 		btnAutoFactura.setIcon(new ImageIcon(Principal.class.getResource("/resources/AutoFactura.png")));
 		btnAutoFactura.setToolTipText("Auto Factura");
 		btnAutoFactura.setPreferredSize(new Dimension(50,30));
-		btnAutoFactura.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				tipoDocumento = 4;
-				getPaginacion().setCurrentPage(1);
-				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
-			}
-		});
+		
 		
 		btnNotaCredito = new JButton("<html><p>Nota</p><p>Credito</p></html>");
 		btnNotaCredito.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaCredito.png")));
 		btnNotaCredito.setToolTipText("");
-		btnNotaCredito.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				tipoDocumento = 5;
-				getPaginacion().setCurrentPage(1);
-				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
-			}
-		});
+		
 		
 		btnNotaDebito = new JButton("<html><p>Nota</p><p>Debito</p></html>");
 		btnNotaDebito.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaDebito.png")));
 		btnNotaDebito.setToolTipText("");
-		btnNotaDebito.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				tipoDocumento = 6;
-				getPaginacion().setCurrentPage(1);
-				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
-			}
-		});
+		
 		
 		btnRemision = new JButton("<html><p>Nota</p><p>Remision</p></html>");
 		btnRemision.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaRemision.png")));
 		btnRemision.setToolTipText("Nota de Remision");
-		btnRemision.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				tipoDocumento = 7;
-				getPaginacion().setCurrentPage(1);
-				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
-			}
-		});
+		
 		
 		JButton btnFacturaExportacion = new JButton("<html><p>Nota</p><p>Exportacion</p></html>");
 		btnFacturaExportacion.setIcon(new ImageIcon(Principal.class.getResource("/resources/NotaExportacion.png")));
@@ -390,9 +363,115 @@ public class Principal extends JFrame {
 				confView.setVisible(true);
 			}
 		});
+//		btnFacturas.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				selectedButton("Factura");
+//				btnFacturas.setSelected(isBtnFacturaSelected);
+//				System.out.println(isBtnFacturaSelected);
+//				tipoDocumento = 1;
+//				getPaginacion().setCurrentPage(1);
+//				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+//			}
+//		});
+		btnFacturas.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				selectedButton("Factura");	
+				btnFacturas.setSelected(false);
+				System.out.println(isBtnFacturaSelected);
+				tipoDocumento = 1;
+				getPaginacion().setCurrentPage(1);
+				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+			}
+		});
+		btnAutoFactura.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				selectedButton("Auto Factura");
+				btnFacturas.setSelected(isBtnAutoFacturaSelected);
+				tipoDocumento = 4;
+				getPaginacion().setCurrentPage(1);
+				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+			}
+		});
+		btnNotaCredito.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				selectedButton("Nota Credito");
+				btnFacturas.setSelected(isBtnNotaCreditoSelected);
+				tipoDocumento = 5;
+				getPaginacion().setCurrentPage(1);
+				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+			}
+		});
+		btnNotaDebito.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				selectedButton("Nota Debito");
+				btnFacturas.setSelected(isBtnNotaDebitoSelected);
+				tipoDocumento = 6;
+				getPaginacion().setCurrentPage(1);
+				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+			}
+		});
+		btnRemision.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				selectedButton("Nota Remision");
+				btnFacturas.setSelected(isBtnNotaRemisionSelected);
+				tipoDocumento = 7;
+				getPaginacion().setCurrentPage(1);
+				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+			}
+		});
+	}
+	
+	private void selectedButton(String  btn) {
+		switch (btn) {
+		case "Factura":
+			isBtnFacturaSelected = true;
+			isBtnAutoFacturaSelected = false;
+			isBtnNotaCreditoSelected = false;
+			isBtnNotaDebitoSelected = false;
+			isBtnNotaRemisionSelected = false;
+			break;
+		case "Auto Factura":
+			isBtnFacturaSelected = false;
+			isBtnAutoFacturaSelected = true;
+			isBtnNotaCreditoSelected = false;
+			isBtnNotaDebitoSelected = false;
+			isBtnNotaRemisionSelected = false;
+			break;
+		case "Nota Credito":
+			isBtnFacturaSelected = false;
+			isBtnAutoFacturaSelected = false;
+			isBtnNotaCreditoSelected = true;
+			isBtnNotaDebitoSelected = false;
+			isBtnNotaRemisionSelected = false;
+			break;
+		case "Nota Debito":
+			isBtnFacturaSelected = false;
+			isBtnAutoFacturaSelected = false;
+			isBtnNotaCreditoSelected = false;
+			isBtnNotaDebitoSelected = true;
+			isBtnNotaRemisionSelected = false;
+			break;
+		case "Nota Remision":
+			isBtnFacturaSelected = false;
+			isBtnAutoFacturaSelected = false;
+			isBtnNotaCreditoSelected = false;
+			isBtnNotaDebitoSelected = false;
+			isBtnNotaRemisionSelected = true;
+			break;
+
+		default:
+			break;
+		}
 	}
 
 	public Paginacion getPaginacion() {
 		return paginacion;
 	}
+	
 }
