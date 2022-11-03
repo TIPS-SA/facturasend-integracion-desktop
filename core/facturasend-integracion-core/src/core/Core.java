@@ -48,7 +48,7 @@ public class Core {
 			if (databaseProperties.get("database.type").equals("oracle")) {
 				sql = getOracleSQLPaginado(sql, page, size);
 			}
-			System.out.println("" + sql);
+			System.out.println("\n" + sql);
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> listadoDes = SQLUtil.convertResultSetToList(rs);
@@ -70,7 +70,7 @@ public class Core {
 
 		String sql = "SELECT transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
-				+ "establecimiento, punto, numero, serie, total \n"
+				+ "establecimiento, punto, numero, serie, total, estado \n"
 				+ "FROM " + tableName + " \n"
 				+ "WHERE "
 				+ "( \n"
@@ -82,7 +82,7 @@ public class Core {
 				+ "AND tipo_documento = " + tipoDocumento + " \n"
 				+ "GROUP BY transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
-				+ "establecimiento, punto, numero, serie, total \n"
+				+ "establecimiento, punto, numero, serie, total, estado \n"
 				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";		
 		return sql;
 	}
@@ -112,7 +112,7 @@ public class Core {
 		Statement statement = conn.createStatement();
 		
 		String sql = formasPagosSQLByTransaccion(databaseProperties, tipoDocumento, transaccionId);
-		System.out.println("" + sql);
+		System.out.println("\n" + sql);
 		ResultSet rs = statement.executeQuery(sql);
 		
 		result = SQLUtil.convertResultSetToList(rs);
@@ -223,7 +223,7 @@ public class Core {
 					for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
 						Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
 						Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
-						System.out.println("Indice--- " + deList + " " + i);
+
 						Map<String, Object> respuestaDE = deList.get(i);	//Utiliza el mismo Indice de List de Json
 								
 						//Borrar registros previamente cargados, para evitar duplicidad
@@ -238,6 +238,7 @@ public class Core {
 						datosGuardar1.put("ESTADO", estado);
 						guardarFacturaSendData(viewRec, datosGuardar1, databaseProperties);
 
+
 						/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
 						datosGuardar2.put("JSON", gsonPP.toJson(viewRec) + "");
 						guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);
@@ -251,6 +252,10 @@ public class Core {
 						Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
 						datosGuardar3.put("QR", respuestaDE.get("qr") + "");
 						guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
+
+						Map<String, Object> datosGuardar5 = new HashMap<String, Object>();
+						datosGuardar5.put("TIPO", "Mayorista");
+						guardarFacturaSendData(viewRec, datosGuardar5, databaseProperties);
 
 					}
 
@@ -332,9 +337,9 @@ public class Core {
 		}
 		
 		String sql = "DELETE FROM " + tableToUpdate + " WHERE " + pk + " = "+ getValueForKey(de, "transaccion_id", "tra_id") + " "
-				+ " AND " + tableToUpdateKey + " IN ('ERROR','ESTADO', 'XML', 'JSON', 'QR', 'CDC')";
+				+ " AND " + tableToUpdateKey + " IN ('ERROR','ESTADO', 'XML', 'JSON', 'QR', 'CDC', 'TIPO')";
 		
-		System.out.println("" + sql);
+		System.out.println("\n" + sql);
 		PreparedStatement statement = conn.prepareStatement(sql);
 
 		result = statement.executeUpdate();
@@ -540,7 +545,7 @@ public class Core {
 						+ "WHERE 1=1 \n"
 						+ "AND tipo_documento = " + tipoDocumento + " \n"
 						+ "GROUP BY transaccion_id, establecimiento, punto, numero \n"
-						+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";		
+						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
 		return sql;
 	}
 	

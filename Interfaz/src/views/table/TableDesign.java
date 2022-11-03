@@ -29,9 +29,12 @@ public class TableDesign {
 		tc.setPreferredWidth(50);
 	}
 	
-	public String getEstadoValue(int valor) {
+	public String getEstadoDescripcion(int valor) {
 		String returnValue;
 		switch (valor) {
+		case 0:
+			returnValue= "Generado";
+			break;
 		case -1:
 			returnValue= "Borrador";
 			break;
@@ -51,7 +54,7 @@ public class TableDesign {
 			returnValue= "Cancelado";
 			break;
 		default:
-			returnValue= "Desconocido";
+			returnValue= "No integrado";
 			break;
 		}
 		return returnValue;
@@ -102,6 +105,10 @@ class CeldaPersonalizada extends DefaultTableCellRenderer {
 		if(column == 7) {
 			//String estadoStr = this.getText().toString();
 			switch (this.getText()) {
+			case "Generado":
+				componente.setBackground(Color.white);
+				componente.setForeground(Color.gray);
+				break;
 			case "Borrador":
 				componente.setBackground(Color.white);
 				componente.setForeground(Color.gray);
@@ -135,7 +142,7 @@ class CeldaPersonalizada extends DefaultTableCellRenderer {
 				attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON); 
 				componente.setFont( new Font(attributes));
 				break;
-			case "Desconocido":
+			case "No integrado":
 				componente.setBackground(Color.white);
 				componente.setForeground(Color.black);
 				break;

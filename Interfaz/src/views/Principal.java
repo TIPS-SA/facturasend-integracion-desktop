@@ -60,7 +60,7 @@ public class Principal extends JFrame {
 	private JButton btnVerkude;
 	private JButton btnEnviarEmail;
 	private JScrollPane scrollPaneCenter;
-	private JTable table;
+	private JTable jTableTransaction;
 	private JPanel paneCenter;
 	private JPanel paneSouthTable;
 	private JPanel tableBtns;
@@ -311,15 +311,15 @@ public class Principal extends JFrame {
 		frmFacturaSend.getContentPane().add(paneCenter, BorderLayout.CENTER);
 		paneCenter.setLayout(new BorderLayout(0, 0));
 		
-		table = new JTable();
+		jTableTransaction = new JTable();
 		//fs.cargar_tabla(table);
 		
 		scrollPaneCenter = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_NEVER,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		paneCenter.add(scrollPaneCenter, BorderLayout.CENTER);
-		scrollPaneCenter.setPreferredSize(new Dimension(table.getPreferredSize().width, table.getRowHeight()*filas));
+		scrollPaneCenter.setPreferredSize(new Dimension(jTableTransaction.getPreferredSize().width, jTableTransaction.getRowHeight()*filas));
 		
-		scrollPaneCenter.setViewportView(table);
+		scrollPaneCenter.setViewportView(jTableTransaction);
 		
 //		tableBtns = new JPanel();
 //		tableBtns.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
@@ -332,11 +332,11 @@ public class Principal extends JFrame {
 		paginacion.addActionListener(new PaginacionListener() {
 			@Override
 			public void goTo(Integer currentPage) {
-				paginacion.setTotal(fs.populateTransactionTable(table, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage));
+				paginacion.setTotal(fs.populateTransactionTable(jTableTransaction, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage));
 			}
 		});
-		paginacion.setCurrentPage(1);
 		paginacion.setRowsPerPage(rowsPerPage);
+		paginacion.setCurrentPage(1);	//Ejecuta la Consulta
 		//paginacion.setTotal(100);
 
 		paneCenter.add(paneSouthTable, BorderLayout.SOUTH);
@@ -349,12 +349,12 @@ public class Principal extends JFrame {
 	
 	private void events() {
 		
-		table.addMouseListener(new java.awt.event.MouseAdapter() {
+		jTableTransaction.addMouseListener(new java.awt.event.MouseAdapter() {
 			 public void mouseClicked(java.awt.event.MouseEvent evt) {
 				 if(evt.getClickCount()>1) {
 					//obtener la fila
-		            int row = table.getSelectedRow();
-	                DefaultTableModel model = (DefaultTableModel) table.getModel();
+		            int row = jTableTransaction.getSelectedRow();
+	                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
 	                BigDecimal nroMov = (BigDecimal) model.getValueAt(row, 1);
 	                movDetails = new InfoMovimiento(nroMov);
 	                movDetails.setVisible(true);

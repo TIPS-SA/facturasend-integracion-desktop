@@ -107,7 +107,14 @@ public class FacturasendService {
 				datos[4] = StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("establecimiento", readDBProperties()))+"", 3)  + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("punto", readDBProperties()))+"", 3) + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("numero", readDBProperties())) + "", 7);
 				datos[5] = rs.get(i).get(Core.getFieldName("moneda", readDBProperties()));
 				datos[6] = rs.get(i).get(Core.getFieldName("total", readDBProperties())) != null ? rs.get(i).get(Core.getFieldName("total", readDBProperties())) : 0;
-				datos[7] = tb.getEstadoValue(0);
+				String fieldEstado = Core.getFieldName("estado", readDBProperties()); 
+				String valueEstadoStr = (String) rs.get(i).get( fieldEstado );
+				Integer valueEstadoInt = -99;	//Sin estado	
+				
+				if (valueEstadoStr != null) {
+					valueEstadoInt = Integer.valueOf( valueEstadoStr + "" );
+				}
+				datos[7] = tb.getEstadoDescripcion(valueEstadoInt);
 				
 				model.addRow(datos);
 			}

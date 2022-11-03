@@ -128,7 +128,10 @@ public class Paginacion extends JPanel {
 		btnAnterior.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				currentPage --;
+				if (currentPage > 1) {
+					currentPage --;	
+				}
+				
 				setCurrentPage(currentPage);
 			}
 		});
@@ -171,8 +174,13 @@ public class Paginacion extends JPanel {
 	}
 
 	public void setTotal(Integer total) {
+		Integer calculateTotalPages = (Integer) (total / rowsPerPage);
+		
+		if (total.doubleValue() % rowsPerPage.doubleValue() != 0) {
+			calculateTotalPages ++;	//Si la DIV no es entera, agrega mas una pagina
+		}
 		this.total = total;
-		this.pages = (Integer) (total / rowsPerPage);
+		this.pages = calculateTotalPages;
 		this.lblCantidadPaginas.setText("de " + pages);
 	}
 
