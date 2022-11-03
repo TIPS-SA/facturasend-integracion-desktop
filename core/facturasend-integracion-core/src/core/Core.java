@@ -544,6 +544,12 @@ public class Core {
 						+ "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"
 						+ "AND tipo_documento = " + tipoDocumento + " \n"
+						
+						+ "AND ( \n"
+						+ "CDC IS NULL \n"
+						+ "OR \n"
+						+ "TRIM(ESTADO) = 4 \n"
+						+ ") \n"
 						+ "GROUP BY transaccion_id, establecimiento, punto, numero \n"
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
 		return sql;
