@@ -70,7 +70,7 @@ public class Core {
 
 		String sql = "SELECT transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
-				+ "establecimiento, punto, numero, serie, total, estado \n"
+				+ "establecimiento, punto, numero, serie, total, estado, error \n"
 				+ "FROM " + tableName + " \n"
 				+ "WHERE "
 				+ "( \n"
@@ -82,11 +82,56 @@ public class Core {
 				+ "AND tipo_documento = " + tipoDocumento + " \n"
 				+ "GROUP BY transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
-				+ "establecimiento, punto, numero, serie, total, estado \n"
+				+ "establecimiento, punto, numero, serie, total, estado, error \n"
 				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";		
 		return sql;
 	}
 	
+	public static Map<String, Object> getTransaccionesItem(Integer transaccionId, Integer page, Integer size, Map<String, String> databaseProperties) {
+		
+		Map<String, Object> result = new HashMap<String, Object>();
+		try {
+			Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+			
+			Statement statement = conn.createStatement();
+			
+			String sql = getSQLTransaccionesItem(databaseProperties, transaccionId, page, size);
+			
+			result.put("count", SQLUtil.getCountFromSQL(statement, sql)); 
+
+			//sql = getSQLListDesPaginado(databaseProperties, sql, q, page, size);
+			if (databaseProperties.get("database.type").equals("oracle")) {
+				//sql = getOracleSQLPaginado(sql, page, size);
+			}
+			System.out.println("\n" + sql);
+			ResultSet rs = statement.executeQuery(sql);
+			
+			List<Map<String, Object>> listadoTransaccionesItem = SQLUtil.convertResultSetToList(rs);
+			
+			result.put("success", true);
+			result.put("result", listadoTransaccionesItem);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("success", false);
+			result.put("error", e.getMessage());
+			
+		}
+		return result;
+	}
+			
+	private static String getSQLTransaccionesItem(Map<String, String> databaseProperties, Integer transaccionId, Integer page, Integer size) {
+		String tableName = databaseProperties.get("database.transaction_view");
+
+		String sql = "SELECT * \n"
+				+ "FROM " + tableName + " \n"
+				+ "WHERE "
+				
+				+ "transaccion_id = " + transaccionId + " \n"
+				
+				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";		
+		return sql;
+	}
 	
 	
 	
@@ -131,6 +176,193 @@ public class Core {
 				+ "";		
 		return sql;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Paso 1. Proceso que inicia la integración, dependiendo del tipo de documento.
+	 * @param tipoDocumento
+	 * @param databaseProperties
+	 * @return
+	 */
+	public static Map<String, Object> pausarIniciar(Integer [] transacciones, Map<String, String> databaseProperties)  {
+		//Recupera los transaccion_id que se deben integrar
+		Map<String, Object> obtener50registrosNoIntegradosMap = obtener50registrosNoIntegrados(1, databaseProperties);
+		
+		try {
+			
+			String transaccionIdString = "(-1)";
+			if (Boolean.valueOf(obtener50registrosNoIntegradosMap.get("success")+"") == true) {
+				List<Map<String, Object>> obtener50registrosNoIntegradosListMap = (List<Map<String, Object>>)obtener50registrosNoIntegradosMap.get("result");
+
+				transaccionIdString = "";
+				for (Map<String, Object> map : obtener50registrosNoIntegradosListMap) {
+					transaccionIdString += map.get(getFieldName("transaccion_id", databaseProperties)) + ",";
+				}
+				transaccionIdString += "";
+				
+				//System.out.println(transaccionIdString);
+				
+			} else {
+				throw new Exception(obtener50registrosNoIntegradosMap.get("error")+"");
+			}
+			
+			
+			
+			//De acuerdo a los transaccion_id obtendidos, busca todos los registros relacionados.
+			String transaccionIdStringInClause = "(" + transaccionIdString + "-1)";
+			Map<String, Object> documentosParaEnvioMap = procesarTransacciones(transaccionIdStringInClause, databaseProperties);
+			List<Map<String, Object>> documentoParaEnvioJsonMap = null;
+			
+			if (Boolean.valueOf(documentosParaEnvioMap.get("success")+"") == true) {
+				documentoParaEnvioJsonMap = (List<Map<String, Object>>)documentosParaEnvioMap.get("result");
+			} else {
+				throw new Exception(documentosParaEnvioMap.get("error")+"");
+
+			}
+			
+			
+			
+			//Generar JSON de documentos electronicos.
+			List<Map<String, Object>> documentosParaEnvioJsonMap = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentoParaEnvioJsonMap, databaseProperties);
+
+			Map header = new HashMap();
+			header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
+			String url = databaseProperties.get("facturasend.url");
+			if (databaseProperties.get("facturasend.sincrono").equalsIgnoreCase("S")) {
+				url += "/de/create";
+			} else {
+				url += "/lote/create?xml=true&qr=true";
+			}
+			
+			Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
+			
+			if (resultadoJson != null) {
+				
+				String tableToUpdate = databaseProperties.get("database.facturasend_table");
+				if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
+
+					Map<String, Object> result = (Map<String, Object>)resultadoJson.get("result");
+					
+					List<Map<String, Object>> deList = (List<Map<String, Object>>)result.get("deList");
+					
+					for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
+						Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
+						Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
+
+						Map<String, Object> respuestaDE = deList.get(i);	//Utiliza el mismo Indice de List de Json
+								
+						//Borrar registros previamente cargados, para evitar duplicidad
+						borrarPorTransaccionId(viewRec, databaseProperties);
+
+						Map<String, Object> datosGuardar = new HashMap<String, Object>();
+						datosGuardar.put("CDC", respuestaDE.get("cdc") + "");
+						guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
+
+						String estado = respuestaDE.get("estado") != null ? respuestaDE.get("estado") + "" : "0";
+						Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
+						datosGuardar1.put("ESTADO", estado);
+						guardarFacturaSendData(viewRec, datosGuardar1, databaseProperties);
+
+
+						/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
+						datosGuardar2.put("JSON", gsonPP.toJson(viewRec) + "");
+						guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);
+						 */
+						
+						Map<String, Object> datosGuardar4 = new HashMap<String, Object>();
+						datosGuardar4.put("XML", respuestaDE.get("xml") + "");
+						guardarFacturaSendData(viewRec, datosGuardar4, databaseProperties);
+						
+						
+						Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
+						datosGuardar3.put("QR", respuestaDE.get("qr") + "");
+						guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
+
+						Map<String, Object> datosGuardar5 = new HashMap<String, Object>();
+						datosGuardar5.put("TIPO", "Mayorista");
+						guardarFacturaSendData(viewRec, datosGuardar5, databaseProperties);
+
+					}
+
+					
+				} else {
+					//Si hay errores
+					//log.debug(arg0);
+					if (resultadoJson.get("errores") != null) {
+						List<Map<String, Object>> errores = (List<Map<String, Object>>)resultadoJson.get("errores");
+
+
+						for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
+							Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
+							Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
+							
+							
+							for (int j = 0; j < errores.size(); j++) {
+								if (i == j) {
+									
+									//Borrar registros previamente cargados, para evitar duplicidad
+									borrarPorTransaccionId(viewRec, databaseProperties);
+
+									Map<String, Object> datosGuardar = new HashMap<String, Object>();
+									datosGuardar.put("ERROR", errores.get(j).get("error") + "");
+									guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
+									
+									/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
+//									datosGuardar.put("JSON", gsonPP.toJson(viewRec) + "");
+									System.out.println(viewRec);
+									datosGuardar.put("JSON", gson.toJson(viewRec) + "");
+									System.out.println("despues del error");
+									guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);*/
+								}
+							}	
+						}
+						
+					}
+				}
+			}
+			
+			//
+		} catch (Exception e) {
+			e.printStackTrace();
+			obtener50registrosNoIntegradosMap.put("success", false);
+			obtener50registrosNoIntegradosMap.put("error", e.getMessage());
+		}
+		//Cambiar éste resultado, por el resultado del lote
+		
+		return obtener50registrosNoIntegradosMap;
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	

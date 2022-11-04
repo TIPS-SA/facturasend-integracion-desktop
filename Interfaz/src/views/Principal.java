@@ -21,7 +21,10 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.table.DefaultTableModel;
 
+import com.google.gson.Gson;
+
 import service.FacturasendService;
+import util.HttpUtil;
 import views.commons.Paginacion;
 import views.commons.PaginacionListener;
 import views.commons.Paginacion;
@@ -35,8 +38,14 @@ import javax.swing.ImageIcon;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Principal extends JFrame {
+
+	private static Gson gson = new Gson();
 
 	private int filas;
 	private int alto;
@@ -127,8 +136,20 @@ public class Principal extends JFrame {
 		btnCondiguracion = new JButton("Configuracion");
 		btnCondiguracion.setIcon(new ImageIcon(Principal.class.getResource("/resources/agt_softwareD.png")));
 		
-		btnNoEnviar = new JButton("No Enviar");
+		btnNoEnviar = new JButton("Pausar/Enviar");
 		btnNoEnviar.setIcon(new ImageIcon(Principal.class.getResource("/resources/agt_stop.png")));
+		btnNoEnviar.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					Integer[] transacciones = new Integer[] {1,2};
+					fs.pausarIniciar(transacciones);	
+				} catch (Exception e2) {
+					System.out.println("Mostrar error en pantalla, " + e2);
+				}
+			}
+		});
+
 		
 		btnReintegrar = new JButton("Reintegrar");
 		btnReintegrar.setIcon(new ImageIcon(Principal.class.getResource("/resources/reload.png")));
@@ -146,9 +167,65 @@ public class Principal extends JFrame {
 		
 		btnVerXml = new JButton("Ver XML");
 		btnVerXml.setIcon(new ImageIcon(Principal.class.getResource("/resources/txt.png")));
+		btnVerXml.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String cdc = "234923648276423487243";
+
+				int row = jTableTransaction.getSelectedRow();
+                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
+                
+                BigDecimal nroMov = (BigDecimal) model.getValueAt(row, 1);
+
+				Map header = new HashMap();
+				header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
+				String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
+				url += "/de/xml/" + cdc;
+				
+				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", null, header);
+				
+				if (resultadoJson != null) {
+					if (Boolean.valueOf(resultadoJson.get("success")+"") == true) {
+						
+					}
+
+				}
+			}
+		});
 		
 		btnVerkude = new JButton("verKUDE");
 		btnVerkude.setIcon(new ImageIcon(Principal.class.getResource("/resources/pdf.png")));
+		btnVerkude.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//Generar JSON de documentos electronicos.
+
+				int row = jTableTransaction.getSelectedRow();
+                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
+                BigDecimal nroMov = (BigDecimal) model.getValueAt(row, 1);
+
+                List<Map<String, Object>> deList = new ArrayList<Map<String,Object>>();
+				Map data = new HashMap();
+				data.put("deList", deList);
+				
+				Map cdc = new HashMap();
+				data.put("cdc", "96768766687686968867986968986");
+
+				Map header = new HashMap();
+				header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
+				String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
+				url += "/de/pdf";
+				
+				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(data), header);
+				
+				if (resultadoJson != null) {
+					if (Boolean.valueOf(resultadoJson.get("success")+"") == true) {
+						
+					}
+
+				}
+			}
+		});
 		
 		btnEnviarEmail = new JButton("Enviar Email");
 		btnEnviarEmail.setIcon(new ImageIcon(Principal.class.getResource("/resources/folder_outbox.png")));
@@ -355,8 +432,8 @@ public class Principal extends JFrame {
 					//obtener la fila
 		            int row = jTableTransaction.getSelectedRow();
 	                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
-	                BigDecimal nroMov = (BigDecimal) model.getValueAt(row, 1);
-	                movDetails = new InfoMovimiento(nroMov);
+	                BigDecimal transaccionId = (BigDecimal) model.getValueAt(row, 1);
+	                movDetails = new InfoMovimiento(transaccionId);
 	                movDetails.setVisible(true);
 				 }
 		    }

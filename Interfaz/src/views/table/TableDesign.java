@@ -105,9 +105,13 @@ class CeldaPersonalizada extends DefaultTableCellRenderer {
 		if(column == 7) {
 			//String estadoStr = this.getText().toString();
 			switch (this.getText()) {
+			case "Error":
+				componente.setBackground(Color.red);
+				componente.setForeground(Color.white);
+				break;
 			case "Generado":
-				componente.setBackground(Color.white);
-				componente.setForeground(Color.gray);
+				componente.setBackground(Color.gray);
+				componente.setForeground(Color.white);
 				break;
 			case "Borrador":
 				componente.setBackground(Color.white);
@@ -117,7 +121,7 @@ class CeldaPersonalizada extends DefaultTableCellRenderer {
 				componente.setBackground(Color.green);
 				componente.setForeground(Color.black);
 				break;
-			case "Aprobado c/ Error":
+			case "Aprobado c/Obs":
 				componente.setBackground(Color.green);
 				componente.setForeground(Color.black);
 				//resaltar o algo

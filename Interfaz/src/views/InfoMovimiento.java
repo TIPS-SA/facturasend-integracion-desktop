@@ -20,7 +20,7 @@ import javax.swing.JTable;
 public class InfoMovimiento extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
-	private static BigDecimal nroMov;
+	private static BigDecimal transaccionId;
 	private JButton okButton;
 	private JTable table;
 	private FacturasendService fs;
@@ -29,7 +29,7 @@ public class InfoMovimiento extends JDialog {
 	 */
 	public static void main(String[] args) {
 		try {
-			InfoMovimiento dialog = new InfoMovimiento(nroMov);
+			InfoMovimiento dialog = new InfoMovimiento(transaccionId);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
@@ -40,14 +40,14 @@ public class InfoMovimiento extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public InfoMovimiento(BigDecimal nroMov) {
-		this.nroMov = nroMov;
+	public InfoMovimiento(BigDecimal transaccionId) {
+		this.transaccionId = transaccionId;
 
 		setModal(true);
 		setBounds(100, 100, 800, 410);
 		setMinimumSize(new Dimension(800,410));
-		setTitle("Detalles del Movimiento #"+nroMov);
-		initialize(nroMov);
+		setTitle("Detalles del Movimiento #"+transaccionId);
+		initialize(transaccionId);
 		events();
 		
 	}

@@ -58,6 +58,53 @@ public class FacturasendService {
 		}
 	}
 	
+
+	/**
+	 * Busca en el proyecto CORE los datos de la Vista
+	 * en formato MAP, para mostrar en el JTable
+	 * 
+	 * @param tipo
+	 * @return
+	 * @throws Exception
+	 */
+	public static Map<String, Object> loadTransaccionesItem(Integer transaccionId, Integer page, Integer size) throws Exception {
+		
+		//Llamar a la consulta de Datos
+		//ConfigProperties configProperties = new ConfigProperties();
+		
+		Map<String, Object> returnData = Core.getTransaccionesItem(transaccionId, page, size, readDBProperties());
+		
+		System.out.println(returnData);
+		if (Boolean.valueOf(returnData.get("success")+"") == true) {
+			return returnData;
+		} else {
+			throw new Exception(returnData.get("error")+"");
+		}
+	}
+
+	/**
+	 * Ejecuta el proceso de integración desde el Core, el 
+	 * cual tiene su logica propia para mantener las transacciones
+	 * sincronizadas.
+	 * 
+	 * @param tipo
+	 * @return
+	 * @throws Exception
+	 */
+	public static Map<String, Object> pausarIniciar(Integer[] transacciones) throws Exception {
+		
+		//Llamar a la consulta de Datos
+		
+		Map<String, Object> returnData = Core.pausarIniciar(transacciones, readDBProperties());
+		
+		System.out.println(returnData);
+		if (Boolean.valueOf(returnData.get("success")+"") == true) {
+			return returnData;
+		} else {
+			throw new Exception(returnData.get("error")+"");
+		}
+	}
+
 	/**
 	 * Ejecuta el proceso de integración desde el Core, el 
 	 * cual tiene su logica propia para mantener las transacciones
@@ -114,7 +161,11 @@ public class FacturasendService {
 				if (valueEstadoStr != null) {
 					valueEstadoInt = Integer.valueOf( valueEstadoStr + "" );
 				}
-				datos[7] = tb.getEstadoDescripcion(valueEstadoInt);
+				if (rs.get(i).get(Core.getFieldName("ERROR", readDBProperties())) != null) {
+					datos[7] = "Error";
+				} else {
+					datos[7] = tb.getEstadoDescripcion(valueEstadoInt);					
+				}
 				
 				model.addRow(datos);
 			}
@@ -143,13 +194,14 @@ public class FacturasendService {
 			    }
 		};
 		try {
-			//Map<String, Object> result = loadDocumentosElectronicos(q, tipoDocumento, page, size);
-			//List<Map<String, Object>> rs = (List<Map<String, Object>>)result.get("result");
+			Map<String, Object> result = loadTransaccionesItem(nroMov.intValue(), 0, 999999);
+			System.out.println("items" + result);
+			List<Map<String, Object>> rs = (List<Map<String, Object>>)result.get("result");
 			//retorno =  (Integer)result.get("count");
-			//System.out.println("rs"  + rs);
-			for (int i = 0; i < 10/*rs.size()*/; i++) {
+			System.out.println("rs"  + rs);
+			for (int i = 0; i < rs.size(); i++) {
 				
-				datos[0] = 1;//rs.get(i).get(Core.getFieldName("transaccion_id", readDBProperties()));
+				datos[0] = rs.get(i).get(Core.getFieldName("transaccion_id", readDBProperties()));
 				datos[1] = 2;//rs.get(i).get(Core.getFieldName("fecha", readDBProperties()));
 				datos[2] = 3;//rs.get(i).get(Core.getFieldName("cliente_razon_social", readDBProperties()));
 				datos[3] = 4;//StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("establecimiento", readDBProperties()))+"", 3)  + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("punto", readDBProperties()))+"", 3) + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("numero", readDBProperties())) + "", 7);
