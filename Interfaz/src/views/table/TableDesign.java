@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.swing.JCheckBox;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
@@ -64,13 +65,25 @@ public class TableDesign {
 		final DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
 		defaultTableCellRenderer.setHorizontalTextPosition(0);
 		table.setDefaultRenderer(getClass(), defaultTableCellRenderer);
+		table.getColumnModel().getColumn(0).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(1).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(2).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(3).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(4).setCellRenderer(defaultTableCellRenderer);
-		table.getColumnModel().getColumn(5).setCellRenderer(defaultTableCellRenderer);
-		table.getColumnModel().getColumn(6).setCellRenderer(defaultTableCellRenderer);
-		table.getColumnModel().getColumn(7).setCellRenderer(new CeldaPersonalizada());
+		table.getColumnModel().getColumn(5).setCellRenderer(new CurrencyCellRenderer());
+		table.getColumnModel().getColumn(6).setCellRenderer(new CeldaPersonalizada());
+	}
+	
+	public void setItemsTableCellsStyle(JTable table) {
+		final DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+		defaultTableCellRenderer.setHorizontalTextPosition(0);
+		table.setDefaultRenderer(getClass(), defaultTableCellRenderer);
+		table.getColumnModel().getColumn(0).setCellRenderer(defaultTableCellRenderer);
+		table.getColumnModel().getColumn(1).setCellRenderer(defaultTableCellRenderer);
+		table.getColumnModel().getColumn(2).setCellRenderer(defaultTableCellRenderer);
+		table.getColumnModel().getColumn(3).setCellRenderer(new CurrencyCellRenderer());
+		table.getColumnModel().getColumn(4).setCellRenderer(new CurrencyCellRenderer());
+		table.getColumnModel().getColumn(5).setCellRenderer(new CurrencyCellRenderer());
 	}
 }
 class CurrencyCellRenderer extends DefaultTableCellRenderer {
@@ -83,8 +96,8 @@ class CurrencyCellRenderer extends DefaultTableCellRenderer {
         final Component result = super.getTableCellRendererComponent(table, value,
                 isSelected, hasFocus, row, column);
         if (value instanceof Number) {
-            //setHorizontalAlignment(JLabel.RIGHT);
-            setText(FORMAT.format(value));
+            setHorizontalAlignment(SwingConstants.RIGHT);
+            //setText(FORMAT.format(value));
         } else {
             setText("");
         }

@@ -7,6 +7,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -131,8 +133,8 @@ public class FacturasendService {
 	TableDesign tb = new TableDesign();
 	public Integer populateTransactionTable(JTable table, String q, Integer tipoDocumento, Integer page, Integer size){
 		Integer retorno = 0;
-		Object [] titulos = {null,"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado"};
-		Object datos[] = {null, null, null, null,null, null, null, null};
+		Object [] titulos = {"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado"};
+		Object datos[] = { null, null, null,null, null, null, null};
 		    
 		DefaultTableModel model = new DefaultTableModel(null, titulos) {
 			 @Override
@@ -148,12 +150,12 @@ public class FacturasendService {
 			//System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
 				
-				datos[1] = rs.get(i).get(Core.getFieldName("transaccion_id", readDBProperties()));
-				datos[2] = rs.get(i).get(Core.getFieldName("fecha", readDBProperties()));
-				datos[3] = rs.get(i).get(Core.getFieldName("cliente_razon_social", readDBProperties()));
-				datos[4] = StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("establecimiento", readDBProperties()))+"", 3)  + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("punto", readDBProperties()))+"", 3) + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("numero", readDBProperties())) + "", 7);
-				datos[5] = rs.get(i).get(Core.getFieldName("moneda", readDBProperties()));
-				datos[6] = rs.get(i).get(Core.getFieldName("total", readDBProperties())) != null ? rs.get(i).get(Core.getFieldName("total", readDBProperties())) : 0;
+				datos[0] = rs.get(i).get(Core.getFieldName("transaccion_id", readDBProperties()));
+				datos[1] = rs.get(i).get(Core.getFieldName("fecha", readDBProperties()));
+				datos[2] = rs.get(i).get(Core.getFieldName("cliente_razon_social", readDBProperties()));
+				datos[3] = StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("establecimiento", readDBProperties()))+"", 3)  + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("punto", readDBProperties()))+"", 3) + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("numero", readDBProperties())) + "", 7);
+				datos[4] = rs.get(i).get(Core.getFieldName("moneda", readDBProperties()));
+				datos[5] = rs.get(i).get(Core.getFieldName("total", readDBProperties())) != null ? rs.get(i).get(Core.getFieldName("total", readDBProperties())) : 0;
 				String fieldEstado = Core.getFieldName("estado", readDBProperties()); 
 				String valueEstadoStr = (String) rs.get(i).get( fieldEstado );
 				Integer valueEstadoInt = -99;	//Sin estado	
@@ -162,9 +164,9 @@ public class FacturasendService {
 					valueEstadoInt = Integer.valueOf( valueEstadoStr + "" );
 				}
 				if (rs.get(i).get(Core.getFieldName("ERROR", readDBProperties())) != null) {
-					datos[7] = "Error";
+					datos[6] = "Error";
 				} else {
-					datos[7] = tb.getEstadoDescripcion(valueEstadoInt);					
+					datos[6] = tb.getEstadoDescripcion(valueEstadoInt);					
 				}
 				
 				model.addRow(datos);
@@ -175,9 +177,9 @@ public class FacturasendService {
 		}
 		table.setModel(model);
 		tb.setPrincipalTableCellsStyle(table);
-		tb.addCheckBox(0, table);
-		table.getColumnModel().getColumn(1).setPreferredWidth(10);
-		table.getColumnModel().getColumn(5).setPreferredWidth(20);
+		//tb.addCheckBox(0, table);
+		table.getColumnModel().getColumn(0).setPreferredWidth(10);
+		table.getColumnModel().getColumn(4).setPreferredWidth(20);
 		
 		return retorno;
 	}
@@ -201,12 +203,16 @@ public class FacturasendService {
 			System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
 				
-				datos[0] = rs.get(i).get(Core.getFieldName("transaccion_id", readDBProperties()));
-				datos[1] = 2;//rs.get(i).get(Core.getFieldName("fecha", readDBProperties()));
-				datos[2] = 3;//rs.get(i).get(Core.getFieldName("cliente_razon_social", readDBProperties()));
-				datos[3] = 4;//StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("establecimiento", readDBProperties()))+"", 3)  + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("punto", readDBProperties()))+"", 3) + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("numero", readDBProperties())) + "", 7);
-				datos[4] = 5;//rs.get(i).get(Core.getFieldName("moneda", readDBProperties()));
-				datos[5] = 6;//rs.get(i).get(Core.getFieldName("total", readDBProperties())) != null ? rs.get(i).get(Core.getFieldName("total", readDBProperties())) : 0;
+				datos[0] = rs.get(i).get(Core.getFieldName("ITEM_CODIGO", readDBProperties()));
+				datos[1] = rs.get(i).get(Core.getFieldName("DESCRIPCION", readDBProperties()));
+				datos[2] = rs.get(i).get(Core.getFieldName("ITEM_CANTIDAD", readDBProperties()));
+				datos[3] = rs.get(i).get(Core.getFieldName("ITEM_PRECIO_UNITARIO", readDBProperties()));
+				datos[4] = rs.get(i).get(Core.getFieldName("ITEM_DESCUENTO", readDBProperties()));
+				DecimalFormat df = new DecimalFormat("###########.00");
+		        double subtotalNumber = Double.valueOf(datos[2].toString())*Double.valueOf(datos[3].toString())-Double.valueOf(datos[4].toString());
+		        String subtotal = df.format(subtotalNumber);
+		        subtotal = subtotal.replace(",", ".");
+				datos[5] = Double.valueOf(subtotal).doubleValue();
 				
 				model.addRow(datos);
 			}
@@ -215,6 +221,13 @@ public class FacturasendService {
 			e.printStackTrace();
 		}
 		table.setModel(model);
+		tb.setItemsTableCellsStyle(table);
+		table.getColumnModel().getColumn(0).setPreferredWidth(10);
+		table.getColumnModel().getColumn(1).setPreferredWidth(315);
+		table.getColumnModel().getColumn(2).setPreferredWidth(10);
+		table.getColumnModel().getColumn(3).setPreferredWidth(10);
+		table.getColumnModel().getColumn(4).setPreferredWidth(10);
+		table.getColumnModel().getColumn(5).setPreferredWidth(10);
 		return null;
 	}
 	

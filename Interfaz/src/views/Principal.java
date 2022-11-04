@@ -138,94 +138,19 @@ public class Principal extends JFrame {
 		
 		btnNoEnviar = new JButton("Pausar/Enviar");
 		btnNoEnviar.setIcon(new ImageIcon(Principal.class.getResource("/resources/agt_stop.png")));
-		btnNoEnviar.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					Integer[] transacciones = new Integer[] {1,2};
-					fs.pausarIniciar(transacciones);	
-				} catch (Exception e2) {
-					System.out.println("Mostrar error en pantalla, " + e2);
-				}
-			}
-		});
-
+		
 		
 		btnReintegrar = new JButton("Reintegrar");
 		btnReintegrar.setIcon(new ImageIcon(Principal.class.getResource("/resources/reload.png")));
-		btnReintegrar.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					fs.iniciarIntegracion(tipoDocumento);	
-				} catch (Exception e2) {
-					System.out.println("Mostrar error en pantalla, " + e2);
-				}
-				
-			}
-		});
+		
 		
 		btnVerXml = new JButton("Ver XML");
 		btnVerXml.setIcon(new ImageIcon(Principal.class.getResource("/resources/txt.png")));
-		btnVerXml.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String cdc = "234923648276423487243";
-
-				int row = jTableTransaction.getSelectedRow();
-                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
-                
-                BigDecimal nroMov = (BigDecimal) model.getValueAt(row, 1);
-
-				Map header = new HashMap();
-				header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
-				String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
-				url += "/de/xml/" + cdc;
-				
-				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", null, header);
-				
-				if (resultadoJson != null) {
-					if (Boolean.valueOf(resultadoJson.get("success")+"") == true) {
-						
-					}
-
-				}
-			}
-		});
+		
 		
 		btnVerkude = new JButton("verKUDE");
 		btnVerkude.setIcon(new ImageIcon(Principal.class.getResource("/resources/pdf.png")));
-		btnVerkude.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				//Generar JSON de documentos electronicos.
-
-				int row = jTableTransaction.getSelectedRow();
-                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
-                BigDecimal nroMov = (BigDecimal) model.getValueAt(row, 1);
-
-                List<Map<String, Object>> deList = new ArrayList<Map<String,Object>>();
-				Map data = new HashMap();
-				data.put("deList", deList);
-				
-				Map cdc = new HashMap();
-				data.put("cdc", "96768766687686968867986968986");
-
-				Map header = new HashMap();
-				header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
-				String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
-				url += "/de/pdf";
-				
-				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(data), header);
-				
-				if (resultadoJson != null) {
-					if (Boolean.valueOf(resultadoJson.get("success")+"") == true) {
-						
-					}
-
-				}
-			}
-		});
+		
 		
 		btnEnviarEmail = new JButton("Enviar Email");
 		btnEnviarEmail.setIcon(new ImageIcon(Principal.class.getResource("/resources/folder_outbox.png")));
@@ -273,25 +198,11 @@ public class Principal extends JFrame {
 		
 		tfBuscar = new JTextField();
 		tfBuscar.setColumns(10);
-		tfBuscar.addKeyListener(new KeyAdapter() {
-	        @Override
-	        public void keyPressed(KeyEvent e) {
-	            if(e.getKeyCode() == KeyEvent.VK_ENTER){
-	               paginacion.setCurrentPage(1);
-	            }
-	        }
-
-	    });
+		
 		
 		btnBuscar = new JButton("");
 		btnBuscar.setIcon(new ImageIcon(Principal.class.getResource("/resources/search.png")));
-		btnBuscar.addKeyListener(new KeyAdapter() {
-	        @Override
-	        public void keyPressed(KeyEvent e) {
-               paginacion.setCurrentPage(1);
-	        }
-
-	    });
+		
 		
 		btnFacturas = new JButton("Facturas");
 		
@@ -425,6 +336,112 @@ public class Principal extends JFrame {
 	}
 	
 	private void events() {
+		btnNoEnviar.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					Integer[] transacciones = new Integer[] {1,2};
+					fs.pausarIniciar(transacciones);	
+				} catch (Exception e2) {
+					System.out.println("Mostrar error en pantalla, " + e2);
+				}
+			}
+		});
+
+		
+		btnReintegrar.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					fs.iniciarIntegracion(tipoDocumento);	
+				} catch (Exception e2) {
+					System.out.println("Mostrar error en pantalla, " + e2);
+				}
+				
+			}
+		});
+		
+		tfBuscar.addKeyListener(new KeyAdapter() {
+	        @Override
+	        public void keyPressed(KeyEvent e) {
+	            if(e.getKeyCode() == KeyEvent.VK_ENTER){
+	               paginacion.setCurrentPage(1);
+	            }
+	        }
+
+	    });
+		
+		btnBuscar.addKeyListener(new KeyAdapter() {
+	        @Override
+	        public void keyPressed(KeyEvent e) {
+               paginacion.setCurrentPage(1);
+	        }
+
+	    });
+		
+		btnVerkude.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//Generar JSON de documentos electronicos.
+
+				int row = jTableTransaction.getSelectedRow();
+                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
+                BigDecimal nroMov = (BigDecimal) model.getValueAt(row, 0);
+
+                List<Map<String, Object>> deList = new ArrayList<Map<String,Object>>();
+				Map data = new HashMap();
+				//data.put("type", "base64");
+				data.put("deList", deList);
+				
+				Map cdc = new HashMap();
+				data.put("cdc", "96768766687686968867986968986");
+
+				Map header = new HashMap();
+				header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
+				String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
+				url += "/de/pdf";
+				
+				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(data), header);
+				
+				//probar con un pdf fijo, del folder
+				if (resultadoJson != null) {
+					if (Boolean.valueOf(resultadoJson.get("success")+"") == true) {
+						
+					}
+
+				}
+			}
+		});
+		
+		btnVerXml.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String cdc = "234923648276423487243";
+
+				int row = jTableTransaction.getSelectedRow();
+                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
+                
+                BigDecimal nroMov = (BigDecimal) model.getValueAt(row, 0);
+
+				Map header = new HashMap();
+				header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
+				String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
+				url += "/de/xml/" + cdc;
+				
+				/*Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", null, header);
+				
+				if (resultadoJson != null) {
+					if (Boolean.valueOf(resultadoJson.get("success")+"") == true) {
+						
+					}
+
+				}*/
+				//Imlementar el dialog para ver el xml 
+				String xml = "23423423423424";
+				ShowXMLDialog xmlView = new ShowXMLDialog(xml);
+				xmlView.setVisible(true);
+			}
+		});
 		
 		jTableTransaction.addMouseListener(new java.awt.event.MouseAdapter() {
 			 public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -432,7 +449,7 @@ public class Principal extends JFrame {
 					//obtener la fila
 		            int row = jTableTransaction.getSelectedRow();
 	                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
-	                BigDecimal transaccionId = (BigDecimal) model.getValueAt(row, 1);
+	                BigDecimal transaccionId = (BigDecimal) model.getValueAt(row, 0);
 	                movDetails = new InfoMovimiento(transaccionId);
 	                movDetails.setVisible(true);
 				 }
