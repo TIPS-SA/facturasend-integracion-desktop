@@ -222,10 +222,10 @@ public class FacturasendService {
 		}
 		table.setModel(model);
 		tb.setItemsTableCellsStyle(table);
-		table.getColumnModel().getColumn(0).setPreferredWidth(10);
-		table.getColumnModel().getColumn(1).setPreferredWidth(315);
+		table.getColumnModel().getColumn(0).setPreferredWidth(35);
+		table.getColumnModel().getColumn(1).setPreferredWidth(285);
 		table.getColumnModel().getColumn(2).setPreferredWidth(10);
-		table.getColumnModel().getColumn(3).setPreferredWidth(10);
+		table.getColumnModel().getColumn(3).setPreferredWidth(25);
 		table.getColumnModel().getColumn(4).setPreferredWidth(10);
 		table.getColumnModel().getColumn(5).setPreferredWidth(10);
 		return null;
