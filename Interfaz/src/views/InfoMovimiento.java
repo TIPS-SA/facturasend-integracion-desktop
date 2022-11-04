@@ -13,6 +13,8 @@ import service.FacturasendService;
 
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -65,23 +67,23 @@ public class InfoMovimiento extends JDialog {
 		
 	}
 
-	private void initialize(BigDecimal nroMov) {
+	private void initialize(BigDecimal transaccionId) {
 		fs = new FacturasendService();
 		// TODO Auto-generated method stub
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(new BorderLayout(0, 0));
-		{
+		//{
 			JScrollPane scrollPane = new JScrollPane();
 			contentPanel.add(scrollPane, BorderLayout.CENTER);
-			{
-				table = new JTable();
-				fs.populateTransactionDetailsTable(table, nroMov);
-				scrollPane.setViewportView(table);
-			}
-		}
-		{
+			//{
+			table = new JTable();
+			List<Map<String, Object>> transacconesItem = fs.populateTransactionDetailsTable(table, transaccionId);
+			scrollPane.setViewportView(table);
+			//}
+		//}
+		//{
 			infoCdcPane = new JPanel();
 			infoCdcPane.setPreferredSize(new Dimension(100, 150));
 			contentPanel.add(infoCdcPane, BorderLayout.NORTH);
@@ -96,6 +98,7 @@ public class InfoMovimiento extends JDialog {
 			txtCdc.setEditable(false);
 			txtCdc.setColumns(10);
 			
+			
 			txtEstado = new JTextField();
 			txtEstado.setEditable(false);
 			txtEstado.setColumns(10);
@@ -105,6 +108,15 @@ public class InfoMovimiento extends JDialog {
 			txtAError = new JTextArea();
 			txtAError.setLineWrap(true);
 			txtAError.setEditable(false);
+			
+			//Asignar valores
+			if (transacconesItem.size() > 0) {
+				txtCdc.setText( transacconesItem.get(0).get("CDC") + "");
+				txtEstado.setText( transacconesItem.get(0).get("ESTADO") + "");
+				txtAError.setText( transacconesItem.get(0).get("ERROR") + "");
+				
+			}
+
 			GroupLayout gl_infoCdcPane = new GroupLayout(infoCdcPane);
 			gl_infoCdcPane.setHorizontalGroup(
 				gl_infoCdcPane.createParallelGroup(Alignment.LEADING)
@@ -147,8 +159,8 @@ public class InfoMovimiento extends JDialog {
 			);
 			infoCdcPane.setLayout(gl_infoCdcPane);
 			
-		}
-		{
+		//}
+		//{
 			JPanel buttonPane = new JPanel();
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
@@ -158,7 +170,7 @@ public class InfoMovimiento extends JDialog {
 				buttonPane.add(okButton);
 				getRootPane().setDefaultButton(okButton);
 			}
-		}
+		//}
 	}
 	
 	private void events() {

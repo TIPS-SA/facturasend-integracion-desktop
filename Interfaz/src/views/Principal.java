@@ -37,8 +37,12 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.ImageIcon;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -384,64 +388,96 @@ public class Principal extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				//Generar JSON de documentos electronicos.
 
+				String cdc = "";
+
 				int row = jTableTransaction.getSelectedRow();
-                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
-                BigDecimal nroMov = (BigDecimal) model.getValueAt(row, 0);
-
-                List<Map<String, Object>> deList = new ArrayList<Map<String,Object>>();
-				Map data = new HashMap();
-				//data.put("type", "base64");
-				data.put("deList", deList);
-				
-				Map cdc = new HashMap();
-				data.put("cdc", "96768766687686968867986968986");
-
-				Map header = new HashMap();
-				header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
-				String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
-				url += "/de/pdf";
-				
-				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(data), header);
-				
-				//probar con un pdf fijo, del folder
-				if (resultadoJson != null) {
-					if (Boolean.valueOf(resultadoJson.get("success")+"") == true) {
+				if (jTableTransaction.getSelectedRow() >= 0) {
+					DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
+					
+	                cdc = (String) model.getValueAt(row, 7);
+	
+	                List<Map<String, Object>> deList = new ArrayList<Map<String,Object>>();
+					Map data = new HashMap();
+					data.put("type", "base64");
+					data.put("cdcList", deList);
+					
+					Map cdcMap = new HashMap();
+					cdcMap.put("cdc", cdc);
+	
+					deList.add(cdcMap);
+					
+					Map header = new HashMap();
+					header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
+					String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
+					url += "/de/pdf";
+					
+					try {
+						Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(data), header);
 						
-					}
+						//probar con un pdf fijo, del folder
+						if (resultadoJson != null) {
+							if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
 
+								ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+								byte[] decoder = Base64.getDecoder().decode(resultadoJson.get("value") + "");
+
+								out.write(decoder);
+
+								ByteArrayInputStream inStream = new ByteArrayInputStream(out.toByteArray());
+
+								ShowKUDEDialog showPdf = new ShowKUDEDialog(inStream);
+								showPdf.setVisible(true);
+							}
+	
+						}
+											
+					} catch (Exception e2) {
+						// TODO: handle exception
+						e2.printStackTrace();
+					}
 				}
-				ShowKUDEDialog showPdf = new ShowKUDEDialog("src//resources//pdfEliminar//Manual_Tecnico_Version_150.pdf");
-				showPdf.setVisible(true);
 			}
 		});
 		
 		btnVerXml.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String cdc = "234923648276423487243";
+				String cdc = "";
 
 				int row = jTableTransaction.getSelectedRow();
-                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
-                
-                BigDecimal nroMov = (BigDecimal) model.getValueAt(row, 0);
-
-				Map header = new HashMap();
-				header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
-				String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
-				url += "/de/xml/" + cdc;
-				
-				/*Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", null, header);
-				
-				if (resultadoJson != null) {
-					if (Boolean.valueOf(resultadoJson.get("success")+"") == true) {
+				if (jTableTransaction.getSelectedRow() >= 0) {
+	                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
+	                
+	                cdc = (String) model.getValueAt(row, 7);
+	                
+					Map header = new HashMap();
+					header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
+					String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
+					url += "/de/xml/" + cdc;
+					
+					try {
+						Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "GET", null, header);
 						
+						if (resultadoJson != null) {
+							if (Boolean.valueOf(resultadoJson.get("success")+"") == true) {
+								
+								//Imlementar el dialog para ver el xml 
+								String xml = resultadoJson.get("value")+"";
+								ShowXMLDialog xmlView = new ShowXMLDialog(xml);
+								xmlView.setVisible(true);
+							} else {
+								//Lucas mostrar error en pantalla
+								System.out.println("error" + resultadoJson.get("error")+"");
+							}
+		
+						}
+					} catch (Exception e2) {
+						//Lucas Mostrar error e npantalla
+						e2.printStackTrace();
 					}
-
-				}*/
-				//Imlementar el dialog para ver el xml 
-				String xml = "23423423423424";
-				ShowXMLDialog xmlView = new ShowXMLDialog(xml);
-				xmlView.setVisible(true);
+					
+				}
 			}
 		});
 		

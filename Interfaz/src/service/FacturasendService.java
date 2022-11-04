@@ -12,6 +12,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -133,8 +134,8 @@ public class FacturasendService {
 	TableDesign tb = new TableDesign();
 	public Integer populateTransactionTable(JTable table, String q, Integer tipoDocumento, Integer page, Integer size){
 		Integer retorno = 0;
-		Object [] titulos = {"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado"};
-		Object datos[] = { null, null, null,null, null, null, null};
+		Object [] titulos = {"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado", "CDC"};	//CDC
+		Object datos[] = { null, null, null, null, null, null, null, null};
 		    
 		DefaultTableModel model = new DefaultTableModel(null, titulos) {
 			 @Override
@@ -169,6 +170,8 @@ public class FacturasendService {
 					datos[6] = tb.getEstadoDescripcion(valueEstadoInt);					
 				}
 				
+				datos[7] = rs.get(i).get(Core.getFieldName("cdc", readDBProperties()));
+
 				model.addRow(datos);
 			}
 			
@@ -184,10 +187,11 @@ public class FacturasendService {
 		return retorno;
 	}
 		
-	public Integer populateTransactionDetailsTable(JTable table, BigDecimal nroMov) {
+	public List<Map<String, Object>> populateTransactionDetailsTable(JTable table, BigDecimal nroMov) {
 		Object [] titulos = {"Codigo" , "Descripcion", "Cantidad", "Precio Unitario", "Descuento", "SubTotal"};
 		Object datos[] = {null, null, null, null,null, null};
-		    
+		List<Map<String, Object>> rs = new ArrayList<Map<String,Object>>();
+		
 		DefaultTableModel model = new DefaultTableModel(null, titulos) {
 			 @Override
 			    public boolean isCellEditable(int row, int column) {
@@ -195,10 +199,11 @@ public class FacturasendService {
 			       return false;
 			    }
 		};
+		
 		try {
 			Map<String, Object> result = loadTransaccionesItem(nroMov.intValue(), 0, 999999);
 			System.out.println("items" + result);
-			List<Map<String, Object>> rs = (List<Map<String, Object>>)result.get("result");
+			rs = (List<Map<String, Object>>)result.get("result");
 			//retorno =  (Integer)result.get("count");
 			System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
@@ -228,7 +233,7 @@ public class FacturasendService {
 		table.getColumnModel().getColumn(3).setPreferredWidth(25);
 		table.getColumnModel().getColumn(4).setPreferredWidth(10);
 		table.getColumnModel().getColumn(5).setPreferredWidth(10);
-		return null;
+		return rs;
 	}
 	
 	

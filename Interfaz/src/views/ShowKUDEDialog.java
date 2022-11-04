@@ -14,6 +14,7 @@ import org.icepdf.ri.common.SwingController;
 import org.icepdf.ri.common.SwingViewBuilder;
 
 import java.awt.event.ActionListener;
+import java.io.InputStream;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
 
@@ -23,7 +24,7 @@ public class ShowKUDEDialog extends JDialog {
 	private JButton okButton;
 	private JPanel buttonPane;
 	private JScrollPane scrollPane;
-	private static String pdf;
+	private static InputStream pdf;
 
 	/**
 	 * Launch the application.
@@ -41,13 +42,13 @@ public class ShowKUDEDialog extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public ShowKUDEDialog(String pdf) {
+	public ShowKUDEDialog(InputStream pdf) {
 		this.pdf = pdf;
 		setModal(true);
 		setBounds(100, 100, 800, 600);
 		init();
 		events();
-		openpdf(pdf);
+		openPdf(pdf);
 	}
 	
 	private void init() {
@@ -80,7 +81,7 @@ public class ShowKUDEDialog extends JDialog {
 		});
 	}
 	
-	private void openpdf(String file){
+	private void openPdf(InputStream is){
 		  
 	    try {
 	           SwingController control=new SwingController();
@@ -90,8 +91,8 @@ public class ShowKUDEDialog extends JDialog {
 	            control.getDocumentViewController().setAnnotationCallback(
 	                    new org.icepdf.ri.common.MyAnnotationCallback(
 	                    control.getDocumentViewController()));
-	                   control.openDocument(file);
-	                   scrollPane.setViewportView(veiwerCompntpnl); 
+		                   control.openDocument(is, "Descripcion", "path");
+		                   scrollPane.setViewportView(veiwerCompntpnl); 
 	        } catch (Exception ex) {
 	            JOptionPane.showMessageDialog(this,"No se pudo visualizar el PDF");
 	        }

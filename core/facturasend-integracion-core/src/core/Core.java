@@ -70,7 +70,7 @@ public class Core {
 
 		String sql = "SELECT transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
-				+ "establecimiento, punto, numero, serie, total, estado, error \n"
+				+ "establecimiento, punto, numero, serie, total, cdc, estado, error \n"
 				+ "FROM " + tableName + " \n"
 				+ "WHERE "
 				+ "( \n"
@@ -82,7 +82,7 @@ public class Core {
 				+ "AND tipo_documento = " + tipoDocumento + " \n"
 				+ "GROUP BY transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
-				+ "establecimiento, punto, numero, serie, total, estado, error \n"
+				+ "establecimiento, punto, numero, serie, total, cdc, estado, error \n"
 				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";		
 		return sql;
 	}
