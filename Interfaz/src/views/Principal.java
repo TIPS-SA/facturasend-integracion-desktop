@@ -410,6 +410,8 @@ public class Principal extends JFrame {
 					}
 
 				}
+				ShowKUDEDialog showPdf = new ShowKUDEDialog("src//resources//pdfEliminar//Manual_Tecnico_Version_150.pdf");
+				showPdf.setVisible(true);
 			}
 		});
 		
