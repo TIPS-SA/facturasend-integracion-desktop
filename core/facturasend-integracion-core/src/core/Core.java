@@ -53,13 +53,14 @@ public class Core {
 				sql = getPostgreSQLPaginado(sql, page, size);
 			}
 			
-			System.out.println("\n" + sql);
+			System.out.print("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
-			List<Map<String, Object>> listadoDes = SQLUtil.convertResultSetToList(rs);
+			List<Map<String, Object>> transaccionesList = SQLUtil.convertResultSetToList(rs);
 			
+			System.out.println("transaccionesList: " + transaccionesList + " ");
 			result.put("success", true);
-			result.put("result", listadoDes);
+			result.put("result", transaccionesList);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -129,11 +130,11 @@ public class Core {
 			if (databaseProperties.get("database.type").equals("oracle")) {
 				//sql = getOracleSQLPaginado(sql, page, size);
 			}
-			System.out.println("\n" + sql);
+			System.out.print("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> listadoTransaccionesItem = SQLUtil.convertResultSetToList(rs);
-			
+			System.out.println("listadoTransaccionesItem: " + listadoTransaccionesItem + " ");
 			result.put("success", true);
 			result.put("result", listadoTransaccionesItem);
 			
@@ -195,23 +196,33 @@ public class Core {
 		Statement statement = conn.createStatement();
 		
 		String sql = formasPagosSQLByTransaccion(databaseProperties, tipoDocumento, transaccionId);
-		System.out.println("\n" + sql);
+		System.out.print("\n" + sql + " ");
 		ResultSet rs = statement.executeQuery(sql);
 		
 		result = SQLUtil.convertResultSetToList(rs);
-			
+		System.out.println("result: " + result);
 		return result;
 	}
 			
 	private static String formasPagosSQLByTransaccion(Map<String, String> databaseProperties, Integer tipoDocumento, Integer transaccionId) {
 		String tableName = databaseProperties.get("database.payment_view");
 
-		String sql = "SELECT * \n"
+		String sql = "";
+		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+			sql = "SELECT * \n"
 				+ "FROM " + tableName + " \n"
 				+ "WHERE 1=1 \n"
 				+ "AND tipo_documento = " + tipoDocumento + " \n"
-				+ "AND id = " + transaccionId + " \n"
-				+ "";		
+				+ "AND tranasaccion_id = " + transaccionId + " \n"
+				+ "";
+		} else {
+			sql = "SELECT * \n"
+					+ "FROM " + tableName + " \n"
+					+ "WHERE 1=1 \n"
+					+ "AND tip_doc = " + tipoDocumento + " \n"
+					+ "AND tra_id = " + transaccionId + " \n"
+					+ "";
+		}
 		return sql;
 	}
 	
@@ -768,25 +779,27 @@ public class Core {
 			Statement statement = conn.createStatement();
 			
 			String sql = obtenerSQL50registrosNoIntegrados(databaseProperties, tipoDocumento);
-			
-			//result.put("count", SQLUtil.getCountFromSQL(statement, sql));
+
+			Integer rowsLoteRequest = 50;
+			if (databaseProperties.get("facturasend.rows_lote_request") != null) {
+				rowsLoteRequest = Integer.valueOf(databaseProperties.get("facturasend.rows_lote_request"));
+			}
+			if (rowsLoteRequest > 50) {
+				throw new Exception("Cantidad máxima de documentos por lote = 50 (facturasend.rows_lote_request)");
+			}
 
 			if (databaseProperties.get("database.type").equals("oracle")) {
-				
-				Integer rowsLoteRequest = 50;
-				if (databaseProperties.get("facturasend.rows_lote_request") != null) {
-					rowsLoteRequest = Integer.valueOf(databaseProperties.get("facturasend.rows_lote_request"));
-				}
-				if (rowsLoteRequest > 50) {
-					throw new Exception("Cantidad máxima de documentos por lote = 50 (facturasend.rows_lote_request)");
-				}
-				
-				sql = getOracleSQLPaginado(sql, 1, rowsLoteRequest);
+				sql = getOracleSQLPaginado(sql, 1, rowsLoteRequest);	
+			} else if (databaseProperties.get("database.type").equals("postgres")) {
+				sql = getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
+			} else if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+				sql = getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
 			}
-			System.out.println("" + sql);
+
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> listadoDes = SQLUtil.convertResultSetToList(rs);
+			System.out.println("" + sql + "\nlistadoDes:" + listadoDes);
 			
 			result.put("success", true);
 			result.put("result", listadoDes);
@@ -809,8 +822,9 @@ public class Core {
 	 */
 	private static String obtenerSQL50registrosNoIntegrados(Map<String, String> databaseProperties, Integer tipoDocumento) {
 		String tableName = databaseProperties.get("database.transaction_view");
-
-		String sql = "SELECT transaccion_id \n"
+		String sql = "";
+		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+			sql = "SELECT transaccion_id \n"
 						+ "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"
 						+ "AND tipo_documento = " + tipoDocumento + " \n"
@@ -822,6 +836,22 @@ public class Core {
 						+ ") \n"
 						+ "GROUP BY transaccion_id, establecimiento, punto, numero \n"
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
+		} else {
+			sql = "SELECT tra_id \n"
+					+ "FROM " + tableName + " \n"
+					+ "WHERE 1=1 \n"
+					+ "AND tip_doc = " + tipoDocumento + " \n"
+					
+					+ "AND ( \n"
+					+ "CDC IS NULL \n"
+					+ "OR \n"
+					+ "COALESCE(estado, 999) = 4 \n"
+					+ ") \n"
+					+ "GROUP BY tra_id, estable, punto, numero \n"
+					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				
+		}
+		
+		
 		return sql;
 	}
 	
@@ -918,11 +948,21 @@ public class Core {
 	private static String obtenerTransaccionesParaEnvioLote(Map<String, String> databaseProperties, String transaccionIdString) {
 		String tableName = databaseProperties.get("database.transaction_view");
 
-		String sql = "SELECT * \n"
+		String sql = "";
+		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+			sql = "SELECT * \n"
 						+ "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"
 						+ "AND transaccion_id IN " + transaccionIdString + " \n"
 						+ "ORDER BY numero DESC \n";		
+		} else {
+			sql = "SELECT * \n"
+					+ "FROM " + tableName + " \n"
+					+ "WHERE 1=1 \n"
+					+ "AND tra_id IN " + transaccionIdString + " \n"
+					+ "ORDER BY numero DESC \n";
+		}
+			
 		return sql;
 	}
 	

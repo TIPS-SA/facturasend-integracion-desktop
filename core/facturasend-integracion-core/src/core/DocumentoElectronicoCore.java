@@ -52,6 +52,7 @@ public class DocumentoElectronicoCore {
 	public static Map<String, Object> invocarDocumentoElectronicoDesdeView(List<Map<String, Object>> transaccionMap, Map<String, String> databaseProperties) throws Exception{
 		Map<String, Object> dataMap = new HashMap<String, Object>();
 
+		System.out.println("Procesando... " + transaccionMap);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 		if (transaccionMap != null && transaccionMap.size() > 0) {
 			
@@ -66,18 +67,20 @@ public class DocumentoElectronicoCore {
 			if (cdcGenerado != null && cdcGenerado.length() == 44) {
 				dataMap.put("cdc", cdcGenerado); //Si ya fue generado con un CDC, entonces envía para utilizar el mismo.
 			}
-			dataMap.put("ruc", Core.getValueForKey(transaccionCabecera, "ruc"));
+			//dataMap.put("ruc", Core.getValueForKey(transaccionCabecera, "ruc").toString().trim());
 			dataMap.put("establecimiento", Core.getValueForKey(transaccionCabecera, "establecimiento", "establec"));
 			dataMap.put("punto", Core.getValueForKey(transaccionCabecera, "punto"));
 			dataMap.put("numero", Core.getValueForKey(transaccionCabecera, "numero"));
 			dataMap.put("serie", Core.getValueForKey(transaccionCabecera, "serie"));
-			dataMap.put("descripcion", Core.getValueForKey(transaccionCabecera, "descripcion", "descrip"));
-			dataMap.put("observacion", Core.getValueForKey(transaccionCabecera,"observacion","observ"));
+			dataMap.put("descripcion", Core.getValueForKey(transaccionCabecera, "descripcion", "descrip").toString().trim());
+			if (Core.getValueForKey(transaccionCabecera,"observacion","observa") != null) {
+				dataMap.put("observacion", Core.getValueForKey(transaccionCabecera,"observacion","observa").toString().trim());
+			}
 			dataMap.put("fecha", sdf.format((Date) Core.getValueForKey(transaccionCabecera,"fecha")) );
 			dataMap.put("tipoEmision", Core.getValueForKey(transaccionCabecera, "tipo_emision", "tip_emi"));
 			dataMap.put("tipoTransaccion", Core.getValueForKey(transaccionCabecera, "tipo_transaccion", "tip_tra"));
 			dataMap.put("tipoImpuesto", Core.getValueForKey(transaccionCabecera, "tipo_impuesto", "tip_imp"));
-			dataMap.put("moneda", Core.getValueForKey(transaccionCabecera, "moneda"));
+			dataMap.put("moneda", Core.getValueForKey(transaccionCabecera, "moneda").toString().trim());
 			dataMap.put("condicionAnticipo", Core.getValueForKey(transaccionCabecera, "anticipo"));
 			dataMap.put("descuentoGlobal", Core.getValueForKey(transaccionCabecera, "descuento_global", "des_glo"));
 			dataMap.put("anticipoGlobal", Core.getValueForKey(transaccionCabecera, "anticipo_global", "ant_glo"));
@@ -91,13 +94,13 @@ public class DocumentoElectronicoCore {
 			
 			cliente.put("contribuyente", Boolean.valueOf(Core.getValueForKey(transaccionCabecera,"cliente_contribuyente","c_contribu")+""));
 			
-			cliente.put("ruc", Core.getValueForKey(transaccionCabecera,"cliente_ruc","c_ruc"));
-			cliente.put("razonSocial", Core.getValueForKey(transaccionCabecera,"cliente_razon_social","c_raz_soc"));
-			cliente.put("nombreFantasia", Core.getValueForKey(transaccionCabecera,"cliente_nombre_fantasia","c_nom_fan"));
+			cliente.put("ruc", Core.getValueForKey(transaccionCabecera,"cliente_ruc","c_ruc").toString().trim());
+			cliente.put("razonSocial", Core.getValueForKey(transaccionCabecera,"cliente_razon_social","c_raz_soc").toString().trim());
+			cliente.put("nombreFantasia", Core.getValueForKey(transaccionCabecera,"cliente_nombre_fantasia","c_nom_fan").toString().trim());
 
 			cliente.put("tipoOperacion", Core.getValueForKey(transaccionCabecera,"cliente_tipo_operacion","c_tip_ope"));
-			cliente.put("direccion", Core.getValueForKey(transaccionCabecera,"cliente_direccion","c_direcc"));
-			cliente.put("numeroCasa", Core.getValueForKey(transaccionCabecera,"cliente_numero_casa","c_num_cas"));
+			cliente.put("direccion", Core.getValueForKey(transaccionCabecera,"cliente_direccion","c_direcc").toString().trim());
+			cliente.put("numeroCasa", Core.getValueForKey(transaccionCabecera,"cliente_numero_casa","c_num_cas").toString().trim());
 
 			cliente.put("ciudad", Core.getValueForKey(transaccionCabecera,"cliente_ciudad","c_ciudad"));
 			cliente.put("departamento", Core.getValueForKey(transaccionCabecera,"cliente_departamento","c_depart"));
@@ -110,10 +113,10 @@ public class DocumentoElectronicoCore {
 			
 			cliente.put("documentoNumero", Core.getValueForKey(transaccionCabecera,"cliente_documento_numero","c_doc_num"));
 			
-			cliente.put("telefono", Core.getValueForKey(transaccionCabecera,"cliente_telefono","c_tel"));
-			cliente.put("celular", Core.getValueForKey(transaccionCabecera,"cliente_celular","c_cel") );
-			cliente.put("email", Core.getValueForKey(transaccionCabecera,"cliente_email","c_ema"));
-			cliente.put("codigo", Core.getValueForKey(transaccionCabecera,"cliente_codigo","c_cod"));
+			cliente.put("telefono", Core.getValueForKey(transaccionCabecera,"cliente_telefono","c_tel").toString().trim());
+			cliente.put("celular", Core.getValueForKey(transaccionCabecera,"cliente_celular","c_cel").toString().trim() );
+			cliente.put("email", Core.getValueForKey(transaccionCabecera,"cliente_email","c_ema").toString().trim() );
+			cliente.put("codigo", Core.getValueForKey(transaccionCabecera,"cliente_codigo","c_cod").toString().trim() );
 			
 			dataMap.put("cliente", cliente );
 			//FIN CLIENTE
@@ -124,9 +127,9 @@ public class DocumentoElectronicoCore {
 
 			dataMapUsuario.put("documentoTipo", Core.getValueForKey(transaccionCabecera,"usuario_documento_tipo","u_doc_tip"));
 			
-			dataMapUsuario.put("documentoNumero", Core.getValueForKey(transaccionCabecera,"usuario_documento_numero","u_doc_num"));
-			dataMapUsuario.put("nombre", Core.getValueForKey(transaccionCabecera,"usuario_nombre","u_nom"));
-			dataMapUsuario.put("cargo", Core.getValueForKey(transaccionCabecera,"usuario_cargo","u_car"));
+			dataMapUsuario.put("documentoNumero", Core.getValueForKey(transaccionCabecera,"usuario_documento_numero","u_doc_num").toString().trim());
+			dataMapUsuario.put("nombre", Core.getValueForKey(transaccionCabecera,"usuario_nombre","u_nom").toString().trim());
+			dataMapUsuario.put("cargo", Core.getValueForKey(transaccionCabecera,"usuario_cargo","u_car").toString().trim());
 			dataMap.put("usuario", dataMapUsuario);
 			//finUsuario
 			
@@ -191,10 +194,10 @@ public class DocumentoElectronicoCore {
 				Map<String, Object> dataMapProducto = new HashMap<String, Object>();
 				Map<String, Object> transaccionItems = transaccionMap.get(i);
 				
-				dataMapProducto.put("codigo", Core.getValueForKey(transaccionItems,"item_codigo","i_codigo"));
-				dataMapProducto.put("descripcion", Core.getValueForKey(transaccionItems,"item_descripcion","i_descrip"));
+				dataMapProducto.put("codigo", Core.getValueForKey(transaccionItems,"item_codigo","i_codigo").toString().trim());
+				dataMapProducto.put("descripcion", Core.getValueForKey(transaccionItems,"item_descripcion","i_descrip").toString().trim());
 				
-				dataMapProducto.put("observacion", Core.getValueForKey(transaccionItems,"item_observacion","i_obs"));
+				dataMapProducto.put("observacion", Core.getValueForKey(transaccionItems,"item_observacion","i_obs").toString().trim());
 				dataMapProducto.put("partidaArancelaria", Core.getValueForKey(transaccionItems,"item_partida_arancelaria","i_par_ara"));
 				dataMapProducto.put("ncm", Core.getValueForKey(transaccionItems,"item_ncm","i_ncm"));
 				dataMapProducto.put("unidadMedida", Core.getValueForKey(transaccionItems,"item_unidad_medida","i_uni_med"));
@@ -230,7 +233,7 @@ public class DocumentoElectronicoCore {
 					dataMapProducto.put("dncp", dataMapDncp);	
 				}
 				
-				Map<String, Object> dataMapImportador = new HashMap<String, Object>();
+				/*Map<String, Object> dataMapImportador = new HashMap<String, Object>();
 				
 				dataMapImportador.put("nombre", Core.getValueForKey(transaccionItems,"item_importador_nombre","i_imp_nom"));
 				dataMapImportador.put("direccion", Core.getValueForKey(transaccionItems,"item_importador_direccion","i_imp_dir"));
@@ -238,7 +241,7 @@ public class DocumentoElectronicoCore {
 				
 				if (Core.getValueForKey(transaccionItems,"item_importador_nombre","i_imp_nom") != null) {
 					dataMapProducto.put("importador", dataMapImportador);	
-				}
+				}*/
 			
 				dataMapProducto.put("sectorAutomotor", null);
 				
@@ -254,7 +257,7 @@ public class DocumentoElectronicoCore {
 			//DocumentoAsociado
 			Map<String, Object> documentoAsociadoMap = new HashMap<String, Object>();
 			documentoAsociadoMap.put("formato", Core.getValueForKey(transaccionCabecera,"documento_asociado_formato","d_aso_for"));
-			documentoAsociadoMap.put("cdc", Core.getValueForKey(transaccionCabecera,"documento_asociado_cdc","d_aso_cdc"));
+			documentoAsociadoMap.put("cdc", Core.getValueForKey(transaccionCabecera,"documento_asociado_cdc","d_aso_cdc").toString().trim());
 
 			documentoAsociadoMap.put("tipoDocumentoImpreso", Core.getValueForKey(transaccionCabecera,"documento_asociado_cdc","d_aso_tdi"));
 			documentoAsociadoMap.put("timbrado", Core.getValueForKey(transaccionCabecera,"documento_asociado_timbrado","d_aso_tim"));
@@ -274,7 +277,7 @@ public class DocumentoElectronicoCore {
 			
 
 			//Implementar Pedro
-			dataMap.put("detalleTransporte", null);
+			dataMap.put("transporte", null);
 
 			//A futuro
 			dataMap.put("sectorEnergiaElectrica", null);
@@ -306,6 +309,10 @@ public class DocumentoElectronicoCore {
 	private static Map<String, Object> recuperarFormasDePagoParaCondicion(Integer tipoDocumento, Integer transaccionId, Map<String, String> databaseProperties) throws Exception {
 		
 		List<Map<String, Object>> paymentViewMap = Core.formasPagosByTransaccion(tipoDocumento, transaccionId, databaseProperties);
+		
+		if (paymentViewMap.size() <= 0) {
+			return new HashMap<String, Object>();
+		}
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		boolean esACredito = false;
