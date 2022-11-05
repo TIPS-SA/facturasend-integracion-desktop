@@ -24,7 +24,7 @@ public class DocumentoElectronicoCore {
 				Integer transaccionId = Integer.valueOf(transactionIds[i].trim());
 				
 				List<Map<String, Object>> documentosParaEnvioFiltradoList = documentosParaEnvioList.stream().filter( map -> {
-					String transaccionIdString = map.get(Core.getFieldName("transaccion_id", databaseProperties)) + "";
+					String transaccionIdString = Core.getValueForKey(map, "transaccion_id", "tra_id") + "";
 					
 					Integer transaccionIdIterate = new BigDecimal(transaccionIdString).intValue();
 					

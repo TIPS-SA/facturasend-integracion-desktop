@@ -15,7 +15,8 @@ public class BDConnect {
 	private Integer poolMaxTotal;
 	private Integer poolMaxWaitMillis;
 	
-	private String dbfFilePath;
+	private String dbfFilePathRead;
+	private String dbfFilePathWrite;
 						
 	public BDConnect() {
 	
@@ -100,12 +101,21 @@ public class BDConnect {
 		this.poolMaxWaitMillis = poolMaxWaitMillis;
 	}
 
-	public String getDbfFilePath() {
-		return dbfFilePath;
+	
+	public String getDbfFilePathRead() {
+		return dbfFilePathRead;
 	}
 
-	public void setDbfFilePath(String dbfFilePath) {
-		this.dbfFilePath = dbfFilePath;
+	public void setDbfFilePathRead(String dbfFilePathRead) {
+		this.dbfFilePathRead = dbfFilePathRead;
+	}
+
+	public String getDbfFilePathWrite() {
+		return dbfFilePathWrite;
+	}
+
+	public void setDbfFilePathWrite(String dbfFilePathWrite) {
+		this.dbfFilePathWrite = dbfFilePathWrite;
 	}
 
 	@Override
@@ -128,7 +138,8 @@ public class BDConnect {
 		bdConnect.setPoolMaxTotal(Integer.valueOf(map.get("database.pool.maxTotal")+""));
 		bdConnect.setPoolMaxWaitMillis(Integer.valueOf(map.get("database.pool.maxWaitMillis")+""));
 				
-		bdConnect.setDbfFilePath(map.get("database.dbf_file_path"));
+		bdConnect.setDbfFilePathRead(map.get("database.dbf.transacctions_file"));
+		bdConnect.setDbfFilePathWrite(map.get("database.dbf.facturasend_file"));
 
 		return bdConnect;
 	}

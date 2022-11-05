@@ -8,17 +8,14 @@ import java.util.Properties;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 
-public class SQLConnection {
+public class DBFConnection {
 	
-	private static SQLConnection sqlConnection;
+	private static DBFConnection sqlConnection;
     private BasicDataSource basicDataSource = null;
-    private static BDConnect bdConnect;
-    //DBF
-    private Connection dbfConnection = null;
     
-	private SQLConnection(BDConnect bdConnect) throws Exception{
+	private DBFConnection(BDConnect bdConnect) throws Exception{
 		
-		this.bdConnect = bdConnect;
+        
 		System.out.println(bdConnect);
 	    Properties connectionProps = new Properties();
 	    connectionProps.put("user", bdConnect.getUsername());
@@ -60,7 +57,7 @@ public class SQLConnection {
 	        */
 	    } else if (bdConnect.getTipo().equals("postgres")) {
 	    	//System.out.println("-->" + System.getProperty("user.dir") + File.separator);
-	    	System.out.println(SQLConnection.class.getResource(""));
+	    	System.out.println(DBFConnection.class.getResource(""));
 	    	/*
 	    	File file  = new File("c:\\myjar.jar");
 
@@ -99,9 +96,9 @@ public class SQLConnection {
         
 	}
 	
-	public static SQLConnection getInstance(BDConnect bdConnect) throws Exception {
+	public static DBFConnection getInstance(BDConnect bdConnect) throws Exception {
 		if (sqlConnection == null) {
-			 sqlConnection = new SQLConnection(bdConnect);
+			 sqlConnection = new DBFConnection(bdConnect);
 			 
 			 return sqlConnection;
 		} else {
@@ -109,26 +106,10 @@ public class SQLConnection {
 		}
 	}
 
-	public Connection getConnection() throws Exception {
-		if (!this.bdConnect.getTipo().equals("Archivo DBF")) {
-			return this.basicDataSource.getConnection();	
-		} else {
-			return this.getDBFConnection();
-		}
-		
+	public Connection getConnection() throws SQLException {
+		return this.basicDataSource.getConnection();
 	}
 
-	public Connection getDBFConnection() throws Exception{	
-		if (dbfConnection == null) {
-			//Aqui crear la conexx y retornar
-			//dbfConnection = DriverManager.getConnection( "jdbc:dbschema:dbf:/sample_dbf_folder" );
-			dbfConnection = DriverManager.getConnection( "jdbc:dbschema:dbf:" + this.bdConnect.getDbfFilePathRead() );
-		} else {
-			return dbfConnection;
-		}
-		return dbfConnection;
-	}
-	
 	public void closeConnection(Connection connection) throws SQLException {
 		connection.close();
 	} 
