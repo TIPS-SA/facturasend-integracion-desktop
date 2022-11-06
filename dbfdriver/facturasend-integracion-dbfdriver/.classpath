@@ -6,6 +6,6 @@
 	<classpathentry kind="src" path="src/test/java"/>
 	<classpathentry kind="src" path="src/test/resources"/>
 	<classpathentry kind="lib" path="lib/h2-2.1.214.jar"/>
-	<classpathentry kind="lib" path="lib/dbschema-dbf-jdbc1.0.jar"/>
+	<classpathentry kind="lib" path="lib/javadbf-1.13.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
