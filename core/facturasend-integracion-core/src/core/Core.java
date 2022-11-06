@@ -1,8 +1,5 @@
 package core;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.math.BigDecimal;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,7 +10,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,7 +18,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import connect.BDConnect;
-import connect.FSConnect;
 import connect.SQLConnection;
 import util.HttpUtil;
 
@@ -302,13 +297,15 @@ public class Core {
 			} else {
 				url += "/lote/create?xml=true&qr=true";
 			}
-			
+			//==================================================================================
 			Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
 			
 			if (resultadoJson != null) {
 				
-				String tableToUpdate = databaseProperties.get("database.facturasend_table");
+				//String tableToUpdate = databaseProperties.get("database.facturasend_table");
 				if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
+
+					createTableFacturaSendData(databaseProperties);
 
 					Map<String, Object> result = (Map<String, Object>)resultadoJson.get("result");
 					
@@ -360,11 +357,9 @@ public class Core {
 					if (resultadoJson.get("errores") != null) {
 						List<Map<String, Object>> errores = (List<Map<String, Object>>)resultadoJson.get("errores");
 
-
 						for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
 							Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
 							Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
-							
 							
 							for (int j = 0; j < errores.size(); j++) {
 								if (i == j) {
@@ -388,6 +383,23 @@ public class Core {
 						
 					}
 				}
+				
+				//Volcar tabla actualizada de DBF
+				
+				
+				if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+					
+					Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+					
+					String sql = "save dbf to " + databaseProperties.get("database.dbf.transacctions_file");
+					System.out.println("\n" + sql + " ");
+					PreparedStatement statement = conn.prepareStatement(sql);
+
+					boolean ejecutado = statement.execute();
+					System.out.println("Ejecutado: " + ejecutado);
+				}
+
+				
 			}
 			
 			//
@@ -493,6 +505,7 @@ public class Core {
 			Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
 			
 			if (resultadoJson != null) {
+				createTableFacturaSendData(databaseProperties);
 				
 				String tableToUpdate = databaseProperties.get("database.facturasend_table");
 				if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
@@ -575,6 +588,20 @@ public class Core {
 						
 					}
 				}
+				
+				if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+					
+					Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+					
+					String sql = "save dbf to '" + databaseProperties.get("database.dbf.transacctions_file");
+					//+ "\\saved' ";
+					System.out.println("\n" + sql + " ");
+					//PreparedStatement statement = conn.prepareStatement(sql);
+					Statement statement = conn.createStatement();
+					boolean ejecutado = statement.execute(sql);
+					System.out.println("Ejecutado: " + ejecutado);
+				}
+
 			}
 			
 			//
@@ -635,11 +662,77 @@ public class Core {
 	 * @param databaseProperties
 	 * @return
 	 */
+	public static void createTableFacturaSendData(Map<String, String> databaseProperties) throws Exception{
+		Integer result = 0;
+	
+		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+		
+		String tableToCreate = databaseProperties.get("database.facturasend_table");
+		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
+
+		PreparedStatement statement = null;
+		
+		if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+			// Borrar tabla, opcional
+			if (false) {
+				String sql = "DROP TABLE " + tableToCreate + " ";
+				System.out.println("\n" + sql + " ");
+				statement = conn.prepareStatement(sql);
+				int dropTableResult = statement.executeUpdate();
+				
+				System.out.print("rows: " + dropTableResult + " ");				
+			}
+			
+			
+			//---
+			String sqlCreateTable = "CREATE TABLE IF NOT EXISTS " + tableToCreate + " (";
+			Iterator itr = databaseProperties.entrySet().iterator();
+			while (itr.hasNext()) {
+				Map.Entry e = (Map.Entry)itr.next();
+				
+				String key = e.getKey()+""; 
+				if ((key).startsWith("database.facturasend_table.field.")) {
+					sqlCreateTable += key.substring("database.facturasend_table.field.".length(), key.length()) + " VARCHAR(254), ";
+				}
+			}
+			//sqlCreateTable += sqlCreateTable.substring(0, sqlCreateTable.length() - 2);
+			sqlCreateTable += tableToUpdateKey + " VARCHAR(254), ";
+			sqlCreateTable += tableToUpdateValue + " CLOB)";
+			
+			System.out.print("\n" + sqlCreateTable + " ");
+		
+			statement = conn.prepareStatement(sqlCreateTable);
+			int row = statement.executeUpdate();
+			System.out.print("rows: " + row);
+			
+			String sql = "show columns from " + tableToCreate;
+			System.out.println("\n" + sql + " ");
+			statement = conn.prepareStatement(sql);
+			ResultSet rs = statement.executeQuery();
+			
+			List<Map<String, Object>> tableColumns = SQLUtil.convertResultSetToList(rs);
+			
+			System.out.println("TableColumns: " + tableColumns + " ");
+			
+		}
+		
+	}
+	/**
+	 * 
+	 * @param viewPrincipal
+	 * @param error
+	 * @param databaseProperties
+	 * @return
+	 */
 	public static Integer guardarFacturaSendData(Map<String, Object> viewPrincipal, Map<String, Object> datosGuardar, Map<String, String> databaseProperties) throws Exception{
 		Integer result = 0;
 	
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 		
+		String tableToUpdate = databaseProperties.get("database.facturasend_table");
+		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
 		
 		String preUpdateSQL = databaseProperties.get("database.facturasend_table.pre_update_sql");
 		if (preUpdateSQL != null) {
@@ -661,9 +754,6 @@ public class Core {
 		}
 		
 		
-		String tableToUpdate = databaseProperties.get("database.facturasend_table");
-		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
-		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
 		
 		String sqlUpdate = "INSERT INTO " + tableToUpdate + " (";
 		
