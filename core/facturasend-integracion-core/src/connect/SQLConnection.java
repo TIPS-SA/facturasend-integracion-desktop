@@ -12,10 +12,13 @@ public class SQLConnection {
 	
 	private static SQLConnection sqlConnection;
     private BasicDataSource basicDataSource = null;
+    private static BDConnect bdConnect;
+    //DBF
+    private Connection dbfConnection = null;
     
 	private SQLConnection(BDConnect bdConnect) throws Exception{
 		
-        
+		this.bdConnect = bdConnect;
 		System.out.println(bdConnect);
 	    Properties connectionProps = new Properties();
 	    connectionProps.put("user", bdConnect.getUsername());
@@ -76,6 +79,20 @@ public class SQLConnection {
 	                   "",
 	                   bdConnect.getUsername(), bdConnect.getPassword());
 	        */
+	    	
+	    } else if (bdConnect.getTipo().equals("Archivo DBF")) {
+	    	 
+	    	/*basicDataSource = new BasicDataSource();
+	        basicDataSource.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+	        basicDataSource.setUsername(bdConnect.getUsername());
+	        basicDataSource.setPassword(bdConnect.getPassword());
+	        //basicDataSource.setUrl("jdbc:oracle:thin:@" + bdConnect.getHost() + ":" + bdConnect.getPort() + ":" + bdConnect.getDatabase());
+	        
+	        basicDataSource.setMinIdle(5);
+	        basicDataSource.setMaxIdle(20);
+	        basicDataSource.setMaxTotal(50);
+	        basicDataSource.setMaxWaitMillis(-1);
+	    	*/
 	    } else {
 	    	throw new Exception("No fue especificado el motor de Base de Datos");
 	    }
@@ -92,10 +109,26 @@ public class SQLConnection {
 		}
 	}
 
-	public Connection getConnection() throws SQLException {
-		return this.basicDataSource.getConnection();
+	public Connection getConnection() throws Exception {
+		if (!this.bdConnect.getTipo().equals("Archivo DBF")) {
+			return this.basicDataSource.getConnection();	
+		} else {
+			return this.getDBFConnection();
+		}
+		
 	}
 
+	public Connection getDBFConnection() throws Exception{	
+		if (dbfConnection == null) {
+			//Aqui crear la conexx y retornar
+			//dbfConnection = DriverManager.getConnection( "jdbc:dbschema:dbf:/sample_dbf_folder" );
+			dbfConnection = DriverManager.getConnection( "jdbc:dbschema:dbf:" + this.bdConnect.getDbfFilePathRead() );
+		} else {
+			return dbfConnection;
+		}
+		return dbfConnection;
+	}
+	
 	public void closeConnection(Connection connection) throws SQLException {
 		connection.close();
 	} 

@@ -12,6 +12,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +51,7 @@ public class FacturasendService {
 		//Llamar a la consulta de Datos
 		//ConfigProperties configProperties = new ConfigProperties();
 		
-		Map<String, Object> returnData = Core.listDes(q, tipo, page, size, readDBProperties());
+		Map<String, Object> returnData = Core.getTransaccionesList(q, tipo, page, size, readDBProperties());
 		
 		System.out.println(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {
@@ -133,8 +134,8 @@ public class FacturasendService {
 	TableDesign tb = new TableDesign();
 	public Integer populateTransactionTable(JTable table, String q, Integer tipoDocumento, Integer page, Integer size){
 		Integer retorno = 0;
-		Object [] titulos = {"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado"};
-		Object datos[] = { null, null, null,null, null, null, null};
+		Object [] titulos = {"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado", "CDC"};	//CDC
+		Object datos[] = { null, null, null, null, null, null, null, null};
 		    
 		DefaultTableModel model = new DefaultTableModel(null, titulos) {
 			 @Override
@@ -150,25 +151,28 @@ public class FacturasendService {
 			//System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
 				
-				datos[0] = rs.get(i).get(Core.getFieldName("transaccion_id", readDBProperties()));
-				datos[1] = rs.get(i).get(Core.getFieldName("fecha", readDBProperties()));
-				datos[2] = rs.get(i).get(Core.getFieldName("cliente_razon_social", readDBProperties()));
-				datos[3] = StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("establecimiento", readDBProperties()))+"", 3)  + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("punto", readDBProperties()))+"", 3) + "-" + StringUtil.padLeftZeros(rs.get(i).get(Core.getFieldName("numero", readDBProperties())) + "", 7);
-				datos[4] = rs.get(i).get(Core.getFieldName("moneda", readDBProperties()));
-				datos[5] = rs.get(i).get(Core.getFieldName("total", readDBProperties())) != null ? rs.get(i).get(Core.getFieldName("total", readDBProperties())) : 0;
-				String fieldEstado = Core.getFieldName("estado", readDBProperties()); 
+				datos[0] = Core.getValueForKey(rs.get(i), "transaccion_id", "tra_id");
+				datos[1] = Core.getValueForKey(rs.get(i), "fecha");
+				datos[2] = Core.getValueForKey(rs.get(i), "cliente_razon_social", "c_raz_soc");
+				datos[3] = StringUtil.padLeftZeros(Core.getValueForKey(rs.get(i), "establecimiento", "estable")+"", 3)  + "-" + StringUtil.padLeftZeros(Core.getValueForKey(rs.get(i), "punto")+"", 3) + "-" + StringUtil.padLeftZeros(Core.getValueForKey(rs.get(i), "numero")+"", 7);
+				datos[4] = Core.getValueForKey(rs.get(i), "moneda");
+				datos[5] = Core.getValueForKey(rs.get(i), "total") != null ? Core.getValueForKey(rs.get(i), "total") : 0;
+				
+				String fieldEstado = Core.getValueForKey(rs.get(i), "estado")+""; 
 				String valueEstadoStr = (String) rs.get(i).get( fieldEstado );
 				Integer valueEstadoInt = -99;	//Sin estado	
 				
 				if (valueEstadoStr != null) {
 					valueEstadoInt = Integer.valueOf( valueEstadoStr + "" );
 				}
-				if (rs.get(i).get(Core.getFieldName("ERROR", readDBProperties())) != null) {
+				if (Core.getValueForKey(rs.get(i), "error") != null) {
 					datos[6] = "Error";
 				} else {
 					datos[6] = tb.getEstadoDescripcion(valueEstadoInt);					
 				}
 				
+				datos[7] = Core.getValueForKey(rs.get(i), "cdc");
+
 				model.addRow(datos);
 			}
 			
@@ -184,10 +188,11 @@ public class FacturasendService {
 		return retorno;
 	}
 		
-	public Integer populateTransactionDetailsTable(JTable table, BigDecimal nroMov) {
+	public List<Map<String, Object>> populateTransactionDetailsTable(JTable table, BigDecimal nroMov) {
 		Object [] titulos = {"Codigo" , "Descripcion", "Cantidad", "Precio Unitario", "Descuento", "SubTotal"};
 		Object datos[] = {null, null, null, null,null, null};
-		    
+		List<Map<String, Object>> rs = new ArrayList<Map<String,Object>>();
+		
 		DefaultTableModel model = new DefaultTableModel(null, titulos) {
 			 @Override
 			    public boolean isCellEditable(int row, int column) {
@@ -195,21 +200,23 @@ public class FacturasendService {
 			       return false;
 			    }
 		};
+		
 		try {
 			Map<String, Object> result = loadTransaccionesItem(nroMov.intValue(), 0, 999999);
 			System.out.println("items" + result);
-			List<Map<String, Object>> rs = (List<Map<String, Object>>)result.get("result");
+			rs = (List<Map<String, Object>>)result.get("result");
 			//retorno =  (Integer)result.get("count");
 			System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
 				
-				datos[0] = rs.get(i).get(Core.getFieldName("ITEM_CODIGO", readDBProperties()));
-				datos[1] = rs.get(i).get(Core.getFieldName("DESCRIPCION", readDBProperties()));
-				datos[2] = rs.get(i).get(Core.getFieldName("ITEM_CANTIDAD", readDBProperties()));
-				datos[3] = rs.get(i).get(Core.getFieldName("ITEM_PRECIO_UNITARIO", readDBProperties()));
-				datos[4] = rs.get(i).get(Core.getFieldName("ITEM_DESCUENTO", readDBProperties()));
+				datos[0] = Core.getValueForKey(rs.get(i), "transaccion_id", "tra_id");
+				datos[1] = Core.getValueForKey(rs.get(i), "item_descripcion", "i_descrip");
+				datos[2] = Core.getValueForKey(rs.get(i), "item_cantidad", "i_cantidad");
+				datos[3] = Core.getValueForKey(rs.get(i), "item_precio_unitario", "i_pre_uni");
+				datos[4] = Core.getValueForKey(rs.get(i), "item_descuento", "i_descue");
+				
 				DecimalFormat df = new DecimalFormat("###########.00");
-		        double subtotalNumber = Double.valueOf(datos[2].toString())*Double.valueOf(datos[3].toString())-Double.valueOf(datos[4].toString());
+		        double subtotalNumber = Double.valueOf(datos[2].toString()) * Double.valueOf(datos[3].toString()) - Double.valueOf(datos[4].toString());
 		        String subtotal = df.format(subtotalNumber);
 		        subtotal = subtotal.replace(",", ".");
 				datos[5] = Double.valueOf(subtotal).doubleValue();
@@ -228,7 +235,7 @@ public class FacturasendService {
 		table.getColumnModel().getColumn(3).setPreferredWidth(25);
 		table.getColumnModel().getColumn(4).setPreferredWidth(10);
 		table.getColumnModel().getColumn(5).setPreferredWidth(10);
-		return null;
+		return rs;
 	}
 	
 	
@@ -241,6 +248,7 @@ public class FacturasendService {
 		
 		return configProperties.readDbProperties();
 	}
+
 }
 
 

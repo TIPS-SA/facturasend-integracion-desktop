@@ -8,7 +8,13 @@
 	<classpathentry kind="lib" path="libs/http-2.2.1.jar"/>
 	<classpathentry kind="lib" path="libs/gson-2.3.jar"/>
 	<classpathentry kind="lib" path="libs/icepdf-core-4.3.3.jar"/>
+<<<<<<< HEAD
 	<classpathentry kind="lib" path="libs/icepdf-viewer-4.3.3.jar"/>
+=======
+	<classpathentry kind="lib" path="libs/icepdf-core.jar"/>
+	<classpathentry kind="lib" path="libs/icepdf-viewer-4.3.3.jar"/>
+	<classpathentry kind="lib" path="libs/icepdf-viewer.jar"/>
+>>>>>>> branch 'main' of https://github.com/TIPS-SA/facturasend-integracion-desktop.git
 	<classpathentry combineaccessrules="false" kind="src" path="/facturasend-integracion-core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

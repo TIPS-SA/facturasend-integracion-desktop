@@ -1,0 +1,10 @@
+out
+.gradle
+.idea
+build
+target
+dbs.iml
+gradle
+gradlew
+gradlew.bat
+/bin/

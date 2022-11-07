@@ -1,0 +1,98 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath "gradle.plugin.install4j.install4j:gradle_plugin:7.0.8"
+    }
+}
+plugins{
+    id 'org.hidetake.ssh' version '2.7.1'
+}
+apply plugin: 'application'
+apply plugin: 'distribution'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(15)
+    }
+}
+
+dependencies {
+    implementation "com.github.albfernandez:javadbf:1.13.2"
+    implementation 'com.h2database:h2:2.1.214'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+compileJava{
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
+jar {
+    archiveFileName ="dbschema-dbf-jdbc${driverVersion}.jar"
+    manifest {
+        attributes 'Main-Class': 'com.wisecoders.dbschema.dbf.JdbcDriver'
+        attributes 'Specification-Version': "$driverVersion"
+        attributes 'Specification-Vendor': "Wise Coders"
+        attributes 'Implementation-Vendor-Id': "dbschema.com"
+        attributes 'Implementation-Vendor': "Wise Coders"
+        attributes 'Implementation-Version': new Date().format( 'yyMMdd' )
+    }
+}
+
+
+task zip(type: Zip, dependsOn:['clean','jar']) {
+    archiveFileName.set 'DBFJdbcDriver.zip'
+    from configurations.runtimeClasspath.allArtifacts.files
+    from configurations.runtimeClasspath
+    from "build/libs" include "*.jar"
+}
+
+task copyInUserHome(type: Copy,dependsOn:['clean','jar']) {
+    from configurations.runtimeClasspath.allArtifacts.files
+    from configurations.runtimeClasspath
+    into "${System.getProperty('user.home')}/.DbSchema/drivers/DBF/"
+}
+
+/*
+plugins {
+    id 'maven-publish'
+}
+
+// https://dzone.com/articles/publish-your-artifacts-to-maven-central
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            pom {
+                name = 'dBase DBF JDBC Driver'
+                description = 'Open Source JDBC Driver for dBase DBF Database Files'
+                url = 'http://www.dbschema.com'
+                licenses {
+                    license {
+                        name = 'Free to use, Distribution Forbidden'
+                        url = 'http://dbschema.com'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'dprutean'
+                        name = 'Dragos Pruteanu'
+                        email = 'support@dbschema.com'
+                    }
+                }
+                scm {
+                    connection = 'https://github.com/dprutean/dbf-jdbc-driver.git'
+                    developerConnection = 'https://github.com/dprutean/dbf-jdbc-driver.git'
+                    url = 'https://github.com/dprutean/dbf-jdbc-driver.git'
+                }
+            }
+        }
+    }
+}
+*/

@@ -1,8 +1,5 @@
 package core;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.math.BigDecimal;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,7 +10,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,7 +18,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import connect.BDConnect;
-import connect.FSConnect;
 import connect.SQLConnection;
 import util.HttpUtil;
 
@@ -32,7 +27,7 @@ public class Core {
 	private static Gson gsonPP = new GsonBuilder().setPrettyPrinting().create();
 	public static Log log = LogFactory.getLog(Core.class);
 	
-	public static Map<String, Object> listDes(String q, Integer tipoDocumento, Integer page, Integer size, Map<String, String> databaseProperties) {
+	public static Map<String, Object> getTransaccionesList(String q, Integer tipoDocumento, Integer page, Integer size, Map<String, String> databaseProperties) {
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
@@ -40,21 +35,27 @@ public class Core {
 			
 			Statement statement = conn.createStatement();
 			
-			String sql = getSQLListDes(databaseProperties, q, tipoDocumento, page, size);
+			String sql = getSQLTransaccionesList(databaseProperties, q, tipoDocumento, page, size);
 			
 			result.put("count", SQLUtil.getCountFromSQL(statement, sql)); 
 
 			//sql = getSQLListDesPaginado(databaseProperties, sql, q, page, size);
 			if (databaseProperties.get("database.type").equals("oracle")) {
 				sql = getOracleSQLPaginado(sql, page, size);
+			} else if (databaseProperties.get("database.type").equals("postgres")) {
+				sql = getPostgreSQLPaginado(sql, page, size);
+			} else if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+				sql = getPostgreSQLPaginado(sql, page, size);
 			}
-			System.out.println("\n" + sql);
+			
+			System.out.print("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
-			List<Map<String, Object>> listadoDes = SQLUtil.convertResultSetToList(rs);
+			List<Map<String, Object>> transaccionesList = SQLUtil.convertResultSetToList(rs);
 			
+			System.out.println("transaccionesList: " + transaccionesList + " ");
 			result.put("success", true);
-			result.put("result", listadoDes);
+			result.put("result", transaccionesList);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -65,12 +66,13 @@ public class Core {
 		return result;
 	}
 			
-	private static String getSQLListDes(Map<String, String> databaseProperties, String q, Integer tipoDocumento, Integer page, Integer size) {
+	private static String getSQLTransaccionesList(Map<String, String> databaseProperties, String q, Integer tipoDocumento, Integer page, Integer size) {
 		String tableName = databaseProperties.get("database.transaction_view");
-
-		String sql = "SELECT transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
+		String sql = "";
+		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+			sql = "SELECT transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
-				+ "establecimiento, punto, numero, serie, total, estado, error \n"
+				+ "establecimiento, punto, numero, serie, total, cdc, estado, error \n"
 				+ "FROM " + tableName + " \n"
 				+ "WHERE "
 				+ "( \n"
@@ -82,8 +84,28 @@ public class Core {
 				+ "AND tipo_documento = " + tipoDocumento + " \n"
 				+ "GROUP BY transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
-				+ "establecimiento, punto, numero, serie, total, estado, error \n"
-				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";		
+				+ "establecimiento, punto, numero, serie, total, cdc, estado, error \n"
+				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";			
+		} else {
+			//DBF
+			sql = "SELECT tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
+				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
+				+ "estable, punto, numero, serie, total, cdc, estado, error \n"
+				+ "FROM " + tableName + " \n"
+				+ "WHERE "
+				+ "( \n"
+				+ "	(estable || '-' || punto || '-' || numero || COALESCE(serie, '')) LIKE '%" + q + "%' \n" 
+				+ "	OR UPPER(COALESCE(c_ruc, '')) LIKE '%" + q.toUpperCase() + "%' \n"
+				+ "	OR UPPER(COALESCE(c_doc_num, '')) LIKE '%" + q.toUpperCase() + "%' \n"
+				+ "	OR UPPER(c_raz_soc) LIKE '%" + q.toUpperCase() + "%' \n"
+				+ ") \n"
+				+ "AND tip_doc = " + tipoDocumento + " \n"
+				+ "GROUP BY tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
+				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
+				+ "estable, punto, numero, serie, total, cdc, estado, error \n"
+				+ "ORDER BY estable DESC, punto DESC, numero DESC \n";			
+		}
+		
 		return sql;
 	}
 	
@@ -103,11 +125,11 @@ public class Core {
 			if (databaseProperties.get("database.type").equals("oracle")) {
 				//sql = getOracleSQLPaginado(sql, page, size);
 			}
-			System.out.println("\n" + sql);
+			System.out.print("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> listadoTransaccionesItem = SQLUtil.convertResultSetToList(rs);
-			
+			System.out.println("listadoTransaccionesItem: " + listadoTransaccionesItem + " ");
 			result.put("success", true);
 			result.put("result", listadoTransaccionesItem);
 			
@@ -122,14 +144,26 @@ public class Core {
 			
 	private static String getSQLTransaccionesItem(Map<String, String> databaseProperties, Integer transaccionId, Integer page, Integer size) {
 		String tableName = databaseProperties.get("database.transaction_view");
-
-		String sql = "SELECT * \n"
-				+ "FROM " + tableName + " \n"
-				+ "WHERE "
+		String sql = "";
+		
+		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+			sql = "SELECT * \n"
+					+ "FROM " + tableName + " \n"
+					+ "WHERE "
+					
+					+ "transaccion_id = " + transaccionId + " \n"
+					
+					+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";	
+		} else {
+			sql = "SELECT * \n"
+					+ "FROM " + tableName + " \n"
+					+ "WHERE "
+					
+					+ "tra_id = " + transaccionId + " \n"
+					
+					+ "ORDER BY estable DESC, punto DESC, numero DESC \n";
+		}
 				
-				+ "transaccion_id = " + transaccionId + " \n"
-				
-				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";		
 		return sql;
 	}
 	
@@ -157,23 +191,33 @@ public class Core {
 		Statement statement = conn.createStatement();
 		
 		String sql = formasPagosSQLByTransaccion(databaseProperties, tipoDocumento, transaccionId);
-		System.out.println("\n" + sql);
+		System.out.print("\n" + sql + " ");
 		ResultSet rs = statement.executeQuery(sql);
 		
 		result = SQLUtil.convertResultSetToList(rs);
-			
+		System.out.println("result: " + result);
 		return result;
 	}
 			
 	private static String formasPagosSQLByTransaccion(Map<String, String> databaseProperties, Integer tipoDocumento, Integer transaccionId) {
 		String tableName = databaseProperties.get("database.payment_view");
 
-		String sql = "SELECT * \n"
+		String sql = "";
+		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+			sql = "SELECT * \n"
 				+ "FROM " + tableName + " \n"
 				+ "WHERE 1=1 \n"
 				+ "AND tipo_documento = " + tipoDocumento + " \n"
-				+ "AND id = " + transaccionId + " \n"
-				+ "";		
+				+ "AND tranasaccion_id = " + transaccionId + " \n"
+				+ "";
+		} else {
+			sql = "SELECT * \n"
+					+ "FROM " + tableName + " \n"
+					+ "WHERE 1=1 \n"
+					+ "AND tip_doc = " + tipoDocumento + " \n"
+					+ "AND tra_id = " + transaccionId + " \n"
+					+ "";
+		}
 		return sql;
 	}
 	
@@ -216,7 +260,7 @@ public class Core {
 
 				transaccionIdString = "";
 				for (Map<String, Object> map : obtener50registrosNoIntegradosListMap) {
-					transaccionIdString += map.get(getFieldName("transaccion_id", databaseProperties)) + ",";
+					transaccionIdString += Core.getValueForKey(map, "transaccion_id", "tra_id") + ",";
 				}
 				transaccionIdString += "";
 				
@@ -253,13 +297,15 @@ public class Core {
 			} else {
 				url += "/lote/create?xml=true&qr=true";
 			}
-			
+			//==================================================================================
 			Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
 			
 			if (resultadoJson != null) {
 				
-				String tableToUpdate = databaseProperties.get("database.facturasend_table");
+				//String tableToUpdate = databaseProperties.get("database.facturasend_table");
 				if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
+
+					createTableFacturaSendData(databaseProperties);
 
 					Map<String, Object> result = (Map<String, Object>)resultadoJson.get("result");
 					
@@ -311,11 +357,9 @@ public class Core {
 					if (resultadoJson.get("errores") != null) {
 						List<Map<String, Object>> errores = (List<Map<String, Object>>)resultadoJson.get("errores");
 
-
 						for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
 							Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
 							Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
-							
 							
 							for (int j = 0; j < errores.size(); j++) {
 								if (i == j) {
@@ -339,6 +383,23 @@ public class Core {
 						
 					}
 				}
+				
+				//Volcar tabla actualizada de DBF
+				
+				
+				if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+					
+					Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+					
+					String sql = "save dbf to " + databaseProperties.get("database.dbf.transacctions_file");
+					System.out.println("\n" + sql + " ");
+					PreparedStatement statement = conn.prepareStatement(sql);
+
+					boolean ejecutado = statement.execute();
+					System.out.println("Ejecutado: " + ejecutado);
+				}
+
+				
 			}
 			
 			//
@@ -403,7 +464,7 @@ public class Core {
 
 				transaccionIdString = "";
 				for (Map<String, Object> map : obtener50registrosNoIntegradosListMap) {
-					transaccionIdString += map.get(getFieldName("transaccion_id", databaseProperties)) + ",";
+					transaccionIdString += Core.getValueForKey(map, "transaccion_id", "tra_id") + ",";
 				}
 				transaccionIdString += "";
 				
@@ -444,6 +505,7 @@ public class Core {
 			Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
 			
 			if (resultadoJson != null) {
+				createTableFacturaSendData(databaseProperties);
 				
 				String tableToUpdate = databaseProperties.get("database.facturasend_table");
 				if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
@@ -526,6 +588,20 @@ public class Core {
 						
 					}
 				}
+				
+				if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+					
+					Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+					
+					String sql = "save dbf to '" + databaseProperties.get("database.dbf.transacctions_file");
+					//+ "\\saved' ";
+					System.out.println("\n" + sql + " ");
+					//PreparedStatement statement = conn.prepareStatement(sql);
+					Statement statement = conn.createStatement();
+					boolean ejecutado = statement.execute(sql);
+					System.out.println("Ejecutado: " + ejecutado);
+				}
+
 			}
 			
 			//
@@ -586,11 +662,77 @@ public class Core {
 	 * @param databaseProperties
 	 * @return
 	 */
+	public static void createTableFacturaSendData(Map<String, String> databaseProperties) throws Exception{
+		Integer result = 0;
+	
+		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+		
+		String tableToCreate = databaseProperties.get("database.facturasend_table");
+		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
+
+		PreparedStatement statement = null;
+		
+		if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+			// Borrar tabla, opcional
+			if (false) {
+				String sql = "DROP TABLE " + tableToCreate + " ";
+				System.out.println("\n" + sql + " ");
+				statement = conn.prepareStatement(sql);
+				int dropTableResult = statement.executeUpdate();
+				
+				System.out.print("rows: " + dropTableResult + " ");				
+			}
+			
+			
+			//---
+			String sqlCreateTable = "CREATE TABLE IF NOT EXISTS " + tableToCreate + " (";
+			Iterator itr = databaseProperties.entrySet().iterator();
+			while (itr.hasNext()) {
+				Map.Entry e = (Map.Entry)itr.next();
+				
+				String key = e.getKey()+""; 
+				if ((key).startsWith("database.facturasend_table.field.")) {
+					sqlCreateTable += key.substring("database.facturasend_table.field.".length(), key.length()) + " VARCHAR(254), ";
+				}
+			}
+			//sqlCreateTable += sqlCreateTable.substring(0, sqlCreateTable.length() - 2);
+			sqlCreateTable += tableToUpdateKey + " VARCHAR(254), ";
+			sqlCreateTable += tableToUpdateValue + " CLOB)";
+			
+			System.out.print("\n" + sqlCreateTable + " ");
+		
+			statement = conn.prepareStatement(sqlCreateTable);
+			int row = statement.executeUpdate();
+			System.out.print("rows: " + row);
+			
+			String sql = "show columns from " + tableToCreate;
+			System.out.println("\n" + sql + " ");
+			statement = conn.prepareStatement(sql);
+			ResultSet rs = statement.executeQuery();
+			
+			List<Map<String, Object>> tableColumns = SQLUtil.convertResultSetToList(rs);
+			
+			System.out.println("TableColumns: " + tableColumns + " ");
+			
+		}
+		
+	}
+	/**
+	 * 
+	 * @param viewPrincipal
+	 * @param error
+	 * @param databaseProperties
+	 * @return
+	 */
 	public static Integer guardarFacturaSendData(Map<String, Object> viewPrincipal, Map<String, Object> datosGuardar, Map<String, String> databaseProperties) throws Exception{
 		Integer result = 0;
 	
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 		
+		String tableToUpdate = databaseProperties.get("database.facturasend_table");
+		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
 		
 		String preUpdateSQL = databaseProperties.get("database.facturasend_table.pre_update_sql");
 		if (preUpdateSQL != null) {
@@ -612,9 +754,6 @@ public class Core {
 		}
 		
 		
-		String tableToUpdate = databaseProperties.get("database.facturasend_table");
-		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
-		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
 		
 		String sqlUpdate = "INSERT INTO " + tableToUpdate + " (";
 		
@@ -730,25 +869,27 @@ public class Core {
 			Statement statement = conn.createStatement();
 			
 			String sql = obtenerSQL50registrosNoIntegrados(databaseProperties, tipoDocumento);
-			
-			//result.put("count", SQLUtil.getCountFromSQL(statement, sql));
+
+			Integer rowsLoteRequest = 50;
+			if (databaseProperties.get("facturasend.rows_lote_request") != null) {
+				rowsLoteRequest = Integer.valueOf(databaseProperties.get("facturasend.rows_lote_request"));
+			}
+			if (rowsLoteRequest > 50) {
+				throw new Exception("Cantidad máxima de documentos por lote = 50 (facturasend.rows_lote_request)");
+			}
 
 			if (databaseProperties.get("database.type").equals("oracle")) {
-				
-				Integer rowsLoteRequest = 50;
-				if (databaseProperties.get("facturasend.rows_lote_request") != null) {
-					rowsLoteRequest = Integer.valueOf(databaseProperties.get("facturasend.rows_lote_request"));
-				}
-				if (rowsLoteRequest > 50) {
-					throw new Exception("Cantidad máxima de documentos por lote = 50 (facturasend.rows_lote_request)");
-				}
-				
-				sql = getOracleSQLPaginado(sql, 1, rowsLoteRequest);
+				sql = getOracleSQLPaginado(sql, 1, rowsLoteRequest);	
+			} else if (databaseProperties.get("database.type").equals("postgres")) {
+				sql = getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
+			} else if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+				sql = getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
 			}
-			System.out.println("" + sql);
+
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> listadoDes = SQLUtil.convertResultSetToList(rs);
+			System.out.println("" + sql + "\nlistadoDes:" + listadoDes);
 			
 			result.put("success", true);
 			result.put("result", listadoDes);
@@ -771,8 +912,9 @@ public class Core {
 	 */
 	private static String obtenerSQL50registrosNoIntegrados(Map<String, String> databaseProperties, Integer tipoDocumento) {
 		String tableName = databaseProperties.get("database.transaction_view");
-
-		String sql = "SELECT transaccion_id \n"
+		String sql = "";
+		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+			sql = "SELECT transaccion_id \n"
 						+ "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"
 						+ "AND tipo_documento = " + tipoDocumento + " \n"
@@ -784,6 +926,22 @@ public class Core {
 						+ ") \n"
 						+ "GROUP BY transaccion_id, establecimiento, punto, numero \n"
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
+		} else {
+			sql = "SELECT tra_id \n"
+					+ "FROM " + tableName + " \n"
+					+ "WHERE 1=1 \n"
+					+ "AND tip_doc = " + tipoDocumento + " \n"
+					
+					+ "AND ( \n"
+					+ "CDC IS NULL \n"
+					+ "OR \n"
+					+ "COALESCE(estado, 999) = 4 \n"
+					+ ") \n"
+					+ "GROUP BY tra_id, estable, punto, numero \n"
+					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				
+		}
+		
+		
 		return sql;
 	}
 	
@@ -880,11 +1038,21 @@ public class Core {
 	private static String obtenerTransaccionesParaEnvioLote(Map<String, String> databaseProperties, String transaccionIdString) {
 		String tableName = databaseProperties.get("database.transaction_view");
 
-		String sql = "SELECT * \n"
+		String sql = "";
+		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+			sql = "SELECT * \n"
 						+ "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"
 						+ "AND transaccion_id IN " + transaccionIdString + " \n"
 						+ "ORDER BY numero DESC \n";		
+		} else {
+			sql = "SELECT * \n"
+					+ "FROM " + tableName + " \n"
+					+ "WHERE 1=1 \n"
+					+ "AND tra_id IN " + transaccionIdString + " \n"
+					+ "ORDER BY numero DESC \n";
+		}
+			
 		return sql;
 	}
 	
@@ -939,13 +1107,27 @@ public class Core {
 		return sql;
 	}
 	
-	public static String getFieldName(String fieldName, Map<String, String> databaseProperties) {
+	/**
+	 * Recibe un SQL y agrega sobre el mismo la paginacion de Postgres
+	 * @param sql
+	 * @param page
+	 * @param size
+	 * @return
+	 */
+	private static String getPostgreSQLPaginado(String sql, Integer page, Integer size) {
+		
+		//Paginacion Oracle
+		sql += " LIMIT " + size + " OFFSET " + (page == 1 ? page : (((page-1) * size) + 1)) + " \n";
+		return sql;
+	}
+	
+	/*public static String getFieldName(String fieldName, Map<String, String> databaseProperties) {
 		boolean fieldsInUpperCase = databaseProperties.get("database.fields_in_uppercase").equals("true");
 		if (fieldsInUpperCase) {
 			fieldName = fieldName.toUpperCase();
 		}
 		return fieldName;
-	}
+	}*/
 
 	public static Object getValueForKey(Map<String, Object> map, String key1) {
 		
