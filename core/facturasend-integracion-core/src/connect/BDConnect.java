@@ -125,20 +125,30 @@ public class BDConnect {
 	}
 
 	public static BDConnect fromMap(Map<String, String> map) {
+		String tipo = map.get("database.type");
 		BDConnect bdConnect = new BDConnect();
 		bdConnect.setTipo(map.get("database.type"));
-		bdConnect.setHost(map.get("database.host"));
-		bdConnect.setPort(Integer.valueOf(map.get("database.port")+""));
-		bdConnect.setDatabase(map.get("database.name"));
-		bdConnect.setUsername(map.get("database.username"));
-		bdConnect.setPassword(map.get("database.password"));
-		
-		bdConnect.setPoolMinIdle(Integer.valueOf(map.get("database.pool.minIdle")+""));
-		bdConnect.setPoolMaxIdle(Integer.valueOf(map.get("database.pool.maxIdle")+""));
-		bdConnect.setPoolMaxTotal(Integer.valueOf(map.get("database.pool.maxTotal")+""));
-		bdConnect.setPoolMaxWaitMillis(Integer.valueOf(map.get("database.pool.maxWaitMillis")+""));
+		bdConnect.setHost(map.get("database." + tipo + ".host"));
+		if (map.get("database." + tipo + ".port") != null) {
+				bdConnect.setPort(Integer.valueOf(map.get("database." + tipo + ".port")+""));
+		}
+		bdConnect.setDatabase(map.get("database." + tipo + ".name"));
+		bdConnect.setUsername(map.get("database."+ tipo +".username"));
+		bdConnect.setPassword(map.get("database."+tipo+".password"));
+		if (map.get("database.pool.minIdle") != null) {
+			bdConnect.setPoolMinIdle(Integer.valueOf(map.get("database.pool.minIdle")+""));
+		}
+		if (map.get("database.pool.maxIdle") != null) {
+			bdConnect.setPoolMaxIdle(Integer.valueOf(map.get("database.pool.maxIdle")+""));
+		}
+		if (map.get("database.pool.maxTotal") != null) {
+			bdConnect.setPoolMaxTotal(Integer.valueOf(map.get("database.pool.maxTotal")+""));
+		}
+		if(map.get("database.pool.maxWaitMillis") != null) {
+			bdConnect.setPoolMaxWaitMillis(Integer.valueOf(map.get("database.pool.maxWaitMillis")+""));
+		}
 				
-		bdConnect.setDbfFilePathRead(map.get("database.dbf.transacctions_file"));
+		bdConnect.setDbfFilePathRead(map.get("database.dbf.parent_folder"));
 		bdConnect.setDbfFilePathWrite(map.get("database.dbf.facturasend_file"));
 
 		return bdConnect;

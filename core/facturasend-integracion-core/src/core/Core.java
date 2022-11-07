@@ -28,7 +28,7 @@ public class Core {
 	public static Log log = LogFactory.getLog(Core.class);
 	
 	public static Map<String, Object> getTransaccionesList(String q, Integer tipoDocumento, Integer page, Integer size, Map<String, String> databaseProperties) {
-		
+		System.out.println(databaseProperties);
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
 			Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
@@ -44,7 +44,7 @@ public class Core {
 				sql = getOracleSQLPaginado(sql, page, size);
 			} else if (databaseProperties.get("database.type").equals("postgres")) {
 				sql = getPostgreSQLPaginado(sql, page, size);
-			} else if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+			} else if (databaseProperties.get("database.type").equals("dbf")) {
 				sql = getPostgreSQLPaginado(sql, page, size);
 			}
 			
@@ -69,7 +69,7 @@ public class Core {
 	private static String getSQLTransaccionesList(Map<String, String> databaseProperties, String q, Integer tipoDocumento, Integer page, Integer size) {
 		String tableName = databaseProperties.get("database.transaction_view");
 		String sql = "";
-		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
 				+ "establecimiento, punto, numero, serie, total, cdc, estado, error \n"
@@ -146,7 +146,7 @@ public class Core {
 		String tableName = databaseProperties.get("database.transaction_view");
 		String sql = "";
 		
-		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT * \n"
 					+ "FROM " + tableName + " \n"
 					+ "WHERE "
@@ -203,7 +203,7 @@ public class Core {
 		String tableName = databaseProperties.get("database.payment_view");
 
 		String sql = "";
-		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT * \n"
 				+ "FROM " + tableName + " \n"
 				+ "WHERE 1=1 \n"
@@ -387,7 +387,7 @@ public class Core {
 				//Volcar tabla actualizada de DBF
 				
 				
-				if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+				if (databaseProperties.get("database.type").equals("dbf")) {
 					
 					Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 					
@@ -589,7 +589,7 @@ public class Core {
 					}
 				}
 				
-				if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+				if (databaseProperties.get("database.type").equals("dbf")) {
 					
 					Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 					
@@ -673,7 +673,7 @@ public class Core {
 
 		PreparedStatement statement = null;
 		
-		if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+		if (databaseProperties.get("database.type").equals("dbf")) {
 			// Borrar tabla, opcional
 			if (false) {
 				String sql = "DROP TABLE " + tableToCreate + " ";
@@ -882,7 +882,7 @@ public class Core {
 				sql = getOracleSQLPaginado(sql, 1, rowsLoteRequest);	
 			} else if (databaseProperties.get("database.type").equals("postgres")) {
 				sql = getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
-			} else if (databaseProperties.get("database.type").equals("Archivo DBF")) {
+			} else if (databaseProperties.get("database.type").equals("dbf")) {
 				sql = getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
 			}
 
@@ -913,7 +913,7 @@ public class Core {
 	private static String obtenerSQL50registrosNoIntegrados(Map<String, String> databaseProperties, Integer tipoDocumento) {
 		String tableName = databaseProperties.get("database.transaction_view");
 		String sql = "";
-		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT transaccion_id \n"
 						+ "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"
@@ -1039,7 +1039,7 @@ public class Core {
 		String tableName = databaseProperties.get("database.transaction_view");
 
 		String sql = "";
-		if (!databaseProperties.get("database.type").equals("Archivo DBF")) {
+		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT * \n"
 						+ "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"

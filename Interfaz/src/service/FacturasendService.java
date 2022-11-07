@@ -141,7 +141,7 @@ public class FacturasendService {
 			 @Override
 			    public boolean isCellEditable(int row, int column) {
 			       //all cells false
-			       return column==0;
+			       return false;
 			    }
 		};
 		try {

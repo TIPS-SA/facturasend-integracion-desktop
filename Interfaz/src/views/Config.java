@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.HashMap;
@@ -35,6 +36,8 @@ import enums.DatabaseType;
 import service.ConfigProperties;
 
 import java.awt.GridLayout;
+import java.awt.KeyEventPostProcessor;
+import java.awt.KeyboardFocusManager;
 
 public class Config extends JDialog {
 
@@ -84,11 +87,16 @@ public class Config extends JDialog {
 	private JButton btnCancelar;
 	private JButton btnOk;
 	private JLabel lblUtilizarComunicacionSincrona;
-	private JButton btnLeerArchivodbf;
+	private JButton btndbfFacturasend;
 	private JFileChooser fileChooser;
-	private JButton btnEscribirArchivoDbf;
-	private JTextField txtPathDbfLectura;
-	private JTextField txtPathDbfEscritura;
+	private JButton btnDbfPayments;
+	private JTextField txtDbfFacturasend;
+	private JTextField txtDbfPayments;
+	private KeyboardFocusManager kb;
+	private JTextField txtTablaDestino;
+	private JLabel lblTablaDeDestino;
+	private JTextField txtPathDbfPayments;
+	private JTextField txtPathDbfFacturasend;
 
 	/**
 	 * Launch the application.
@@ -116,6 +124,7 @@ public class Config extends JDialog {
 	}
 	
 	private void initialize() {
+		kb = KeyboardFocusManager.getCurrentKeyboardFocusManager();
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -174,22 +183,38 @@ public class Config extends JDialog {
 		
 		pTxtPasswordBd = new JPasswordField();
 		
-		btnLeerArchivodbf = new JButton("Leer Archivo .DBF");
-		btnLeerArchivodbf.setVisible(false);
+		btndbfFacturasend = new JButton("Seleccionar Archivo Facturasend.dbf");
+		btndbfFacturasend.setVisible(false);
 		
-		btnEscribirArchivoDbf = new JButton("Escribir Archivo .DBF");
+		btnDbfPayments = new JButton("Seleccionar Archivo payments.dbf");
 		
-		btnEscribirArchivoDbf.setVisible(false);
+		btnDbfPayments.setVisible(false);
 		
-		txtPathDbfLectura = new JTextField();
-		txtPathDbfLectura.setEditable(false);
-		txtPathDbfLectura.setColumns(10);
-		txtPathDbfLectura.setVisible(false);
+		txtDbfFacturasend = new JTextField();
+		txtDbfFacturasend.setEditable(false);
+		txtDbfFacturasend.setColumns(10);
+		txtDbfFacturasend.setVisible(false);
 		
-		txtPathDbfEscritura = new JTextField();
-		txtPathDbfEscritura.setEditable(false);
-		txtPathDbfEscritura.setColumns(10);
-		txtPathDbfEscritura.setVisible(false);
+		txtDbfPayments = new JTextField();
+		txtDbfPayments.setEditable(false);
+		txtDbfPayments.setColumns(10);
+		txtDbfPayments.setVisible(false);
+		
+		lblTablaDeDestino = new JLabel("Tabla de Destino");
+		
+		txtTablaDestino = new JTextField();
+		txtTablaDestino.setColumns(10);
+		
+		txtPathDbfPayments = new JTextField();
+		txtPathDbfPayments.setEditable(false);
+		txtPathDbfPayments.setColumns(10);
+		txtPathDbfPayments.setVisible(false);
+		
+		txtPathDbfFacturasend = new JTextField();
+		txtPathDbfFacturasend.setEditable(false);
+		txtPathDbfFacturasend.setColumns(10);
+		txtPathDbfFacturasend.setVisible(false);
+		
 		
 		GroupLayout gl_paneBaseDatos = new GroupLayout(paneBaseDatos);
 		gl_paneBaseDatos.setHorizontalGroup(
@@ -219,13 +244,18 @@ public class Config extends JDialog {
 								.addComponent(cbTipoDb, 0, 481, Short.MAX_VALUE)))
 						.addComponent(btnTest)
 						.addGroup(gl_paneBaseDatos.createSequentialGroup()
-							.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.TRAILING, false)
-								.addComponent(btnEscribirArchivoDbf, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(btnLeerArchivodbf, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+							.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.LEADING)
+								.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.TRAILING, false)
+									.addComponent(btnDbfPayments, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+									.addComponent(btndbfFacturasend, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+								.addComponent(lblTablaDeDestino))
 							.addPreferredGap(ComponentPlacement.UNRELATED)
 							.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.LEADING)
-								.addComponent(txtPathDbfLectura, GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)
-								.addComponent(txtPathDbfEscritura, GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE))))
+								.addComponent(txtDbfFacturasend, GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE)
+								.addComponent(txtDbfPayments, GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE)
+								.addComponent(txtTablaDestino, GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE)
+								.addComponent(txtPathDbfPayments, GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE)
+								.addComponent(txtPathDbfFacturasend, GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE))))
 					.addContainerGap())
 		);
 		gl_paneBaseDatos.setVerticalGroup(
@@ -265,13 +295,21 @@ public class Config extends JDialog {
 						.addComponent(cbDriver, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.LEADING, false)
-						.addComponent(txtPathDbfLectura)
-						.addComponent(btnLeerArchivodbf, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+						.addComponent(txtDbfFacturasend, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btndbfFacturasend, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnEscribirArchivoDbf)
-						.addComponent(txtPathDbfEscritura, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED, 136, Short.MAX_VALUE)
+						.addComponent(btnDbfPayments)
+						.addComponent(txtDbfPayments, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGroup(gl_paneBaseDatos.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblTablaDeDestino)
+						.addComponent(txtTablaDestino, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(txtPathDbfPayments, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(txtPathDbfFacturasend, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
 					.addComponent(btnTest)
 					.addGap(14))
 		);
@@ -450,20 +488,30 @@ public class Config extends JDialog {
 	}
 
 	private void events() {
-		btnLeerArchivodbf.addActionListener(new ActionListener() {
+		kb.addKeyEventPostProcessor(new KeyEventPostProcessor(){
+            public boolean postProcessKeyEvent(KeyEvent e){
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE && this != null){
+                    dispose();
+                    return false;
+                }
+                return true;
+            }
+		});
+		btndbfFacturasend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				fileChooser = new JFileChooser();
 				FileNameExtensionFilter filtroArchivo=new FileNameExtensionFilter("DBF","dbf");
-			    fileChooser.setFileFilter(filtroArchivo);
+			    //fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			    int r=fileChooser.showOpenDialog(null);
 			    if(r==JFileChooser.APPROVE_OPTION){
 			    	File f=fileChooser.getSelectedFile();
 					//Aca se le da el tratamiento al archivo
-			    	txtPathDbfLectura.setText(f.getAbsolutePath());
+			    	txtDbfFacturasend.setText(f.getName());
+			    	txtPathDbfFacturasend.setText(f.getParent());
 			    }
 			}
 		});
-		btnEscribirArchivoDbf.addActionListener(new ActionListener() {
+		btnDbfPayments.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				fileChooser = new JFileChooser();
 				FileNameExtensionFilter filtroArchivo=new FileNameExtensionFilter("DBF","dbf");
@@ -472,17 +520,19 @@ public class Config extends JDialog {
 			    if(r==JFileChooser.APPROVE_OPTION){
 			    	File f=fileChooser.getSelectedFile();
 					//Aca se le da el tratamiento al archivo
-			    	txtPathDbfEscritura.setText(f.getAbsolutePath());
+			    	txtDbfPayments.setText(f.getName());
+			    	txtPathDbfPayments.setText(f.getParent());
 			    }
 			}
 		});
 		btnOk.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (validation()) {					
+				if (validation() == null) {					
 					save();
+					System.exit(0);
 					dispose();
 				}else {
-					JOptionPane.showMessageDialog(null, "Hay Campos sin Completar");
+					JOptionPane.showMessageDialog(null, validation());
 				}
 			}
 		});
@@ -491,49 +541,52 @@ public class Config extends JDialog {
 				dispose();
 			}
 		});
+		
 		cbTipoDb.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println(cbTipoDb.getSelectedItem());
 				if (cbTipoDb.getSelectedItem()==DatabaseType.POSTGRES.name) {
 					isDBF(false);
-					txtDatabase.setText((propertiesDb.get("database.name").equals("") || propertiesDb.get("database.name") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.POSTGRES.defaultDatabase:propertiesDb.get("database.name"));
-					txtSchema.setText((propertiesDb.get("database.schema").equals("") || propertiesDb.get("database.schema") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.POSTGRES.defaultSchema:propertiesDb.get("database.schema"));
-					txtUsername.setText((propertiesDb.get("database.username").equals("") || propertiesDb.get("database.username") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.POSTGRES.defaultUsername:propertiesDb.get("database.username"));
-					txtHost.setText((propertiesDb.get("database.host").equals("") || propertiesDb.get("database.host") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.POSTGRES.defaultHost: propertiesDb.get("database.host"));
-					txtPuerto.setText((propertiesDb.get("database.port").equals("") || propertiesDb.get("database.port") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.POSTGRES.defaultPort:propertiesDb.get("database.port"));
-					cbDriver.setSelectedItem((propertiesDb.get("database.driver").equals("") || propertiesDb.get("database.driver") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.POSTGRES.defaultDriver:propertiesDb.get("database.driver"));
-					pTxtPasswordBd.setText((propertiesDb.get("database.password").equals("") || propertiesDb.get("database.password") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.POSTGRES.defaultPass:propertiesDb.get("database.password"));
+					txtDatabase.setText((propertiesDb.get("database.postgres.name").equals("") || propertiesDb.get("database.postgres.name") == null) ?DatabaseType.POSTGRES.defaultDatabase:propertiesDb.get("database.postgres.name"));
+					txtSchema.setText((propertiesDb.get("database.postgres.schema").equals("") || propertiesDb.get("database.postgres.schema") == null) ?DatabaseType.POSTGRES.defaultSchema:propertiesDb.get("database.postgres.schema"));
+					txtUsername.setText((propertiesDb.get("database.postgres.username").equals("") || propertiesDb.get("database.postgres.username") == null) ?DatabaseType.POSTGRES.defaultUsername:propertiesDb.get("database.postgres.username"));
+					txtHost.setText((propertiesDb.get("database.postgres.host").equals("") || propertiesDb.get("database.postgres.host") == null) ?DatabaseType.POSTGRES.defaultHost: propertiesDb.get("database.postgres.host"));
+					txtPuerto.setText((propertiesDb.get("database.postgres.port").equals("") || propertiesDb.get("database.postgres.port") == null)?DatabaseType.POSTGRES.defaultPort:propertiesDb.get("database.postgres.port"));
+					cbDriver.setSelectedItem((propertiesDb.get("database.postgres.driver").equals("") || propertiesDb.get("database.postgres.driver") == null)?DatabaseType.POSTGRES.defaultDriver:propertiesDb.get("database.postgres.driver"));
+					pTxtPasswordBd.setText((propertiesDb.get("database.postgres.password").equals("") || propertiesDb.get("database.postgres.password") == null)?DatabaseType.POSTGRES.defaultPass:propertiesDb.get("database.postgres.password"));
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.MYSQL.name) {
 					isDBF(false);
-					txtDatabase.setText((propertiesDb.get("database.name").equals("") || propertiesDb.get("database.name") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.MYSQL.defaultDatabase:propertiesDb.get("database.name"));
-					txtSchema.setText((propertiesDb.get("database.schema").equals("") || propertiesDb.get("database.schema") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.MYSQL.defaultSchema:propertiesDb.get("database.schema"));
-					txtUsername.setText((propertiesDb.get("database.username").equals("") || propertiesDb.get("database.username") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.MYSQL.defaultUsername:propertiesDb.get("database.username"));
-					txtHost.setText((propertiesDb.get("database.host").equals("") || propertiesDb.get("database.host") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.MYSQL.defaultHost: propertiesDb.get("database.host"));
-					txtPuerto.setText((propertiesDb.get("database.port").equals("") || propertiesDb.get("database.port") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.MYSQL.defaultPort:propertiesDb.get("database.port"));
-					cbDriver.setSelectedItem((propertiesDb.get("database.driver").equals("") || propertiesDb.get("database.driver") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.MYSQL.defaultDriver:propertiesDb.get("database.driver"));
-					pTxtPasswordBd.setText((propertiesDb.get("database.password").equals("") || propertiesDb.get("database.password") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.MYSQL.defaultPass:propertiesDb.get("database.password"));
+					txtDatabase.setText((propertiesDb.get("database.mysql.name").equals("") || propertiesDb.get("database.mysql.name") == null) ?DatabaseType.MYSQL.defaultDatabase:propertiesDb.get("database.mysql.name"));
+					txtSchema.setText((propertiesDb.get("database.mysql.schema").equals("") || propertiesDb.get("database.mysql.schema") == null)?DatabaseType.MYSQL.defaultSchema:propertiesDb.get("database.mysql.schema"));
+					txtUsername.setText((propertiesDb.get("database.mysql.username").equals("") || propertiesDb.get("database.mysql.username") == null) ?DatabaseType.MYSQL.defaultUsername:propertiesDb.get("database.mysql.username"));
+					txtHost.setText((propertiesDb.get("database.mysql.host").equals("") || propertiesDb.get("database.mysql.host") == null) ?DatabaseType.MYSQL.defaultHost: propertiesDb.get("database.mysql.host"));
+					txtPuerto.setText((propertiesDb.get("database.mysql.port").equals("") || propertiesDb.get("database.mysql.port") == null)?DatabaseType.MYSQL.defaultPort:propertiesDb.get("database.mysql.port"));
+					cbDriver.setSelectedItem((propertiesDb.get("database.mysql.driver").equals("") || propertiesDb.get("database.mysql.driver") == null) ?DatabaseType.MYSQL.defaultDriver:propertiesDb.get("database.mysql.driver"));
+					pTxtPasswordBd.setText((propertiesDb.get("database.mysql.password").equals("") || propertiesDb.get("database.mysql.password") == null)?DatabaseType.MYSQL.defaultPass:propertiesDb.get("database.mysql.password"));
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.ORACLE.name) {
 					isDBF(false);
-					txtDatabase.setText((propertiesDb.get("database.name").equals("") || propertiesDb.get("database.name") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.ORACLE.defaultDatabase:propertiesDb.get("database.name"));
-					txtSchema.setText((propertiesDb.get("database.schema").equals("") || propertiesDb.get("database.schema") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.ORACLE.defaultSchema:propertiesDb.get("database.schema"));
-					txtUsername.setText((propertiesDb.get("database.username").equals("") || propertiesDb.get("database.username") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.ORACLE.defaultUsername:propertiesDb.get("database.username"));
-					txtHost.setText((propertiesDb.get("database.host").equals("") || propertiesDb.get("database.host") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.ORACLE.defaultHost: propertiesDb.get("database.host"));
-					txtPuerto.setText((propertiesDb.get("database.port").equals("") || propertiesDb.get("database.port") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.ORACLE.defaultPort:propertiesDb.get("database.port"));
-					cbDriver.setSelectedItem((propertiesDb.get("database.driver").equals("") || propertiesDb.get("database.driver") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.ORACLE.defaultDriver:propertiesDb.get("database.driver"));
-					pTxtPasswordBd.setText((propertiesDb.get("database.password").equals("") || propertiesDb.get("database.password") == null) || !cbTipoDb.getSelectedItem().equals(propertiesDb.get("database.type"))?DatabaseType.ORACLE.defaultPass:propertiesDb.get("database.password"));
+					txtDatabase.setText((propertiesDb.get("database.oracle.name").equals("") || propertiesDb.get("database.oracle.name") == null)?DatabaseType.ORACLE.defaultDatabase:propertiesDb.get("database.oracle.name"));
+					txtSchema.setText((propertiesDb.get("database.oracle.schema").equals("") || propertiesDb.get("database.oracle.schema") == null)?DatabaseType.ORACLE.defaultSchema:propertiesDb.get("database.oracle.schema"));
+					txtUsername.setText((propertiesDb.get("database.oracle.username").equals("") || propertiesDb.get("database.oracle.username") == null)?DatabaseType.ORACLE.defaultUsername:propertiesDb.get("database.oracle.username"));
+					txtHost.setText((propertiesDb.get("database.oracle.host").equals("") || propertiesDb.get("database.oracle.host") == null)?DatabaseType.ORACLE.defaultHost: propertiesDb.get("database.oracle.host"));
+					txtPuerto.setText((propertiesDb.get("database.oracle.port").equals("") || propertiesDb.get("database.oracle.port") == null)?DatabaseType.ORACLE.defaultPort:propertiesDb.get("database.oracle.port"));
+					cbDriver.setSelectedItem((propertiesDb.get("database.oracle.driver").equals("") || propertiesDb.get("database.oracle.driver") == null)?DatabaseType.ORACLE.defaultDriver:propertiesDb.get("database.oracle.driver"));
+					pTxtPasswordBd.setText((propertiesDb.get("database.oracle.password").equals("") || propertiesDb.get("database.oracle.password") == null)?DatabaseType.ORACLE.defaultPass:propertiesDb.get("database.oracle.password"));
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.DBF.name) {
 					isDBF(true);
-					txtPathDbfEscritura.setText(propertiesDb.get("database.dbf.facturasend_file"));
-					txtPathDbfLectura.setText(propertiesDb.get("database.dbf.transacctions_file"));
+					txtDbfPayments.setText(propertiesDb.get("dbf.facturasend_file"));
+					txtDbfFacturasend.setText(propertiesDb.get("database.dbf.transacctions_file"));
+					txtTablaDestino.setText(propertiesDb.get("database.dbf.tabla_integrados"));
 				}
 			}
 		});
 	}
 	
 	private void isDBF(boolean flag) {
+		//!flag == no visible cuando es DBF
 		lblDatabase.setVisible(!flag);
 		lblSchema.setVisible(!flag);
 		lblUsername.setVisible(!flag);
@@ -548,31 +601,55 @@ public class Config extends JDialog {
 		txtPuerto.setVisible(!flag);
 		cbDriver.setVisible(!flag);
 		pTxtPasswordBd.setVisible(!flag);
-		btnLeerArchivodbf.setVisible(flag);
-		btnEscribirArchivoDbf.setVisible(flag);
-		txtPathDbfEscritura.setVisible(flag);
-		txtPathDbfLectura.setVisible(flag);
+		btndbfFacturasend.setVisible(flag);
+		btnDbfPayments.setVisible(flag);
+		txtDbfPayments.setVisible(flag);
+		txtDbfFacturasend.setVisible(flag);
+		txtTablaDestino.setVisible(flag);
+		lblTablaDeDestino.setVisible(flag);
+		btnTest.setVisible(!flag);
+//		txtPathDbfPayments.setVisible(flag);
 	}
 	
 	private void save() {
-		if (!cbTipoDb.getSelectedItem().toString().equals("Archivo DBF")) {			
-			propertiesDb.put("database.type", cbTipoDb.getSelectedItem().toString());
-			propertiesDb.put("database.name", txtDatabase.getText());
-			propertiesDb.put("database.schema", txtSchema.getText());
-			propertiesDb.put("database.username", txtUsername.getText());
-			propertiesDb.put("database.host", txtHost.getText());
-			propertiesDb.put("database.port", txtPuerto.getText());
-			String password="";
-			char[] pass=pTxtPasswordBd.getPassword();
+		if (!cbTipoDb.getSelectedItem().toString().equals("Archivo DBF")) {	
+			String password;
+			char[] pass;
+			String tipo = null;
+			switch (cbTipoDb.getSelectedItem().toString()) {
+				case "PostgreSQL":
+					propertiesDb.put("database.type", DatabaseType.POSTGRES.value);
+					tipo = DatabaseType.POSTGRES.value;
+					break;
+				case "Oracle":
+					propertiesDb.put("database.type", DatabaseType.ORACLE.value);
+					tipo = DatabaseType.ORACLE.value;
+					break;
+				case "MySQL":
+					propertiesDb.put("database.type", DatabaseType.MYSQL.value);
+					tipo = DatabaseType.MYSQL.value;
+					break;
+				default:
+					break;
+			}
+			propertiesDb.put("database."+tipo+".name", txtDatabase.getText());
+			propertiesDb.put("database."+tipo+".schema", txtSchema.getText());
+			propertiesDb.put("database."+tipo+".username", txtUsername.getText());
+			propertiesDb.put("database."+tipo+".host", txtHost.getText());
+			propertiesDb.put("database."+tipo+".port", txtPuerto.getText());
+			password="";
+			pass=pTxtPasswordBd.getPassword();
 			for (int i = 0; i < pass.length; i++) {
 				password += pass[i];
 			}
-			propertiesDb.put("database.password", password);
-			propertiesDb.put("database.driver", cbDriver.getSelectedItem().toString());
+			propertiesDb.put("database."+tipo+".password", password);
+			propertiesDb.put("database."+tipo+".driver", cbDriver.getSelectedItem().toString());
 		}else {
-			propertiesDb.put("database.type", cbTipoDb.getSelectedItem().toString());
-			propertiesDb.put("database.dbf.transacctions_file", txtPathDbfLectura.getText());
-			propertiesDb.put("database.dbf.facturasend_file", txtPathDbfEscritura.getText());
+			propertiesDb.put("database.type", DatabaseType.DBF.value);
+			propertiesDb.put("database.dbf.transacctions_file", txtDbfPayments.getText());
+			propertiesDb.put("database.dbf.facturasend_file", txtDbfFacturasend.getText());
+			propertiesDb.put("database.dbf.parent_folder", txtPathDbfPayments.getText().trim());
+			propertiesDb.put("database.dbf.tabla_integrados",txtTablaDestino.getText());
 		}
 		
 		
@@ -588,48 +665,88 @@ public class Config extends JDialog {
 		//cp.writeFsProperties(propertiesDb);
 	}
 	
-	private boolean validation() {
-		boolean flag=true;
-		if (cbTipoDb.getSelectedIndex() == 0) return false;
-		if (!cbTipoDb.getSelectedItem().toString().equals("Archivo DBF")) {	
-			if(txtDatabase.getText().contentEquals("") || txtDatabase.getText() == null) flag =false;
-			if(txtSchema.getText().contentEquals("") || txtSchema.getText() == null) flag =false;
-			if(txtUsername.getText().contentEquals("") || txtUsername.getText() == null) flag =false;
-			if(txtHost.getText().contentEquals("") || txtHost.getText() == null) flag =false;
-			if(txtPuerto.getText().contentEquals("") || txtPuerto.getText() == null) flag =false;
-			if(pTxtPasswordBd.getPassword().length <1) flag =false;
-			if(cbDriver.getSelectedIndex()== 0) flag =false;
-		}else {
-			if(txtPathDbfLectura.getText().contentEquals("") || txtPathDbfLectura.getText() == null) flag =false;
-			if(txtPathDbfEscritura.getText().contentEquals("") || txtPathDbfEscritura.getText() == null) flag =false;
+	private String validation() {
+		String errMsg=null;
+		if (cbTipoDb.getSelectedIndex() == 0) {
+			return null;
 		}
-		if(txtUrlApi.getText().contentEquals("") || txtUrlApi.getText() == null) flag =false;
-		if(txtAuthorization.getText().contentEquals("") || txtAuthorization.getText() == null) flag =false;
-		if(txtEmails.getText().contentEquals("") || txtEmails.getText() == null) flag =false;
-		if(txtUbicacionPdf.getText().contentEquals("") || txtUbicacionPdf.getText() == null) flag =false;
-		if(txtUbicacionXml.getText().contentEquals("") || txtUbicacionXml.getText() == null) flag =false;
+		if (!cbTipoDb.getSelectedItem().toString().equals("Archivo DBF")) {	
+			if(txtDatabase.getText().contentEquals("") || txtDatabase.getText() == null) {
+				errMsg = "No se especifico una Base de Datos";
+			}
+			if(txtSchema.getText().contentEquals("") || txtSchema.getText() == null) {
+				errMsg ="Np se especifico un Esquema";
+			}
+			if(txtUsername.getText().contentEquals("") || txtUsername.getText() == null) {
+				errMsg = "No se especifico el usuario para la conexion con la base de datos";
+			}
+			if(txtHost.getText().contentEquals("") || txtHost.getText() == null) {
+				errMsg ="No se especifico la url de la base de datos";
+			}
+			if(txtPuerto.getText().contentEquals("") || txtPuerto.getText() == null) {
+				errMsg ="No se especifico el puerto de la base de datos";
+			}
+			if(pTxtPasswordBd.getPassword().length <1) {
+				errMsg ="No se especifico la contraseña del usuario de base de datos";
+			}
+			if(cbDriver.getSelectedIndex()== 0) {
+				errMsg ="Por favor, seleccione un Driver";
+			}
+		}else {
+			if(txtDbfFacturasend.getText().contentEquals("") || txtDbfFacturasend.getText() == null) {
+				errMsg ="Por favor, seleccione un archivo DBF para la tabla FacturaSend";
+			}
+			if(txtDbfPayments.getText().contentEquals("") || txtDbfPayments.getText() == null) {
+				errMsg ="Por favor, seleccione un archivo DBF para la tabla FacturaSend";
+			}
+			if(!txtPathDbfFacturasend.getText().equals(txtPathDbfPayments.getText())) {
+				errMsg = "Los archivos deben estar dentro de la misma carpeta";
+			}
+			
+		}
+		if(txtUrlApi.getText().contentEquals("") || txtUrlApi.getText() == null) {
+			errMsg ="No se especifico una url para la API";
+		}
+		if(txtAuthorization.getText().contentEquals("") || txtAuthorization.getText() == null) {
+			errMsg ="Por favor, coloque su api key";
+		}
+		if(txtEmails.getText().contentEquals("") || txtEmails.getText() == null) {
+			errMsg ="No se especifico ningun email a FacturaSend";
+		}
+		if(txtUbicacionPdf.getText().contentEquals("") || txtUbicacionPdf.getText() == null) {
+			errMsg ="Por favor, especifique una ruta para poder guardar los PDF";
+		}
+		if(txtUbicacionXml.getText().contentEquals("") || txtUbicacionXml.getText() == null) {
+			errMsg ="Por favor, especifique una ruta para poder guardar los XML";
+		}
 		
-		return flag;
+		
+		return errMsg;
 		
 	}
 	
 	private void leerProperties() {
 		propertiesDb = cp.readDbProperties();
 		if(!propertiesDb.isEmpty()) {
-			cbTipoDb.setSelectedItem(propertiesDb.get("database.type"));
+			cbTipoDb.setSelectedItem(getDataBaseName());
 			System.out.println(propertiesDb.get("database.type"));
-			if ( propertiesDb.get("database.type").equals("Archivo DBF")) {
+			if ( propertiesDb.get("database.type").equals("dbf")) {
 				isDBF(true);
-				txtPathDbfEscritura.setText(propertiesDb.get("database.dbf.facturasend_file"));
-				txtPathDbfLectura.setText(propertiesDb.get("database.dbf.transacctions_file"));
+				txtDbfFacturasend.setText(propertiesDb.get("database.dbf.facturasend_file"));
+				txtDbfPayments.setText(propertiesDb.get("database.dbf.transacctions_file"));
+				txtPathDbfPayments.setText(propertiesDb.get("database.dbf.parent_folder"));
+				txtPathDbfFacturasend.setText(propertiesDb.get("database.dbf.parent_folder"));
+				txtTablaDestino.setText(propertiesDb.get("database.dbf.tabla_integrados"));
 			}else {
-				txtDatabase.setText(propertiesDb.get("database.name"));
-				txtSchema.setText(propertiesDb.get("database.schema"));
-				txtUsername.setText(propertiesDb.get("database.username"));
-				txtHost.setText(propertiesDb.get("database.host"));
-				txtPuerto.setText(propertiesDb.get("database.port"));
-				cbDriver.setSelectedItem(propertiesDb.get("database.driver"));
-				pTxtPasswordBd.setText(propertiesDb.get("database.password"));
+				String tipo = propertiesDb.get("database.type").toString();
+				txtDatabase.setText(propertiesDb.get("database."+tipo+".name"));
+				txtSchema.setText(propertiesDb.get("database."+tipo+".schema"));
+				txtUsername.setText(propertiesDb.get("database."+tipo+".username"));
+				txtHost.setText(propertiesDb.get("database."+tipo+".host"));
+				txtPuerto.setText(propertiesDb.get("database."+tipo+".port"));
+				cbDriver.setSelectedItem(propertiesDb.get("database."+tipo+".driver"));
+				pTxtPasswordBd.setText(propertiesDb.get("database."+tipo+".password"));
+					
 			}
 			
 			//Pestanha FacturaSend
@@ -641,5 +758,15 @@ public class Config extends JDialog {
 			txtUbicacionPdf.setText(propertiesDb.get("facturasend.carpetaKude"));
 			txtUbicacionXml.setText(propertiesDb.get("facturasend.carpetaXML"));
 		}
+	}
+	
+	private String getDataBaseName() {
+		//Es para poder ver mejor la seleccion del nombre y dejar el codigo un poco mas limpio
+		String name = propertiesDb.get("database.type").equals("dbf")?
+				DatabaseType.DBF.name:(propertiesDb.get("database.type").equals("postgres")?
+						DatabaseType.POSTGRES.name:(propertiesDb.get("database.type").equals("mysql")?
+								DatabaseType.MYSQL.name:(propertiesDb.get("database.type").equals("oracle")?
+										DatabaseType.ORACLE.name:null)));
+		return name;
 	}
 }

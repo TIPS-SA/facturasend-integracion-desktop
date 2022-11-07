@@ -3,6 +3,8 @@ package views;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.KeyEventPostProcessor;
+import java.awt.KeyboardFocusManager;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -12,6 +14,7 @@ import javax.swing.border.EmptyBorder;
 import service.FacturasendService;
 
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +42,7 @@ public class InfoMovimiento extends JDialog {
 	private JTextField txtEstado;
 	private JTextArea txtAError;
 	private JLabel lblCodigoQr;
+	private KeyboardFocusManager kb;
 	/**
 	 * Launch the application.
 	 */
@@ -68,6 +72,7 @@ public class InfoMovimiento extends JDialog {
 	}
 
 	private void initialize(BigDecimal transaccionId) {
+		kb = KeyboardFocusManager.getCurrentKeyboardFocusManager();
 		fs = new FacturasendService();
 		// TODO Auto-generated method stub
 		getContentPane().setLayout(new BorderLayout());
@@ -174,6 +179,15 @@ public class InfoMovimiento extends JDialog {
 	}
 	
 	private void events() {
+		kb.addKeyEventPostProcessor(new KeyEventPostProcessor(){
+            public boolean postProcessKeyEvent(KeyEvent e){
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE && this != null){
+                    dispose();
+                    return false;
+                }
+                return true;
+            }
+		});
 		// TODO Auto-generated method stub
 		okButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {

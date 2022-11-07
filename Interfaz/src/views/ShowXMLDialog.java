@@ -2,6 +2,8 @@ package views;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.KeyEventPostProcessor;
+import java.awt.KeyboardFocusManager;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -11,6 +13,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JEditorPane;
 import javax.swing.JTextArea;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.ActionEvent;
 
 public class ShowXMLDialog extends JDialog {
@@ -21,6 +24,7 @@ public class ShowXMLDialog extends JDialog {
 	private JPanel buttonPane;
 	private JScrollPane scrollPane;
 	private JTextArea txtAXML;
+	private KeyboardFocusManager kb;
 
 	/**
 	 * Launch the application.
@@ -47,6 +51,7 @@ public class ShowXMLDialog extends JDialog {
 	}
 	
 	private void init(String xml) {
+		kb = KeyboardFocusManager.getCurrentKeyboardFocusManager();
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -74,6 +79,15 @@ public class ShowXMLDialog extends JDialog {
 	}
 	
 	private void events() {
+		kb.addKeyEventPostProcessor(new KeyEventPostProcessor(){
+            public boolean postProcessKeyEvent(KeyEvent e){
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE && this != null){
+                    dispose();
+                    return false;
+                }
+                return true;
+            }
+		});
 		okButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dispose();

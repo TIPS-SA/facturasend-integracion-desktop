@@ -25,6 +25,7 @@ import com.google.gson.Gson;
 
 import service.FacturasendService;
 import util.HttpUtil;
+import views.commons.JComboCheckBox;
 import views.commons.Paginacion;
 import views.commons.PaginacionListener;
 import views.commons.Paginacion;
@@ -84,6 +85,7 @@ public class Principal extends JFrame {
 	InfoMovimiento movDetails;
 	Paginacion paginacion;
 	FacturasendService fs;
+	private JComboCheckBox comboCheck;
 	
 	private Integer rowsPerPage = 10;
 	private Integer tipoDocumento = 1;
@@ -117,6 +119,8 @@ public class Principal extends JFrame {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		
+		comboCheck = new JComboCheckBox();
 		
 		if (FacturasendService.readDBProperties().get("database.rows_per_page") != null) {
 			rowsPerPage = Integer.valueOf(FacturasendService.readDBProperties().get("database.rows_per_page")+"");	

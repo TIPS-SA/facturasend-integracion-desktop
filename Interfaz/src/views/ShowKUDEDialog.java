@@ -2,6 +2,8 @@ package views;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.KeyEventPostProcessor;
+import java.awt.KeyboardFocusManager;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -14,6 +16,7 @@ import org.icepdf.ri.common.SwingController;
 import org.icepdf.ri.common.SwingViewBuilder;
 
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.InputStream;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
@@ -25,6 +28,7 @@ public class ShowKUDEDialog extends JDialog {
 	private JPanel buttonPane;
 	private JScrollPane scrollPane;
 	private static InputStream pdf;
+	private KeyboardFocusManager kb;
 
 	/**
 	 * Launch the application.
@@ -52,6 +56,7 @@ public class ShowKUDEDialog extends JDialog {
 	}
 	
 	private void init() {
+		kb = KeyboardFocusManager.getCurrentKeyboardFocusManager();
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -74,6 +79,15 @@ public class ShowKUDEDialog extends JDialog {
 	}
 	
 	private void events() {
+		kb.addKeyEventPostProcessor(new KeyEventPostProcessor(){
+            public boolean postProcessKeyEvent(KeyEvent e){
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE && this != null){
+                    dispose();
+                    return false;
+                }
+                return true;
+            }
+		});
 		okButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dispose();

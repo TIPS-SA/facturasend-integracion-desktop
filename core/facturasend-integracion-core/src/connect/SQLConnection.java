@@ -21,8 +21,8 @@ public class SQLConnection {
 		this.bdConnect = bdConnect;
 		System.out.println(bdConnect);
 	    Properties connectionProps = new Properties();
-	    connectionProps.put("user", bdConnect.getUsername());
-	    connectionProps.put("password", bdConnect.getPassword());
+	    //connectionProps.put("user", bdConnect.getUsername());
+	    //connectionProps.put("password", bdConnect.getPassword());
 
 	    if (bdConnect.getTipo().equals("mysql")) {
 	    	/*Class.forName("com.mysql.jdbc.Driver");  
@@ -47,10 +47,10 @@ public class SQLConnection {
 	        basicDataSource.setPassword(bdConnect.getPassword());
 	        basicDataSource.setUrl("jdbc:oracle:thin:@" + bdConnect.getHost() + ":" + bdConnect.getPort() + ":" + bdConnect.getDatabase());
 	        
-	        basicDataSource.setMinIdle(5);
-	        basicDataSource.setMaxIdle(20);
-	        basicDataSource.setMaxTotal(50);
-	        basicDataSource.setMaxWaitMillis(-1);
+	        basicDataSource.setMinIdle(bdConnect.getPoolMinIdle());
+	        basicDataSource.setMaxIdle(bdConnect.getPoolMaxIdle());
+	        basicDataSource.setMaxTotal(bdConnect.getPoolMaxTotal());
+	        basicDataSource.setMaxWaitMillis(bdConnect.getPoolMaxWaitMillis());
 	        
 	    	/*Class.forName("oracle.jdbc.driver.OracleDriver");
 	        conn = DriverManager.getConnection(
@@ -80,7 +80,7 @@ public class SQLConnection {
 	                   bdConnect.getUsername(), bdConnect.getPassword());
 	        */
 	    	
-	    } else if (bdConnect.getTipo().equals("Archivo DBF")) {
+	    } else if (bdConnect.getTipo().equals("dbf")) {
 	    	 
 	    	/*basicDataSource = new BasicDataSource();
 	        basicDataSource.setDriverClassName("oracle.jdbc.driver.OracleDriver");
@@ -110,7 +110,7 @@ public class SQLConnection {
 	}
 
 	public Connection getConnection() throws Exception {
-		if (!this.bdConnect.getTipo().equals("Archivo DBF")) {
+		if (!this.bdConnect.getTipo().equals("dbf")) {
 			return this.basicDataSource.getConnection();	
 		} else {
 			return this.getDBFConnection();

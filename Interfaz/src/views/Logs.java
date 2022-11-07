@@ -2,6 +2,8 @@ package views;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.KeyEventPostProcessor;
+import java.awt.KeyboardFocusManager;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -11,6 +13,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.ActionEvent;
 
 public class Logs extends JDialog {
@@ -18,6 +21,7 @@ public class Logs extends JDialog {
 	private JScrollPane contentPane;
 	private JButton okButton;
 	private JTextArea txtAreaLogs;
+	private KeyboardFocusManager kb;
 
 	/**
 	 * Launch the application.
@@ -44,6 +48,7 @@ public class Logs extends JDialog {
 	}
 
 	private void initialize() {
+		kb = KeyboardFocusManager.getCurrentKeyboardFocusManager();
 		getContentPane().setLayout(new BorderLayout());
 		{
 			buttonPane = new JPanel();
@@ -67,6 +72,15 @@ public class Logs extends JDialog {
 	}
 	
 	private void events() {
+		kb.addKeyEventPostProcessor(new KeyEventPostProcessor(){
+            public boolean postProcessKeyEvent(KeyEvent e){
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE && this != null){
+                    dispose();
+                    return false;
+                }
+                return true;
+            }
+		});
 
 		okButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {

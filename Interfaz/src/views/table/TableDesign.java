@@ -115,7 +115,7 @@ class CeldaPersonalizada extends DefaultTableCellRenderer {
             boolean isSelected, boolean hasFocus, int row, int column) {
 		Component componente = super.getTableCellRendererComponent(table, value,
                 isSelected, hasFocus, row, column);
-		if(column == 7) {
+		if(column == 6) {
 			//String estadoStr = this.getText().toString();
 			switch (this.getText()) {
 			case "Error":
