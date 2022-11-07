@@ -391,7 +391,7 @@ public class Core {
 					
 					Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 					
-					String sql = "save dbf to " + databaseProperties.get("database.dbf.transacctions_file");
+					String sql = "save '" + databaseProperties.get("database.facturasend_table") + "' to " + databaseProperties.get("database.dbf.parent_folder");
 					System.out.println("\n" + sql + " ");
 					PreparedStatement statement = conn.prepareStatement(sql);
 
@@ -593,7 +593,7 @@ public class Core {
 					
 					Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 					
-					String sql = "save dbf to '" + databaseProperties.get("database.dbf.transacctions_file");
+					String sql = "save '" + databaseProperties.get("database.facturasend_table") + "' to '" + databaseProperties.get("database.dbf.parent_folder") + "'";
 					//+ "\\saved' ";
 					System.out.println("\n" + sql + " ");
 					//PreparedStatement statement = conn.prepareStatement(sql);

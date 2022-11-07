@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="Crea el JAR del dbfdriver">
+	
+	<jar 
+		destfile="C:\Users\marco\git\facturasend-integracion-desktop\dbfdriver\facturasend-integracion-dbfdriver\dbschema-dbf-jdbc2.0.jar"
+		basedir="./bin"
+		excludes="**/test/**">
+	</jar>
+	
+
+	<copy todir="C:\Users\marco\git\facturasend-integracion-desktop\core\facturasend-integracion-core\libs\">
+		<fileset dir="C:\Users\marco\git\facturasend-integracion-desktop\dbfdriver\facturasend-integracion-dbfdriver\">
+			<include name="dbschema-dbf-jdbc2.0.jar" />
+		</fileset>
+	</copy>
+
+	
+</project>

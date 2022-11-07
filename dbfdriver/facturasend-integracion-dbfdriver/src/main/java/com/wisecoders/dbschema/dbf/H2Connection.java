@@ -37,7 +37,8 @@ import static com.wisecoders.dbschema.dbf.io.H2Loader.FILES_META_TABLE;
 
 public class H2Connection implements Connection {
 
-    private static final Pattern SAVE_COMMAND_PATTERN = Pattern.compile( "(\\s*)save(\\s+)dbf(\\s+)to(\\s+)(.*)", Pattern.CASE_INSENSITIVE );
+    //private static final Pattern SAVE_COMMAND_PATTERN = Pattern.compile( "(\\s*)save(\\s+)dbf(\\s+)to(\\s+)(.*)", Pattern.CASE_INSENSITIVE );
+	private static final Pattern SAVE_COMMAND_PATTERN = Pattern.compile( "(\\s*)save(\\s+)(.*)(\\s+)to(\\s+)(.*)", Pattern.CASE_INSENSITIVE );
     private static final Pattern RELOAD_PATTERN = Pattern.compile( "(\\s*)reload(\\s+)(.*)", Pattern.CASE_INSENSITIVE );
 
     private final JdbcConnection h2Connection;
@@ -84,10 +85,12 @@ public class H2Connection implements Connection {
             Matcher matcher;
             if (args != null && args.length > 0 ){
                 if ( ( matcher = SAVE_COMMAND_PATTERN.matcher(args[0].toString())).matches()) {
+                	
                     LOGGER.info("Saving dbf...");
                     long start = System.currentTimeMillis();
                     try {
-                        saveDbf(matcher.group(5));
+                    	
+                        saveDbf(matcher.group(6), matcher.group(3));
                     } catch (SQLException ex) {
                         ex.printStackTrace();
                         throw ex;
@@ -141,7 +144,7 @@ public class H2Connection implements Connection {
     }
 
 
-    private void saveDbf( String path) throws Exception {
+    private void saveDbf( String path, String tables) throws Exception {
         if ( path == null || path.trim().length() == 0 ){
             throw new SQLException("Save dbf path is empty. Please specify a directory path");
         }
@@ -151,7 +154,9 @@ public class H2Connection implements Connection {
         }
         File outputFolder = new File ( path );
         outputFolder.mkdirs();
-        new H2Writer(h2Connection, outputFolder, defaultCharset );
+        
+        String [] aTables = tables.split(",");
+        new H2Writer(h2Connection, outputFolder, aTables, defaultCharset );
     }
 
     private void reload( String filePath ) throws Exception {
