@@ -25,6 +25,7 @@ public class Logs extends JDialog {
 
 	/**
 	 * Launch the application.
+	 * commit
 	 */
 	public static void main(String[] args) {
 		try {
