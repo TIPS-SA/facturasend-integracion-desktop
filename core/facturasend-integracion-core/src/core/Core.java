@@ -951,14 +951,14 @@ public class Core {
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
 		} else {
 			sql = "SELECT tra_id \n"
-					+ "FROM " + tableName + " \n"
+					+ "FROM " + tableName + " vp \n"
 					+ "WHERE 1=1 \n"
 					+ "AND tip_doc = " + tipoDocumento + " \n"
 					
 					+ "AND ( \n"
-					+ "CDC IS NULL \n"
+					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) IS NULL \n"
 					+ "OR \n"
-					+ "COALESCE(estado, 999) = 4 \n"
+					+ "COALESCE((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1), 999) = 4 \n"
 					+ ") \n"
 					+ "GROUP BY tra_id, estable, punto, numero \n"
 					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				

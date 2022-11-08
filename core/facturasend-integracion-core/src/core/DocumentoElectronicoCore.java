@@ -78,7 +78,12 @@ public class DocumentoElectronicoCore {
 			if (Core.getValueForKey(transaccionCabecera,"observacion","observa") != null) {
 				dataMap.put("observacion", Core.getValueForKey(transaccionCabecera,"observacion","observa").toString().trim());
 			}
-			//dataMap.put("fecha", sdf.format((Date) Core.getValueForKey(transaccionCabecera,"fecha")) );
+
+			if ( Core.getValueForKey(transaccionCabecera,"fecha") instanceof Date) {
+				dataMap.put("fecha", sdf.format((Date) Core.getValueForKey(transaccionCabecera,"fecha")) );
+			} else {
+				dataMap.put("fecha", Core.getValueForKey(transaccionCabecera,"fecha") );
+			}
 			dataMap.put("tipoEmision", Core.getValueForKey(transaccionCabecera, "tipo_emision", "tip_emi"));
 			dataMap.put("tipoTransaccion", Core.getValueForKey(transaccionCabecera, "tipo_transaccion", "tip_tra"));
 			dataMap.put("tipoImpuesto", Core.getValueForKey(transaccionCabecera, "tipo_impuesto", "tip_imp"));
