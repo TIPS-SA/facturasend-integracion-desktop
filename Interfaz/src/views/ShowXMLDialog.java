@@ -61,6 +61,8 @@ public class ShowXMLDialog extends JDialog {
 			contentPanel.add(scrollPane, BorderLayout.CENTER);
 			{
 				txtAXML = new JTextArea();
+				txtAXML.setLineWrap(true);
+				txtAXML.setEditable(false);
 				txtAXML.setText(xml);
 				scrollPane.setViewportView(txtAXML);
 			}

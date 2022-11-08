@@ -357,7 +357,7 @@ public class Principal extends JFrame {
 		menuBar = new JMenuBar();
 		frmFacturaSend.setJMenuBar(menuBar);
 		
-		mnFiltrosDeTabla = new JMenu("Filtros de Tabla");
+		mnFiltrosDeTabla = new JMenu("Columnas de la Tabla");
 		menuBar.add(mnFiltrosDeTabla);
 		
 		chkMenuMovNro = new JCheckBoxMenuItem("Mov #");
