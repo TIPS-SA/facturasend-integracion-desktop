@@ -116,9 +116,9 @@ public class InfoMovimiento extends JDialog {
 			
 			//Asignar valores
 			if (transacconesItem.size() > 0) {
-				txtCdc.setText( transacconesItem.get(0).get("CDC") + "");
-				txtEstado.setText( transacconesItem.get(0).get("ESTADO") + "");
-				txtAError.setText( transacconesItem.get(0).get("ERROR") + "");
+				txtCdc.setText( transacconesItem.get(0).get("cdc") + "");
+				txtEstado.setText( transacconesItem.get(0).get("estado") + "");
+				txtAError.setText( transacconesItem.get(0).get("error") + "");
 				
 			}
 

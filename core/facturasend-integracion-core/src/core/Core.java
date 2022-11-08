@@ -90,8 +90,15 @@ public class Core {
 			//DBF
 			sql = "SELECT tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
 				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
-				+ "estable, punto, numero, serie, total, cdc, estado, error \n"
-				+ "FROM " + tableName + " \n"
+				+ "estable, punto, numero, serie, total, "
+				/*+ "cdc, "
+				+ "estado, "
+				+ "error "*/
+				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) AS cdc, "
+				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS estado, "
+				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ERROR' LIMIT 1) AS error "
+				+ "\n"
+				+ "FROM " + tableName + " vp \n"
 				+ "WHERE "
 				+ "( \n"
 				+ "	(estable || '-' || punto || '-' || numero || COALESCE(serie, '')) LIKE '%" + q + "%' \n" 
@@ -119,7 +126,7 @@ public class Core {
 			
 			String sql = getSQLTransaccionesItem(databaseProperties, transaccionId, page, size);
 			
-			result.put("count", SQLUtil.getCountFromSQL(statement, sql)); 
+			//result.put("count", SQLUtil.getCountFromSQL(statement, sql)); 
 
 			//sql = getSQLListDesPaginado(databaseProperties, sql, q, page, size);
 			if (databaseProperties.get("database.type").equals("oracle")) {
@@ -130,6 +137,7 @@ public class Core {
 			
 			List<Map<String, Object>> listadoTransaccionesItem = SQLUtil.convertResultSetToList(rs);
 			System.out.println("listadoTransaccionesItem: " + listadoTransaccionesItem + " ");
+			
 			result.put("success", true);
 			result.put("result", listadoTransaccionesItem);
 			
@@ -155,9 +163,14 @@ public class Core {
 					
 					+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";	
 		} else {
-			sql = "SELECT * \n"
-					+ "FROM " + tableName + " \n"
-					+ "WHERE "
+			sql = "SELECT tra_id, i_descrip, i_cantidad, i_pre_uni, i_descue, \n"
+					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) AS cdc, \n"
+					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS estado, \n"
+					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ERROR' LIMIT 1) AS error, \n"
+					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='QR' LIMIT 1) AS qr \n"
+
+					+ "FROM " + tableName + " vp \n"
+					+ "WHERE \n"
 					
 					+ "tra_id = " + transaccionId + " \n"
 					
@@ -367,8 +380,12 @@ public class Core {
 									//Borrar registros previamente cargados, para evitar duplicidad
 									borrarPorTransaccionId(viewRec, databaseProperties);
 
+									String error = (String)errores.get(j).get("error");
+									if (databaseProperties.get("database.type").equals("dbf")) {
+										error = error.substring(254);
+									}
 									Map<String, Object> datosGuardar = new HashMap<String, Object>();
-									datosGuardar.put("ERROR", errores.get(j).get("error") + "");
+									datosGuardar.put("ERROR", error + "");
 									guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
 									
 									/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
@@ -572,8 +589,12 @@ public class Core {
 									//Borrar registros previamente cargados, para evitar duplicidad
 									borrarPorTransaccionId(viewRec, databaseProperties);
 
+									String error = (String)errores.get(j).get("error");
+									if (databaseProperties.get("database.type").equals("dbf")) {
+										error = error.substring(0, 254);
+									}
 									Map<String, Object> datosGuardar = new HashMap<String, Object>();
-									datosGuardar.put("ERROR", errores.get(j).get("error") + "");
+									datosGuardar.put("ERROR", error);
 									guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
 									
 									/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
@@ -645,12 +666,13 @@ public class Core {
 		}
 		
 		String sql = "DELETE FROM " + tableToUpdate + " WHERE " + pk + " = "+ getValueForKey(de, "transaccion_id", "tra_id") + " "
-				+ " AND " + tableToUpdateKey + " IN ('ERROR','ESTADO', 'XML', 'JSON', 'QR', 'CDC', 'TIPO')";
+				+ " AND TRIM(UPPER(" + tableToUpdateKey + ")) IN ('ERROR','ESTADO', 'XML', 'JSON', 'QR', 'CDC', 'TIPO') ";
 		
-		System.out.println("\n" + sql);
+		System.out.print("\n" + sql);
 		PreparedStatement statement = conn.prepareStatement(sql);
 
 		result = statement.executeUpdate();
+		System.out.println("result: " + result);
 
 		return result;
 	}
@@ -663,6 +685,7 @@ public class Core {
 	 * @return
 	 */
 	public static void createTableFacturaSendData(Map<String, String> databaseProperties) throws Exception{
+		
 		Integer result = 0;
 	
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
@@ -698,11 +721,11 @@ public class Core {
 			}
 			//sqlCreateTable += sqlCreateTable.substring(0, sqlCreateTable.length() - 2);
 			sqlCreateTable += tableToUpdateKey + " VARCHAR(254), ";
-			sqlCreateTable += tableToUpdateValue + " CLOB)";
+			sqlCreateTable += tableToUpdateValue + " TEXT)";
 			
 			System.out.print("\n" + sqlCreateTable + " ");
 		
-			statement = conn.prepareStatement(sqlCreateTable);
+			/*statement = conn.prepareStatement(sqlCreateTable);
 			int row = statement.executeUpdate();
 			System.out.print("rows: " + row);
 			
@@ -714,7 +737,7 @@ public class Core {
 			List<Map<String, Object>> tableColumns = SQLUtil.convertResultSetToList(rs);
 			
 			System.out.println("TableColumns: " + tableColumns + " ");
-			
+			*/
 		}
 		
 	}
