@@ -361,7 +361,8 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					fs.iniciarIntegracion(tipoDocumento);	
+					fs.iniciarIntegracion(tipoDocumento);
+					paginacion.refresh();
 				} catch (Exception e2) {
 					System.out.println("Mostrar error en pantalla, " + e2);
 				}
