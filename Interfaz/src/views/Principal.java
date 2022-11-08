@@ -4,9 +4,25 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -15,9 +31,9 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.EtchedBorder;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.table.DefaultTableModel;
 
@@ -28,25 +44,6 @@ import util.HttpUtil;
 import views.commons.JComboCheckBox;
 import views.commons.Paginacion;
 import views.commons.PaginacionListener;
-import views.commons.Paginacion;
-
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.ActionEvent;
-import javax.swing.border.EtchedBorder;
-import javax.swing.ImageIcon;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class Principal extends JFrame {
 
@@ -98,7 +95,16 @@ public class Principal extends JFrame {
 				try {
 					Principal window = new Principal();
 					window.frmFacturaSend.setVisible(true);
-					window.setLocationRelativeTo(null); 
+					window.setLocationRelativeTo(null);
+					
+					new Timer().schedule(new TimerTask() {
+					    @Override
+					    public void run() {
+					        System.out.println("Ejecutando... por delay");
+					        window.paginacion.refresh();
+					    }
+					}, 3000); //Cada 3 segundos
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

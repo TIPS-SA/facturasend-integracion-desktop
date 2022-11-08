@@ -48,6 +48,14 @@ public class Core {
 				sql = getPostgreSQLPaginado(sql, page, size);
 			}
 			
+			if (databaseProperties.get("database.type").equals("dbf")) {
+				System.out.print("\nReload ");
+				Statement st = conn.createStatement();
+				st.executeQuery("reload '" + databaseProperties.get("database.dbf.parent_folder") + "/" + databaseProperties.get("database.dbf.facturasend_file") + "'");
+			}
+			
+			
+			
 			System.out.print("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
@@ -67,7 +75,9 @@ public class Core {
 	}
 			
 	private static String getSQLTransaccionesList(Map<String, String> databaseProperties, String q, Integer tipoDocumento, Integer page, Integer size) {
-		String tableName = databaseProperties.get("database.transaction_view");
+		String tableName = databaseProperties.get("database.dbf.facturasend_file");
+		tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+		
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
@@ -88,6 +98,10 @@ public class Core {
 				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";			
 		} else {
 			//DBF
+			
+			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+
 			sql = "SELECT tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
 				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
 				+ "estable, punto, numero, serie, total, "
@@ -151,7 +165,7 @@ public class Core {
 	}
 			
 	private static String getSQLTransaccionesItem(Map<String, String> databaseProperties, Integer transaccionId, Integer page, Integer size) {
-		String tableName = databaseProperties.get("database.transaction_view");
+		String tableName = databaseProperties.get("database.dbf.facturasend_file");
 		String sql = "";
 		
 		if (!databaseProperties.get("database.type").equals("dbf")) {
@@ -163,6 +177,10 @@ public class Core {
 					
 					+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";	
 		} else {
+			
+			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+
 			sql = "SELECT tra_id, i_descrip, i_cantidad, i_pre_uni, i_descue, \n"
 					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) AS cdc, \n"
 					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS estado, \n"
@@ -908,7 +926,7 @@ public class Core {
 	 * @return
 	 */
 	private static String obtenerSQL50registrosNoIntegrados(Map<String, String> databaseProperties, Integer tipoDocumento) {
-		String tableName = databaseProperties.get("database.transaction_view");
+		String tableName = databaseProperties.get("database.dbf.facturasend_file");
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT transaccion_id \n"
@@ -924,6 +942,10 @@ public class Core {
 						+ "GROUP BY transaccion_id, establecimiento, punto, numero \n"
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
 		} else {
+			
+			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+
 			sql = "SELECT tra_id \n"
 					+ "FROM " + tableName + " vp \n"
 					+ "WHERE 1=1 \n"
@@ -1035,7 +1057,7 @@ public class Core {
 	 * @return
 	 */
 	private static String obtenerTransaccionesParaEnvioLote(Map<String, String> databaseProperties, String transaccionIdString) {
-		String tableName = databaseProperties.get("database.transaction_view");
+		String tableName = databaseProperties.get("database.dbf.facturasend_file");
 
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
@@ -1045,6 +1067,10 @@ public class Core {
 						+ "AND transaccion_id IN " + transaccionIdString + " \n"
 						+ "ORDER BY numero DESC \n";		
 		} else {
+			
+			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+
 			sql = "SELECT * \n"
 					+ "FROM " + tableName + " \n"
 					+ "WHERE 1=1 \n"
