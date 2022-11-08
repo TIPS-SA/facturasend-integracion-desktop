@@ -487,8 +487,16 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					Integer[] transacciones = new Integer[] {1,2};
-					fs.pausarIniciar(transacciones);	
+					int row = jTableTransaction.getSelectedRow();
+					if (jTableTransaction.getSelectedRow() >= 0) {
+						DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
+						
+		                Integer transaccionId = (Integer) model.getValueAt(row, 0);
+		                
+						fs.pausarIniciar(transaccionId);
+						
+						paginacion.refresh();
+					}
 				} catch (Exception e2) {
 					System.out.println("Mostrar error en pantalla, " + e2);
 				}
