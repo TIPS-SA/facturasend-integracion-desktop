@@ -111,6 +111,7 @@ public class Config extends JDialog {
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e);
 			System.out.println(e);
 		}
 	}

@@ -120,6 +120,7 @@ public class Principal extends JFrame {
 
 					
 				} catch (Exception e) {
+					JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e);
 					e.printStackTrace();
 				}
 			}

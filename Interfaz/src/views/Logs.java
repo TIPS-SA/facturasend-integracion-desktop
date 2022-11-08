@@ -7,6 +7,7 @@ import java.awt.KeyboardFocusManager;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.BoxLayout;
@@ -34,6 +35,7 @@ public class Logs extends JDialog {
 			dialog.setVisible(true);
 			dialog.setLocationRelativeTo(null); 
 		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e);
 			e.printStackTrace();
 		}
 	}
