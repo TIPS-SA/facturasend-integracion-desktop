@@ -4,9 +4,25 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -15,9 +31,9 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.EtchedBorder;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -30,6 +46,7 @@ import util.HttpUtil;
 import views.commons.JComboCheckBox;
 import views.commons.Paginacion;
 import views.commons.PaginacionListener;
+<<<<<<< HEAD
 import views.commons.Paginacion;
 
 import java.awt.event.ActionListener;
@@ -55,6 +72,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JSeparator;
+=======
+>>>>>>> branch 'main' of https://github.com/TIPS-SA/facturasend-integracion-desktop.git
 
 public class Principal extends JFrame {
 
@@ -115,7 +134,16 @@ public class Principal extends JFrame {
 				try {
 					Principal window = new Principal();
 					window.frmFacturaSend.setVisible(true);
-					window.setLocationRelativeTo(null); 
+					window.setLocationRelativeTo(null);
+					
+					new Timer().schedule(new TimerTask() {
+					    @Override
+					    public void run() {
+					        System.out.println("Ejecutando... por delay");
+					        window.paginacion.refresh();
+					    }
+					}, 3000); //Cada 3 segundos
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -487,8 +515,18 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					Integer[] transacciones = new Integer[] {1,2};
-					fs.pausarIniciar(transacciones);	
+					int row = jTableTransaction.getSelectedRow();
+					if (jTableTransaction.getSelectedRow() >= 0) {
+						DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
+						
+		                Integer transaccionId = (Integer) model.getValueAt(row, 0);
+		
+		                System.out.println("TRA ID " + transaccionId);
+		                
+						fs.pausarIniciar(transaccionId);
+						paginacion.refresh();
+					}
+	
 				} catch (Exception e2) {
 					System.out.println("Mostrar error en pantalla, " + e2);
 				}
@@ -500,7 +538,8 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					fs.iniciarIntegracion(tipoDocumento);	
+					fs.iniciarIntegracion(tipoDocumento);
+					paginacion.refresh();
 				} catch (Exception e2) {
 					System.out.println("Mostrar error en pantalla, " + e2);
 				}
@@ -545,7 +584,7 @@ public class Principal extends JFrame {
 					data.put("cdcList", deList);
 					
 					Map cdcMap = new HashMap();
-					cdcMap.put("cdc", cdc);
+					cdcMap.put("cdc", cdc.trim());
 	
 					deList.add(cdcMap);
 					
@@ -597,7 +636,7 @@ public class Principal extends JFrame {
 					Map header = new HashMap();
 					header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
 					String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
-					url += "/de/xml/" + cdc;
+					url += "/de/xml/" + cdc.trim();
 					
 					try {
 						Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "GET", null, header);

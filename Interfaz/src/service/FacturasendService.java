@@ -94,11 +94,11 @@ public class FacturasendService {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Map<String, Object> pausarIniciar(Integer[] transacciones) throws Exception {
+	public static Map<String, Object> pausarIniciar(Integer transaccionId) throws Exception {
 		
 		//Llamar a la consulta de Datos
 		
-		Map<String, Object> returnData = Core.pausarIniciar(transacciones, readDBProperties());
+		Map<String, Object> returnData = Core.pausarIniciar(transaccionId, readDBProperties());
 		
 		System.out.println(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {

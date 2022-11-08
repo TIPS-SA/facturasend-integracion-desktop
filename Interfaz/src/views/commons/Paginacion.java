@@ -161,6 +161,10 @@ public class Paginacion extends JPanel {
 		this.listeners.stream().forEach( l -> {l.goTo(currentPage);} );
 	}
 
+	public void refresh() {
+		setCurrentPage(this.currentPage);
+	}
+	
 	public Integer getRowsPerPage() {
 		return rowsPerPage;
 	}

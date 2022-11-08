@@ -48,6 +48,14 @@ public class Core {
 				sql = getPostgreSQLPaginado(sql, page, size);
 			}
 			
+			if (databaseProperties.get("database.type").equals("dbf")) {
+				System.out.print("\nReload ");
+				Statement st = conn.createStatement();
+				st.executeQuery("reload '" + databaseProperties.get("database.dbf.parent_folder") + "/" + databaseProperties.get("database.dbf.facturasend_file") + "'");
+			}
+			
+			
+			
 			System.out.print("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
@@ -67,7 +75,9 @@ public class Core {
 	}
 			
 	private static String getSQLTransaccionesList(Map<String, String> databaseProperties, String q, Integer tipoDocumento, Integer page, Integer size) {
-		String tableName = databaseProperties.get("database.transaction_view");
+		String tableName = databaseProperties.get("database.dbf.facturasend_file");
+		tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+		
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
@@ -88,6 +98,10 @@ public class Core {
 				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";			
 		} else {
 			//DBF
+			
+			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+
 			sql = "SELECT tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
 				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
 				+ "estable, punto, numero, serie, total, "
@@ -151,7 +165,7 @@ public class Core {
 	}
 			
 	private static String getSQLTransaccionesItem(Map<String, String> databaseProperties, Integer transaccionId, Integer page, Integer size) {
-		String tableName = databaseProperties.get("database.transaction_view");
+		String tableName = databaseProperties.get("database.dbf.facturasend_file");
 		String sql = "";
 		
 		if (!databaseProperties.get("database.type").equals("dbf")) {
@@ -163,6 +177,10 @@ public class Core {
 					
 					+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";	
 		} else {
+			
+			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+
 			sql = "SELECT tra_id, i_descrip, i_cantidad, i_pre_uni, i_descue, \n"
 					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) AS cdc, \n"
 					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS estado, \n"
@@ -261,173 +279,21 @@ public class Core {
 	 * @param databaseProperties
 	 * @return
 	 */
-	public static Map<String, Object> pausarIniciar(Integer [] transacciones, Map<String, String> databaseProperties)  {
+	public static Map<String, Object> pausarIniciar(Integer transaccionId, Map<String, String> databaseProperties)  {
 		//Recupera los transaccion_id que se deben integrar
-		Map<String, Object> obtener50registrosNoIntegradosMap = obtener50registrosNoIntegrados(1, databaseProperties);
 		
 		try {
-			
-			String transaccionIdString = "(-1)";
-			if (Boolean.valueOf(obtener50registrosNoIntegradosMap.get("success")+"") == true) {
-				List<Map<String, Object>> obtener50registrosNoIntegradosListMap = (List<Map<String, Object>>)obtener50registrosNoIntegradosMap.get("result");
-
-				transaccionIdString = "";
-				for (Map<String, Object> map : obtener50registrosNoIntegradosListMap) {
-					transaccionIdString += Core.getValueForKey(map, "transaccion_id", "tra_id") + ",";
-				}
-				transaccionIdString += "";
-				
-				//System.out.println(transaccionIdString);
-				
-			} else {
-				throw new Exception(obtener50registrosNoIntegradosMap.get("error")+"");
-			}
-			
-			
-			
-			//De acuerdo a los transaccion_id obtendidos, busca todos los registros relacionados.
-			String transaccionIdStringInClause = "(" + transaccionIdString + "-1)";
-			Map<String, Object> documentosParaEnvioMap = procesarTransacciones(transaccionIdStringInClause, databaseProperties);
-			List<Map<String, Object>> documentoParaEnvioJsonMap = null;
-			
-			if (Boolean.valueOf(documentosParaEnvioMap.get("success")+"") == true) {
-				documentoParaEnvioJsonMap = (List<Map<String, Object>>)documentosParaEnvioMap.get("result");
-			} else {
-				throw new Exception(documentosParaEnvioMap.get("error")+"");
-
-			}
-			
-			
-			
-			//Generar JSON de documentos electronicos.
-			List<Map<String, Object>> documentosParaEnvioJsonMap = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentoParaEnvioJsonMap, databaseProperties);
-
-			Map header = new HashMap();
-			header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
-			String url = databaseProperties.get("facturasend.url");
-			if (databaseProperties.get("facturasend.sincrono").equalsIgnoreCase("S")) {
-				url += "/de/create";
-			} else {
-				url += "/lote/create?xml=true&qr=true";
-			}
-			//==================================================================================
-			Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
-			
-			if (resultadoJson != null) {
-				
-				//String tableToUpdate = databaseProperties.get("database.facturasend_table");
-				if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
-
-					createTableFacturaSendData(databaseProperties);
-
-					Map<String, Object> result = (Map<String, Object>)resultadoJson.get("result");
-					
-					List<Map<String, Object>> deList = (List<Map<String, Object>>)result.get("deList");
-					
-					for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
-						Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
-						Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
-
-						Map<String, Object> respuestaDE = deList.get(i);	//Utiliza el mismo Indice de List de Json
-								
-						//Borrar registros previamente cargados, para evitar duplicidad
-						borrarPorTransaccionId(viewRec, databaseProperties);
-
-						Map<String, Object> datosGuardar = new HashMap<String, Object>();
-						datosGuardar.put("CDC", respuestaDE.get("cdc") + "");
-						guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
-
-						String estado = respuestaDE.get("estado") != null ? respuestaDE.get("estado") + "" : "0";
-						Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
-						datosGuardar1.put("ESTADO", estado);
-						guardarFacturaSendData(viewRec, datosGuardar1, databaseProperties);
-
-
-						/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
-						datosGuardar2.put("JSON", gsonPP.toJson(viewRec) + "");
-						guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);
-						 */
 						
-						Map<String, Object> datosGuardar4 = new HashMap<String, Object>();
-						datosGuardar4.put("XML", respuestaDE.get("xml") + "");
-						guardarFacturaSendData(viewRec, datosGuardar4, databaseProperties);
-						
-						
-						Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
-						datosGuardar3.put("QR", respuestaDE.get("qr") + "");
-						guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
+			guardarPausarIniciar(transaccionId, databaseProperties);
 
-						Map<String, Object> datosGuardar5 = new HashMap<String, Object>();
-						datosGuardar5.put("TIPO", "Mayorista");
-						guardarFacturaSendData(viewRec, datosGuardar5, databaseProperties);
-
-					}
-
-					
-				} else {
-					//Si hay errores
-					//log.debug(arg0);
-					if (resultadoJson.get("errores") != null) {
-						List<Map<String, Object>> errores = (List<Map<String, Object>>)resultadoJson.get("errores");
-
-						for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
-							Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
-							Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
-							
-							for (int j = 0; j < errores.size(); j++) {
-								if (i == j) {
-									
-									//Borrar registros previamente cargados, para evitar duplicidad
-									borrarPorTransaccionId(viewRec, databaseProperties);
-
-									String error = (String)errores.get(j).get("error");
-									if (databaseProperties.get("database.type").equals("dbf")) {
-										error = error.substring(254);
-									}
-									Map<String, Object> datosGuardar = new HashMap<String, Object>();
-									datosGuardar.put("ERROR", error + "");
-									guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
-									
-									/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
-//									datosGuardar.put("JSON", gsonPP.toJson(viewRec) + "");
-									System.out.println(viewRec);
-									datosGuardar.put("JSON", gson.toJson(viewRec) + "");
-									System.out.println("despues del error");
-									guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);*/
-								}
-							}	
-						}
-						
-					}
-				}
-				
-				//Volcar tabla actualizada de DBF
-				
-				
-				if (databaseProperties.get("database.type").equals("dbf")) {
-					
-					Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
-					
-					String sql = "save '" + databaseProperties.get("database.facturasend_table") + "' to " + databaseProperties.get("database.dbf.parent_folder");
-					System.out.println("\n" + sql + " ");
-					PreparedStatement statement = conn.prepareStatement(sql);
-
-					boolean ejecutado = statement.execute();
-					System.out.println("Ejecutado: " + ejecutado);
-				}
-
-				
-			}
 			
 			//
 		} catch (Exception e) {
 			e.printStackTrace();
-			obtener50registrosNoIntegradosMap.put("success", false);
-			obtener50registrosNoIntegradosMap.put("error", e.getMessage());
 		}
 		//Cambiar éste resultado, por el resultado del lote
 		
-		return obtener50registrosNoIntegradosMap;
+		return null;
 	}
 
 	
@@ -522,6 +388,11 @@ public class Core {
 			Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
 			
 			if (resultadoJson != null) {
+				
+				//Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+				//connection.setAutoCommit(false);
+				//conn.iniciar transaccion
+
 				createTableFacturaSendData(databaseProperties);
 				
 				String tableToUpdate = databaseProperties.get("database.facturasend_table");
@@ -550,23 +421,23 @@ public class Core {
 						guardarFacturaSendData(viewRec, datosGuardar1, databaseProperties);
 
 
-						/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
-						datosGuardar2.put("JSON", gsonPP.toJson(viewRec) + "");
-						guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);
-						 */
-						
-						Map<String, Object> datosGuardar4 = new HashMap<String, Object>();
-						datosGuardar4.put("XML", respuestaDE.get("xml") + "");
-						guardarFacturaSendData(viewRec, datosGuardar4, databaseProperties);
-						
-						
-						Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
-						datosGuardar3.put("QR", respuestaDE.get("qr") + "");
-						guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
-
 						Map<String, Object> datosGuardar5 = new HashMap<String, Object>();
 						datosGuardar5.put("TIPO", "Mayorista");
 						guardarFacturaSendData(viewRec, datosGuardar5, databaseProperties);
+
+						if ( ! databaseProperties.get("database.type").equals("dbf")) {
+							Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
+							datosGuardar3.put("QR", respuestaDE.get("qr") + "");
+							guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
+
+							Map<String, Object> datosGuardar4 = new HashMap<String, Object>();
+							datosGuardar4.put("XML", respuestaDE.get("xml") + "");
+							guardarFacturaSendData(viewRec, datosGuardar4, databaseProperties);
+						} else {
+							//El XML debe guardar en un archivo en el disco
+							
+						}
+						
 
 					}
 
@@ -591,7 +462,9 @@ public class Core {
 
 									String error = (String)errores.get(j).get("error");
 									if (databaseProperties.get("database.type").equals("dbf")) {
-										error = error.substring(0, 254);
+										if (error.length() > 254) {
+											error = error.substring(0, 254);	
+										}
 									}
 									Map<String, Object> datosGuardar = new HashMap<String, Object>();
 									datosGuardar.put("ERROR", error);
@@ -741,6 +614,7 @@ public class Core {
 		}
 		
 	}
+	
 	/**
 	 * 
 	 * @param viewPrincipal
@@ -875,6 +749,124 @@ public class Core {
 		return result;
 	}
 	
+	/**
+	 * 
+	 * @param viewPrincipal
+	 * @param error
+	 * @param databaseProperties
+	 * @return
+	 */
+	public static Integer guardarPausarIniciar(Integer transaccionId, Map<String, String> databaseProperties) throws Exception{
+		Integer result = 0;
+	
+		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+		
+		String tableToUpdate = databaseProperties.get("database.facturasend_table");
+		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
+		
+		//Obtener de la BD
+		
+		
+		
+		String sqlUpdate = "INSERT INTO " + tableToUpdate + " (";
+		
+		//Buscar fields adicionales
+		Iterator itr = databaseProperties.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry e = (Map.Entry)itr.next();
+			
+			String key = e.getKey()+""; 
+			if ((key).startsWith("database.facturasend_table.field.")) {
+				sqlUpdate += key.substring("database.facturasend_table.field.".length(), key.length()) + ", ";
+			}
+		}
+				/*
+		sqlUpdate += tableToUpdateKey + ", ";
+		sqlUpdate += tableToUpdateValue + ") VALUES ";
+		
+		//Buscar fields value adicionales
+		Iterator itrDato = datosGuardar.entrySet().iterator();
+		while (itrDato.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
+			Map.Entry eDato = (Map.Entry)itrDato.next();
+
+			sqlUpdate += "( ";
+			itr = databaseProperties.entrySet().iterator();
+			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
+				Map.Entry e = (Map.Entry)itr.next();
+				
+				String key = e.getKey()+""; 
+				String value = e.getValue()+"";
+				if ((key).startsWith("database.facturasend_table.field.")) {
+					if (value.startsWith("@SQL(")) {
+						//Si es un SQL debe colocar directo la sentencia
+						sqlUpdate += "" + value.substring(4, value.length() ) +  ", ";
+						
+					} else {
+						sqlUpdate += "?, ";	
+					}
+				}
+			}
+		
+			sqlUpdate += "?, ? ";
+			sqlUpdate += "), ";
+		}
+		
+		//Al final retirar la coma restante
+		sqlUpdate = sqlUpdate.substring(0, sqlUpdate.length() - 2);
+		
+		PreparedStatement statement = conn.prepareStatement(sqlUpdate);
+
+		*/
+
+		
+		
+/*		//Agregar los parametros.
+		
+		itrDato = datosGuardar.entrySet().iterator();
+		while (itrDato.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
+			Map.Entry eDato = (Map.Entry)itrDato.next();
+			
+			itr = databaseProperties.entrySet().iterator();
+			int f = 1;
+			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
+				Map.Entry e = (Map.Entry)itr.next();
+				
+				String key = e.getKey()+""; 
+				String value = e.getValue()+"";
+				if ((key).startsWith("database.facturasend_table.field.")) {
+					if (value.startsWith("@SQL(")) {
+						//Como ya coloco el SQL, entonces aqui no inserta los parámetros.
+						
+					} else {
+						statement.setObject(f++, getValueForKey(viewPrincipal, e.getValue()+""));
+					}
+				}
+			}
+		
+			statement.setString(f++, eDato.getKey() + "");
+			
+			Clob clob = conn.createClob();
+			clob.setString(1, eDato.getValue()+"" );
+
+			statement.setClob(f++, clob );
+		}
+	
+		System.out.println("" + sqlUpdate);
+		result = statement.executeUpdate();
+		
+		String posUpdateSQL = databaseProperties.get("database.facturasend_table.pos_update_sql");
+		if (posUpdateSQL != null) {
+			System.out.println(posUpdateSQL);
+			PreparedStatement statement2 = conn.prepareStatement(posUpdateSQL);
+			statement2.executeQuery();
+			
+		}*/
+		
+		return result;
+	}
+	
+	
 	
 	/**
 	 * Paso 1.1 - Obtener 50 registros no integrados
@@ -934,7 +926,7 @@ public class Core {
 	 * @return
 	 */
 	private static String obtenerSQL50registrosNoIntegrados(Map<String, String> databaseProperties, Integer tipoDocumento) {
-		String tableName = databaseProperties.get("database.transaction_view");
+		String tableName = databaseProperties.get("database.dbf.facturasend_file");
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT transaccion_id \n"
@@ -950,6 +942,10 @@ public class Core {
 						+ "GROUP BY transaccion_id, establecimiento, punto, numero \n"
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
 		} else {
+			
+			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+
 			sql = "SELECT tra_id \n"
 					+ "FROM " + tableName + " vp \n"
 					+ "WHERE 1=1 \n"
@@ -1034,13 +1030,15 @@ public class Core {
 			//result.put("count", SQLUtil.getCountFromSQL(statement, sql));
 
 			
-			System.out.println("" + sql);
+			System.out.print("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
-			List<Map<String, Object>> listadoDes = SQLUtil.convertResultSetToList(rs);
+			List<Map<String, Object>> transacionesParaEnvioLote = SQLUtil.convertResultSetToList(rs);
+			
+			System.out.println("transacionesParaEnvioLote: " + transacionesParaEnvioLote);
 			
 			result.put("success", true);
-			result.put("result", listadoDes);
+			result.put("result", transacionesParaEnvioLote);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1059,7 +1057,7 @@ public class Core {
 	 * @return
 	 */
 	private static String obtenerTransaccionesParaEnvioLote(Map<String, String> databaseProperties, String transaccionIdString) {
-		String tableName = databaseProperties.get("database.transaction_view");
+		String tableName = databaseProperties.get("database.dbf.facturasend_file");
 
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
@@ -1069,6 +1067,10 @@ public class Core {
 						+ "AND transaccion_id IN " + transaccionIdString + " \n"
 						+ "ORDER BY numero DESC \n";		
 		} else {
+			
+			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+
 			sql = "SELECT * \n"
 					+ "FROM " + tableName + " \n"
 					+ "WHERE 1=1 \n"

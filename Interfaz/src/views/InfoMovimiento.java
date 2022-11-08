@@ -121,10 +121,21 @@ public class InfoMovimiento extends JDialog {
 			
 			//Asignar valores
 			if (transacconesItem.size() > 0) {
-				txtCdc.setText( transacconesItem.get(0).get("cdc") + "");
-				txtEstado.setText( transacconesItem.get(0).get("estado") + "");
-				txtAError.setText( transacconesItem.get(0).get("error") + "");
+				String cdc = (String)transacconesItem.get(0).get("cdc");
+				if (cdc!= null) {
+					txtCdc.setText( cdc.trim() );
+				}
 				
+				String estado = (String)transacconesItem.get(0).get("estado");
+				if (estado != null) {
+					txtEstado.setText( estado.trim() );
+				}
+				
+				String error = (String)transacconesItem.get(0).get("error");
+				
+				if (error != null) {
+					txtAError.setText( error.trim());
+				}
 			}
 			
 			txtEstadoDescripcion = new JTextField();
