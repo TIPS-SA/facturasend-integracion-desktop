@@ -29,6 +29,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -343,12 +344,7 @@ public class Principal extends JFrame {
 		paneSouthTable.setLayout(new BorderLayout(0, 0));
 		
 		paginacion = new Paginacion(365, 45);
-		paginacion.addActionListener(new PaginacionListener() {
-			@Override
-			public void goTo(Integer currentPage) {
-				paginacion.setTotal(fs.populateTransactionTable(jTableTransaction, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage));
-			}
-		});
+		
 		paginacion.setRowsPerPage(rowsPerPage);
 		paginacion.setCurrentPage(1);	//Ejecuta la Consulta
 		//paginacion.setTotal(100);
@@ -412,6 +408,13 @@ public class Principal extends JFrame {
 	}
 	
 	private void events() {
+		paginacion.addActionListener(new PaginacionListener() {
+			@Override
+			public void goTo(Integer currentPage) {
+				paginacion.setTotal(fs.populateTransactionTable(jTableTransaction, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage));
+			}
+		});
+		
 		chkMenuMovNro.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(chkMenuMovNro.isSelected()) {
@@ -500,6 +503,7 @@ public class Principal extends JFrame {
 						paginacion.refresh();
 					}
 				} catch (Exception e2) {
+					JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
 					System.out.println("Mostrar error en pantalla, " + e2);
 				}
 			}
@@ -512,6 +516,7 @@ public class Principal extends JFrame {
 				try {
 					fs.iniciarIntegracion(tipoDocumento);	
 				} catch (Exception e2) {
+					JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
 					System.out.println("Mostrar error en pantalla, " + e2);
 				}
 				
@@ -587,6 +592,7 @@ public class Principal extends JFrame {
 											
 					} catch (Exception e2) {
 						// TODO: handle exception
+						JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
 						e2.printStackTrace();
 					}
 				}
@@ -627,6 +633,7 @@ public class Principal extends JFrame {
 						}
 					} catch (Exception e2) {
 						//Lucas Mostrar error e npantalla
+						JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
 						e2.printStackTrace();
 					}
 					
