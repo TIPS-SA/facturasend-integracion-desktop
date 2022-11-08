@@ -43,6 +43,7 @@ public class InfoMovimiento extends JDialog {
 	private JTextArea txtAError;
 	private JLabel lblCodigoQr;
 	private KeyboardFocusManager kb;
+	private JTextField txtEstadoDescripcion;
 	/**
 	 * Launch the application.
 	 */
@@ -132,6 +133,10 @@ public class InfoMovimiento extends JDialog {
 					txtAError.setText( error.trim());
 				}
 			}
+			
+			txtEstadoDescripcion = new JTextField();
+			txtEstadoDescripcion.setEditable(false);
+			txtEstadoDescripcion.setColumns(10);
 
 			GroupLayout gl_infoCdcPane = new GroupLayout(infoCdcPane);
 			gl_infoCdcPane.setHorizontalGroup(
@@ -140,17 +145,20 @@ public class InfoMovimiento extends JDialog {
 						.addContainerGap()
 						.addGroup(gl_infoCdcPane.createParallelGroup(Alignment.LEADING, false)
 							.addGroup(gl_infoCdcPane.createSequentialGroup()
-								.addComponent(lblError)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(txtAError))
-							.addGroup(gl_infoCdcPane.createSequentialGroup()
 								.addGroup(gl_infoCdcPane.createParallelGroup(Alignment.LEADING)
 									.addComponent(lblCdc)
 									.addComponent(lblEstado))
 								.addGap(6)
 								.addGroup(gl_infoCdcPane.createParallelGroup(Alignment.LEADING, false)
-									.addComponent(txtEstado)
-									.addComponent(txtCdc, GroupLayout.DEFAULT_SIZE, 396, Short.MAX_VALUE))))
+									.addGroup(gl_infoCdcPane.createSequentialGroup()
+										.addComponent(txtEstado, GroupLayout.PREFERRED_SIZE, 29, GroupLayout.PREFERRED_SIZE)
+										.addPreferredGap(ComponentPlacement.RELATED)
+										.addComponent(txtEstadoDescripcion))
+									.addComponent(txtCdc, GroupLayout.PREFERRED_SIZE, 396, GroupLayout.PREFERRED_SIZE)))
+							.addGroup(gl_infoCdcPane.createSequentialGroup()
+								.addComponent(lblError)
+								.addPreferredGap(ComponentPlacement.UNRELATED)
+								.addComponent(txtAError, 0, 0, Short.MAX_VALUE)))
 						.addGap(32)
 						.addComponent(lblCodigoQr)
 						.addContainerGap(234, Short.MAX_VALUE))
@@ -166,12 +174,13 @@ public class InfoMovimiento extends JDialog {
 						.addPreferredGap(ComponentPlacement.RELATED)
 						.addGroup(gl_infoCdcPane.createParallelGroup(Alignment.BASELINE)
 							.addComponent(lblEstado)
-							.addComponent(txtEstado, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+							.addComponent(txtEstado, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(txtEstadoDescripcion, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 						.addPreferredGap(ComponentPlacement.RELATED)
 						.addGroup(gl_infoCdcPane.createParallelGroup(Alignment.BASELINE)
 							.addComponent(lblError)
 							.addComponent(txtAError, GroupLayout.PREFERRED_SIZE, 72, GroupLayout.PREFERRED_SIZE))
-						.addContainerGap(67, Short.MAX_VALUE))
+						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 			);
 			infoCdcPane.setLayout(gl_infoCdcPane);
 			

@@ -4,25 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -31,10 +15,12 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
-import javax.swing.border.EtchedBorder;
 import javax.swing.border.SoftBevelBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 
 import com.google.gson.Gson;
@@ -44,6 +30,31 @@ import util.HttpUtil;
 import views.commons.JComboCheckBox;
 import views.commons.Paginacion;
 import views.commons.PaginacionListener;
+import views.commons.Paginacion;
+
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.ActionEvent;
+import javax.swing.border.EtchedBorder;
+import javax.swing.ImageIcon;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenu;
+import javax.swing.JSeparator;
 
 public class Principal extends JFrame {
 
@@ -82,10 +93,19 @@ public class Principal extends JFrame {
 	InfoMovimiento movDetails;
 	Paginacion paginacion;
 	FacturasendService fs;
-	private JComboCheckBox comboCheck;
 	
 	private Integer rowsPerPage = 10;
 	private Integer tipoDocumento = 1;
+	private JMenuBar menuBar;
+	private JMenu mnFiltrosDeTabla;
+	private JCheckBoxMenuItem chkMenuMovNro;
+	private JCheckBoxMenuItem chkMenuCliente;
+	private JCheckBoxMenuItem chkMenuFecha;
+	private JCheckBoxMenuItem chkMenuNroFactura;
+	private JCheckBoxMenuItem chkMenuMoneda;
+	private JCheckBoxMenuItem chkMenuTotal;
+	private JCheckBoxMenuItem chkMenuEstado;
+	private JCheckBoxMenuItem chkMenuCdc;
 	/**
 	 * Launch the application.
 	 */
@@ -95,16 +115,7 @@ public class Principal extends JFrame {
 				try {
 					Principal window = new Principal();
 					window.frmFacturaSend.setVisible(true);
-					window.setLocationRelativeTo(null);
-					
-					new Timer().schedule(new TimerTask() {
-					    @Override
-					    public void run() {
-					        System.out.println("Ejecutando... por delay");
-					        window.paginacion.refresh();
-					    }
-					}, 3000); //Cada 3 segundos
-					
+					window.setLocationRelativeTo(null); 
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -125,8 +136,6 @@ public class Principal extends JFrame {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		
-		comboCheck = new JComboCheckBox();
 		
 		if (FacturasendService.readDBProperties().get("database.rows_per_page") != null) {
 			rowsPerPage = Integer.valueOf(FacturasendService.readDBProperties().get("database.rows_per_page")+"");	
@@ -216,6 +225,7 @@ public class Principal extends JFrame {
 		
 		btnBuscar = new JButton("");
 		btnBuscar.setIcon(new ImageIcon(Principal.class.getResource("/resources/search.png")));
+		
 		
 		
 		btnFacturas = new JButton("Facturas");
@@ -343,29 +353,142 @@ public class Principal extends JFrame {
 
 		paneCenter.add(paneSouthTable, BorderLayout.SOUTH);
 		paneSouthTable.add(paginacion, BorderLayout.EAST);
-//		
-//		paneSouthTableCenter = new JPanel();
-//		paneSouthTable.add(paneSouthTableCenter);
+		
+		menuBar = new JMenuBar();
+		frmFacturaSend.setJMenuBar(menuBar);
+		
+		mnFiltrosDeTabla = new JMenu("Columnas de la Tabla");
+		menuBar.add(mnFiltrosDeTabla);
+		
+		chkMenuMovNro = new JCheckBoxMenuItem("Mov #");
+		
+		
+		mnFiltrosDeTabla.add(chkMenuMovNro);
+		
+		JSeparator separator = new JSeparator();
+		mnFiltrosDeTabla.add(separator);
+		
+		chkMenuFecha = new JCheckBoxMenuItem("Fecha");
+		mnFiltrosDeTabla.add(chkMenuFecha);
+		
+		JSeparator separator_1 = new JSeparator();
+		mnFiltrosDeTabla.add(separator_1);
+		
+		chkMenuCliente = new JCheckBoxMenuItem("Cliente");
+		mnFiltrosDeTabla.add(chkMenuCliente);
+		
+		JSeparator separator_2 = new JSeparator();
+		mnFiltrosDeTabla.add(separator_2);
+		
+		chkMenuNroFactura = new JCheckBoxMenuItem("Nro. Factura");
+		mnFiltrosDeTabla.add(chkMenuNroFactura);
+		
+		JSeparator separator_3 = new JSeparator();
+		mnFiltrosDeTabla.add(separator_3);
+		
+		chkMenuMoneda = new JCheckBoxMenuItem("Moneda");
+		mnFiltrosDeTabla.add(chkMenuMoneda);
+		
+		JSeparator separator_4 = new JSeparator();
+		mnFiltrosDeTabla.add(separator_4);
+		
+		chkMenuTotal = new JCheckBoxMenuItem("Total");
+		mnFiltrosDeTabla.add(chkMenuTotal);
+		
+		JSeparator separator_5 = new JSeparator();
+		mnFiltrosDeTabla.add(separator_5);
+		
+		chkMenuEstado = new JCheckBoxMenuItem("Estado");
+		mnFiltrosDeTabla.add(chkMenuEstado);
+		
+		JSeparator separator_6 = new JSeparator();
+		mnFiltrosDeTabla.add(separator_6);
+		
+		chkMenuCdc = new JCheckBoxMenuItem("CDC");
+		mnFiltrosDeTabla.add(chkMenuCdc);
 		
 	}
 	
 	private void events() {
+		chkMenuMovNro.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(chkMenuMovNro.isSelected()) {
+					ocultarColumnas(jTableTransaction, 0);
+				}else {
+					mostrarColumnas(jTableTransaction, 0);
+				}
+			}
+		});
+		chkMenuFecha.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(chkMenuFecha.isSelected()) {
+					ocultarColumnas(jTableTransaction, 1);
+				}else {
+					mostrarColumnas(jTableTransaction, 1);
+				}
+			}
+		});
+		chkMenuCliente.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(chkMenuCliente.isSelected()) {
+					ocultarColumnas(jTableTransaction, 2);
+				}else {
+					mostrarColumnas(jTableTransaction, 2);
+				}
+			}
+		});
+		chkMenuNroFactura.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(chkMenuNroFactura.isSelected()) {
+					ocultarColumnas(jTableTransaction, 3);
+				}else {
+					mostrarColumnas(jTableTransaction, 3);
+				}
+			}
+		});
+		chkMenuMoneda.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(chkMenuMoneda.isSelected()) {
+					ocultarColumnas(jTableTransaction, 4);
+				}else {
+					mostrarColumnas(jTableTransaction, 4);
+				}
+			}
+		});
+		chkMenuTotal.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(chkMenuTotal.isSelected()) {
+					ocultarColumnas(jTableTransaction, 5);
+				}else {
+					mostrarColumnas(jTableTransaction, 5);
+				}
+			}
+		});
+		chkMenuEstado.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(chkMenuEstado.isSelected()) {
+					ocultarColumnas(jTableTransaction, 6);
+				}else {
+					mostrarColumnas(jTableTransaction, 6);
+				}
+			}
+		});
+		chkMenuCdc.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(chkMenuCdc.isSelected()) {
+					ocultarColumnas(jTableTransaction, 7);
+				}else {
+					mostrarColumnas(jTableTransaction, 7);
+				}
+			}
+		});
+		
 		btnNoEnviar.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					int row = jTableTransaction.getSelectedRow();
-					if (jTableTransaction.getSelectedRow() >= 0) {
-						DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
-						
-		                Integer transaccionId = (Integer) model.getValueAt(row, 0);
-		
-		                System.out.println("TRA ID " + transaccionId);
-		                
-						fs.pausarIniciar(transaccionId);
-						paginacion.refresh();
-					}
-	
+					Integer[] transacciones = new Integer[] {1,2};
+					fs.pausarIniciar(transacciones);	
 				} catch (Exception e2) {
 					System.out.println("Mostrar error en pantalla, " + e2);
 				}
@@ -377,8 +500,7 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					fs.iniciarIntegracion(tipoDocumento);
-					paginacion.refresh();
+					fs.iniciarIntegracion(tipoDocumento);	
 				} catch (Exception e2) {
 					System.out.println("Mostrar error en pantalla, " + e2);
 				}
@@ -423,7 +545,7 @@ public class Principal extends JFrame {
 					data.put("cdcList", deList);
 					
 					Map cdcMap = new HashMap();
-					cdcMap.put("cdc", cdc.trim());
+					cdcMap.put("cdc", cdc);
 	
 					deList.add(cdcMap);
 					
@@ -475,7 +597,7 @@ public class Principal extends JFrame {
 					Map header = new HashMap();
 					header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
 					String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
-					url += "/de/xml/" + cdc.trim();
+					url += "/de/xml/" + cdc;
 					
 					try {
 						Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "GET", null, header);
@@ -622,4 +744,24 @@ public class Principal extends JFrame {
 		return paginacion;
 	}
 	
+	public void ocultarColumnas (JTable table, int col) {
+		table.getColumnModel().getColumn(col).setMaxWidth(0);
+		table.getColumnModel().getColumn(col).setMinWidth(0);
+		table.getTableHeader().getColumnModel().getColumn(col).setMaxWidth(0);
+		table.getTableHeader().getColumnModel().getColumn(col).setMinWidth(0);
+	}
+	
+	public void mostrarColumnas(JTable table, int col) {
+		int colPreferredWidth  =  col == 0?60:col==1?80:col==2?280:col==3?65:col==4?50:col==5?65:col ==6?80:100;
+		int colHeaderPreferredWidth = col == 0?60:col==1?80:col==2?280:col==3?65:col==4?50:col==5?65:col ==6?80:100;
+		
+		
+		table.getColumnModel().getColumn(col).setMaxWidth(200);
+		table.getColumnModel().getColumn(col).setMinWidth(0);
+		table.getColumnModel().getColumn(col).setPreferredWidth(colPreferredWidth);
+		table.getTableHeader().getColumnModel().getColumn(col).setMaxWidth(200);
+		table.getTableHeader().getColumnModel().getColumn(col).setMinWidth(0);
+		table.getTableHeader().getColumnModel().getColumn(col).setPreferredWidth(colHeaderPreferredWidth);
+
+	}
 }

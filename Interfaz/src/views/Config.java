@@ -97,6 +97,10 @@ public class Config extends JDialog {
 	private JLabel lblTablaDeDestino;
 	private JTextField txtPathDbfPayments;
 	private JTextField txtPathDbfFacturasend;
+	private JPanel paneOtros;
+	private JTextField txtNombreImpresora;
+	private JLabel lblNombreDeLa;
+	private JCheckBox chkEnviarKudeImpresora;
 
 	/**
 	 * Launch the application.
@@ -456,6 +460,41 @@ public class Config extends JDialog {
 		);
 		paneConfigFacturaSendArchivos.setLayout(gl_paneConfigFacturaSendArchivos);
 		
+		paneOtros = new JPanel();
+		tabbedPane.addTab("Otros", null, paneOtros, null);
+		
+		chkEnviarKudeImpresora = new JCheckBox("Enviar KUDE del DE a impresora al integrar");
+		
+		lblNombreDeLa = new JLabel("Nombre de la Impresora");
+		
+		txtNombreImpresora = new JTextField();
+		txtNombreImpresora.setColumns(10);
+		GroupLayout gl_paneOtros = new GroupLayout(paneOtros);
+		gl_paneOtros.setHorizontalGroup(
+			gl_paneOtros.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_paneOtros.createSequentialGroup()
+					.addGap(19)
+					.addGroup(gl_paneOtros.createParallelGroup(Alignment.LEADING)
+						.addComponent(chkEnviarKudeImpresora)
+						.addGroup(Alignment.TRAILING, gl_paneOtros.createSequentialGroup()
+							.addComponent(lblNombreDeLa)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(txtNombreImpresora, GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE)))
+					.addContainerGap())
+		);
+		gl_paneOtros.setVerticalGroup(
+			gl_paneOtros.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_paneOtros.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(chkEnviarKudeImpresora)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGroup(gl_paneOtros.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblNombreDeLa)
+						.addComponent(txtNombreImpresora, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addContainerGap(229, Short.MAX_VALUE))
+		);
+		paneOtros.setLayout(gl_paneOtros);
+		
 		buttonsPane = new JPanel();
 		contentPane.add(buttonsPane, BorderLayout.SOUTH);
 		buttonsPane.setPreferredSize(new Dimension(100, 50));
@@ -648,10 +687,10 @@ public class Config extends JDialog {
 			propertiesDb.put("database.type", DatabaseType.DBF.value);
 			propertiesDb.put("database.dbf.transacctions_file", txtDbfPayments.getText());
 			propertiesDb.put("database.dbf.facturasend_file", txtDbfFacturasend.getText());
-			propertiesDb.put("database.dbf.parent_folder", txtPathDbfPayments.getText().trim());
+			propertiesDb.put("database.dbf.parent_folder", txtPathDbfPayments.getText());
 			propertiesDb.put("database.dbf.tabla_integrados",txtTablaDestino.getText());
 		}
-		
+		//pestanha facturasend
 		
 		propertiesDb.put("facturasend.integracionSet", chkIntegracionFacturasend.isSelected()?"Y":"N");
 		propertiesDb.put("facturasend.sincrono", chkComunicacionSincrona.isSelected()?"Y":"N");
@@ -660,6 +699,12 @@ public class Config extends JDialog {
 		propertiesDb.put("facturasend.emails",txtEmails.getText());
 		propertiesDb.put("facturasend.carpetaKude",txtUbicacionPdf.getText());
 		propertiesDb.put("facturasend.carpetaXML",txtUbicacionXml.getText());
+		
+		
+		//pestanha otros
+		
+		propertiesDb.put("config.otros.enviar_kude_impresora", chkEnviarKudeImpresora.isSelected()?"Y":"N");
+		propertiesDb.put("config.otros.nombre_impresora", txtNombreImpresora.getText());
 		
 		cp.writeDbProperties(propertiesDb);
 		//cp.writeFsProperties(propertiesDb);
@@ -757,6 +802,10 @@ public class Config extends JDialog {
 			txtEmails.setText(propertiesDb.get("facturasend.emails"));
 			txtUbicacionPdf.setText(propertiesDb.get("facturasend.carpetaKude"));
 			txtUbicacionXml.setText(propertiesDb.get("facturasend.carpetaXML"));
+			
+			//pestanha otros
+			chkEnviarKudeImpresora.setSelected((propertiesDb.get("config.otros.enviar_kude_impresora")).toString().equals("Y")?true:false);
+			txtNombreImpresora.setText(propertiesDb.get("config.otros.nombre_impresora"));
 		}
 	}
 	
