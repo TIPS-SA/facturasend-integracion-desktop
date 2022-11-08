@@ -46,7 +46,6 @@ import util.HttpUtil;
 import views.commons.JComboCheckBox;
 import views.commons.Paginacion;
 import views.commons.PaginacionListener;
-<<<<<<< HEAD
 import views.commons.Paginacion;
 
 import java.awt.event.ActionListener;
@@ -72,8 +71,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JSeparator;
-=======
->>>>>>> branch 'main' of https://github.com/TIPS-SA/facturasend-integracion-desktop.git
 
 public class Principal extends JFrame {
 
