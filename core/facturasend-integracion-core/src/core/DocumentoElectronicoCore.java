@@ -68,7 +68,7 @@ public class DocumentoElectronicoCore {
 				dataMap.put("cdc", cdcGenerado); //Si ya fue generado con un CDC, entonces envía para utilizar el mismo.
 			}
 
-			dataMap.put("establecimiento", Core.getValueForKey(transaccionCabecera, "establecimiento", "establec"));
+			dataMap.put("establecimiento", Core.getValueForKey(transaccionCabecera, "establecimiento", "estable"));
 			dataMap.put("punto", Core.getValueForKey(transaccionCabecera, "punto"));
 			dataMap.put("numero", Core.getValueForKey(transaccionCabecera, "numero"));
 			dataMap.put("serie", Core.getValueForKey(transaccionCabecera, "serie"));
@@ -294,7 +294,11 @@ public class DocumentoElectronicoCore {
 			dataMap.put("items", lista);
 			
 			Map<String, Object> condicionMap = recuperarFormasDePagoParaCondicion(tipoDocumento, transaccionId, databaseProperties);
-			dataMap.put("condicion", condicionMap);
+			
+			if (condicionMap != null) {
+				dataMap.put("condicion", condicionMap);	
+			}
+			
 
 			//DocumentoAsociado
 			Map<String, Object> documentoAsociadoMap = new HashMap<String, Object>();

@@ -1034,13 +1034,15 @@ public class Core {
 			//result.put("count", SQLUtil.getCountFromSQL(statement, sql));
 
 			
-			System.out.println("" + sql);
+			System.out.print("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
-			List<Map<String, Object>> listadoDes = SQLUtil.convertResultSetToList(rs);
+			List<Map<String, Object>> transacionesParaEnvioLote = SQLUtil.convertResultSetToList(rs);
+			
+			System.out.println("transacionesParaEnvioLote: " + transacionesParaEnvioLote);
 			
 			result.put("success", true);
-			result.put("result", listadoDes);
+			result.put("result", transacionesParaEnvioLote);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
