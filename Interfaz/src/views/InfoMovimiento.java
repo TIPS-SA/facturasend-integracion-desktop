@@ -27,6 +27,7 @@ import javax.swing.JLabel;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JTextField;
 import javax.swing.JTextArea;
+import javax.swing.SpringLayout;
 
 public class InfoMovimiento extends JDialog {
 
@@ -44,6 +45,9 @@ public class InfoMovimiento extends JDialog {
 	private JLabel lblCodigoQr;
 	private KeyboardFocusManager kb;
 	private JTextField txtEstadoDescripcion;
+	private JPanel paneSouth;
+	private JLabel lblItemsTotal;
+	private JLabel lblCantidadItemsTotal;
 	/**
 	 * Launch the application.
 	 */
@@ -183,6 +187,32 @@ public class InfoMovimiento extends JDialog {
 						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 			);
 			infoCdcPane.setLayout(gl_infoCdcPane);
+			
+			paneSouth = new JPanel();
+			paneSouth.setPreferredSize(new Dimension(100, 20));
+			contentPanel.add(paneSouth, BorderLayout.SOUTH);
+			
+			lblItemsTotal = new JLabel("Item(s):");
+			
+			lblCantidadItemsTotal = new JLabel("");
+			GroupLayout gl_paneSouth = new GroupLayout(paneSouth);
+			gl_paneSouth.setHorizontalGroup(
+				gl_paneSouth.createParallelGroup(Alignment.LEADING)
+					.addGroup(gl_paneSouth.createSequentialGroup()
+						.addComponent(lblItemsTotal, GroupLayout.PREFERRED_SIZE, 51, GroupLayout.PREFERRED_SIZE)
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addComponent(lblCantidadItemsTotal)
+						.addContainerGap(669, Short.MAX_VALUE))
+			);
+			gl_paneSouth.setVerticalGroup(
+				gl_paneSouth.createParallelGroup(Alignment.LEADING)
+					.addGroup(gl_paneSouth.createSequentialGroup()
+						.addGroup(gl_paneSouth.createParallelGroup(Alignment.BASELINE)
+							.addComponent(lblItemsTotal)
+							.addComponent(lblCantidadItemsTotal))
+						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+			);
+			paneSouth.setLayout(gl_paneSouth);
 			
 		//}
 		//{
