@@ -587,33 +587,33 @@ public class Config extends JDialog {
 				System.out.println(cbTipoDb.getSelectedItem());
 				if (cbTipoDb.getSelectedItem()==DatabaseType.POSTGRES.name) {
 					isDBF(false);
-					txtDatabase.setText((propertiesDb.get("database.postgres.name").equals("") || propertiesDb.get("database.postgres.name") == null) ?DatabaseType.POSTGRES.defaultDatabase:propertiesDb.get("database.postgres.name"));
-					txtSchema.setText((propertiesDb.get("database.postgres.schema").equals("") || propertiesDb.get("database.postgres.schema") == null) ?DatabaseType.POSTGRES.defaultSchema:propertiesDb.get("database.postgres.schema"));
-					txtUsername.setText((propertiesDb.get("database.postgres.username").equals("") || propertiesDb.get("database.postgres.username") == null) ?DatabaseType.POSTGRES.defaultUsername:propertiesDb.get("database.postgres.username"));
-					txtHost.setText((propertiesDb.get("database.postgres.host").equals("") || propertiesDb.get("database.postgres.host") == null) ?DatabaseType.POSTGRES.defaultHost: propertiesDb.get("database.postgres.host"));
-					txtPuerto.setText((propertiesDb.get("database.postgres.port").equals("") || propertiesDb.get("database.postgres.port") == null)?DatabaseType.POSTGRES.defaultPort:propertiesDb.get("database.postgres.port"));
-					cbDriver.setSelectedItem((propertiesDb.get("database.postgres.driver").equals("") || propertiesDb.get("database.postgres.driver") == null)?DatabaseType.POSTGRES.defaultDriver:propertiesDb.get("database.postgres.driver"));
-					pTxtPasswordBd.setText((propertiesDb.get("database.postgres.password").equals("") || propertiesDb.get("database.postgres.password") == null)?DatabaseType.POSTGRES.defaultPass:propertiesDb.get("database.postgres.password"));
+					txtDatabase.setText((propertiesDb.get("database.postgres.name").equals("") || propertiesDb.get("database.postgres.name") == null) || !propertiesDb.containsKey("database.postgres.name") ?DatabaseType.POSTGRES.defaultDatabase:propertiesDb.get("database.postgres.name"));
+					txtSchema.setText((propertiesDb.get("database.postgres.schema").equals("") || propertiesDb.get("database.postgres.schema") == null) || !propertiesDb.containsKey("database.postgres.schema") ?DatabaseType.POSTGRES.defaultSchema:propertiesDb.get("database.postgres.schema"));
+					txtUsername.setText((propertiesDb.get("database.postgres.username").equals("") || propertiesDb.get("database.postgres.username") == null) || !propertiesDb.containsKey("database.postgres.username")?DatabaseType.POSTGRES.defaultUsername:propertiesDb.get("database.postgres.username"));
+					txtHost.setText((propertiesDb.get("database.postgres.host").equals("") || propertiesDb.get("database.postgres.host") == null) || !propertiesDb.containsKey("database.postgres.host")?DatabaseType.POSTGRES.defaultHost: propertiesDb.get("database.postgres.host"));
+					txtPuerto.setText((propertiesDb.get("database.postgres.port").equals("") || propertiesDb.get("database.postgres.port") == null) || !propertiesDb.containsKey("database.postgres.port")?DatabaseType.POSTGRES.defaultPort:propertiesDb.get("database.postgres.port"));
+					cbDriver.setSelectedItem((propertiesDb.get("database.postgres.driver").equals("") || propertiesDb.get("database.postgres.driver") == null) || !propertiesDb.containsKey("database.postgres.driver")?DatabaseType.POSTGRES.defaultDriver:propertiesDb.get("database.postgres.driver"));
+					pTxtPasswordBd.setText((propertiesDb.get("database.postgres.password").equals("") || propertiesDb.get("database.postgres.password") == null) || !propertiesDb.containsKey("database.postgres.password")?DatabaseType.POSTGRES.defaultPass:propertiesDb.get("database.postgres.password"));
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.MYSQL.name) {
 					isDBF(false);
-					txtDatabase.setText((propertiesDb.get("database.mysql.name").equals("") || propertiesDb.get("database.mysql.name") == null) ?DatabaseType.MYSQL.defaultDatabase:propertiesDb.get("database.mysql.name"));
-					txtSchema.setText((propertiesDb.get("database.mysql.schema").equals("") || propertiesDb.get("database.mysql.schema") == null)?DatabaseType.MYSQL.defaultSchema:propertiesDb.get("database.mysql.schema"));
-					txtUsername.setText((propertiesDb.get("database.mysql.username").equals("") || propertiesDb.get("database.mysql.username") == null) ?DatabaseType.MYSQL.defaultUsername:propertiesDb.get("database.mysql.username"));
-					txtHost.setText((propertiesDb.get("database.mysql.host").equals("") || propertiesDb.get("database.mysql.host") == null) ?DatabaseType.MYSQL.defaultHost: propertiesDb.get("database.mysql.host"));
-					txtPuerto.setText((propertiesDb.get("database.mysql.port").equals("") || propertiesDb.get("database.mysql.port") == null)?DatabaseType.MYSQL.defaultPort:propertiesDb.get("database.mysql.port"));
-					cbDriver.setSelectedItem((propertiesDb.get("database.mysql.driver").equals("") || propertiesDb.get("database.mysql.driver") == null) ?DatabaseType.MYSQL.defaultDriver:propertiesDb.get("database.mysql.driver"));
-					pTxtPasswordBd.setText((propertiesDb.get("database.mysql.password").equals("") || propertiesDb.get("database.mysql.password") == null)?DatabaseType.MYSQL.defaultPass:propertiesDb.get("database.mysql.password"));
+					txtDatabase.setText((propertiesDb.get("database.mysql.name").equals("") || propertiesDb.get("database.mysql.name") == null) || !propertiesDb.containsKey("database.mysql.name") ?DatabaseType.MYSQL.defaultDatabase:propertiesDb.get("database.mysql.name"));
+					txtSchema.setText((propertiesDb.get("database.mysql.schema").equals("") || propertiesDb.get("database.mysql.schema") == null) || !propertiesDb.containsKey("database.mysql.schema")?DatabaseType.MYSQL.defaultSchema:propertiesDb.get("database.mysql.schema"));
+					txtUsername.setText((propertiesDb.get("database.mysql.username").equals("") || propertiesDb.get("database.mysql.username") == null) || !propertiesDb.containsKey("database.mysql.username")?DatabaseType.MYSQL.defaultUsername:propertiesDb.get("database.mysql.username"));
+					txtHost.setText((propertiesDb.get("database.mysql.host").equals("") || propertiesDb.get("database.mysql.host") == null) || !propertiesDb.containsKey("database.mysql.host")?DatabaseType.MYSQL.defaultHost: propertiesDb.get("database.mysql.host"));
+					txtPuerto.setText((propertiesDb.get("database.mysql.port").equals("") || propertiesDb.get("database.mysql.port") == null) || !propertiesDb.containsKey("database.mysql.port")?DatabaseType.MYSQL.defaultPort:propertiesDb.get("database.mysql.port"));
+					cbDriver.setSelectedItem((propertiesDb.get("database.mysql.driver").equals("") || propertiesDb.get("database.mysql.driver") == null) || !propertiesDb.containsKey("database.mysql.driver")?DatabaseType.MYSQL.defaultDriver:propertiesDb.get("database.mysql.driver"));
+					pTxtPasswordBd.setText((propertiesDb.get("database.mysql.password").equals("") || propertiesDb.get("database.mysql.password") == null) || !propertiesDb.containsKey("database.mysql.password")?DatabaseType.MYSQL.defaultPass:propertiesDb.get("database.mysql.password"));
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.ORACLE.name) {
 					isDBF(false);
-					txtDatabase.setText((propertiesDb.get("database.oracle.name").equals("") || propertiesDb.get("database.oracle.name") == null)?DatabaseType.ORACLE.defaultDatabase:propertiesDb.get("database.oracle.name"));
-					txtSchema.setText((propertiesDb.get("database.oracle.schema").equals("") || propertiesDb.get("database.oracle.schema") == null)?DatabaseType.ORACLE.defaultSchema:propertiesDb.get("database.oracle.schema"));
-					txtUsername.setText((propertiesDb.get("database.oracle.username").equals("") || propertiesDb.get("database.oracle.username") == null)?DatabaseType.ORACLE.defaultUsername:propertiesDb.get("database.oracle.username"));
-					txtHost.setText((propertiesDb.get("database.oracle.host").equals("") || propertiesDb.get("database.oracle.host") == null)?DatabaseType.ORACLE.defaultHost: propertiesDb.get("database.oracle.host"));
-					txtPuerto.setText((propertiesDb.get("database.oracle.port").equals("") || propertiesDb.get("database.oracle.port") == null)?DatabaseType.ORACLE.defaultPort:propertiesDb.get("database.oracle.port"));
-					cbDriver.setSelectedItem((propertiesDb.get("database.oracle.driver").equals("") || propertiesDb.get("database.oracle.driver") == null)?DatabaseType.ORACLE.defaultDriver:propertiesDb.get("database.oracle.driver"));
-					pTxtPasswordBd.setText((propertiesDb.get("database.oracle.password").equals("") || propertiesDb.get("database.oracle.password") == null)?DatabaseType.ORACLE.defaultPass:propertiesDb.get("database.oracle.password"));
+					txtDatabase.setText((propertiesDb.get("database.oracle.name").equals("") || propertiesDb.get("database.oracle.name") == null) || !propertiesDb.containsKey("database.oracle.name")?DatabaseType.ORACLE.defaultDatabase:propertiesDb.get("database.oracle.name"));
+					txtSchema.setText((propertiesDb.get("database.oracle.schema").equals("") || propertiesDb.get("database.oracle.schema") == null) || !propertiesDb.containsKey("database.oracle.schema")?DatabaseType.ORACLE.defaultSchema:propertiesDb.get("database.oracle.schema"));
+					txtUsername.setText((propertiesDb.get("database.oracle.username").equals("") || propertiesDb.get("database.oracle.username") == null) || !propertiesDb.containsKey("database.oracle.username")?DatabaseType.ORACLE.defaultUsername:propertiesDb.get("database.oracle.username"));
+					txtHost.setText((propertiesDb.get("database.oracle.host").equals("") || propertiesDb.get("database.oracle.host") == null) || !propertiesDb.containsKey("database.oracle.host")?DatabaseType.ORACLE.defaultHost: propertiesDb.get("database.oracle.host"));
+					txtPuerto.setText((propertiesDb.get("database.oracle.port").equals("") || propertiesDb.get("database.oracle.port") == null) || !propertiesDb.containsKey("database.oracle.port")?DatabaseType.ORACLE.defaultPort:propertiesDb.get("database.oracle.port"));
+					cbDriver.setSelectedItem((propertiesDb.get("database.oracle.driver").equals("") || propertiesDb.get("database.oracle.driver") == null) || !propertiesDb.containsKey("database.oracle.driver")?DatabaseType.ORACLE.defaultDriver:propertiesDb.get("database.oracle.driver"));
+					pTxtPasswordBd.setText((propertiesDb.get("database.oracle.password").equals("") || propertiesDb.get("database.oracle.password") == null) || !propertiesDb.containsKey("database.oracle.password")?DatabaseType.ORACLE.defaultPass:propertiesDb.get("database.oracle.password"));
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.DBF.name) {
 					isDBF(true);
@@ -648,7 +648,6 @@ public class Config extends JDialog {
 		txtTablaDestino.setVisible(flag);
 		lblTablaDeDestino.setVisible(flag);
 		btnTest.setVisible(!flag);
-//		txtPathDbfPayments.setVisible(flag);
 	}
 	
 	private void save() {
