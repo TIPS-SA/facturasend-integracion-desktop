@@ -295,8 +295,23 @@ public class DocumentoElectronicoCore {
 			
 			Map<String, Object> condicionMap = recuperarFormasDePagoParaCondicion(tipoDocumento, transaccionId, databaseProperties);
 			
+			
 			if (condicionMap != null) {
 				dataMap.put("condicion", condicionMap);	
+			} else {
+				//Para teste temporoal
+				Map<String, Object> credito = new HashMap<String, Object>();
+				credito.put("tipo", 1);
+				credito.put("plazo", "30 dias");
+				
+				Map<String, Object> condicion = new HashMap<String, Object>();
+				condicion.put("tipo", 2);
+				condicion.put("credito", credito);
+				
+				
+				
+				dataMap.put("condicion", condicion);	
+
 			}
 			
 
@@ -360,7 +375,7 @@ public class DocumentoElectronicoCore {
 		List<Map<String, Object>> paymentViewMap = Core.formasPagosByTransaccion(tipoDocumento, transaccionId, databaseProperties);
 		
 		if (paymentViewMap.size() <= 0) {
-			return new HashMap<String, Object>();
+			return null;
 		}
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");

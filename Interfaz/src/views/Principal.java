@@ -406,7 +406,7 @@ public class Principal extends JFrame {
 					data.put("cdcList", deList);
 					
 					Map cdcMap = new HashMap();
-					cdcMap.put("cdc", cdc);
+					cdcMap.put("cdc", cdc.trim());
 	
 					deList.add(cdcMap);
 					
@@ -458,7 +458,7 @@ public class Principal extends JFrame {
 					Map header = new HashMap();
 					header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
 					String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
-					url += "/de/xml/" + cdc;
+					url += "/de/xml/" + cdc.trim();
 					
 					try {
 						Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "GET", null, header);

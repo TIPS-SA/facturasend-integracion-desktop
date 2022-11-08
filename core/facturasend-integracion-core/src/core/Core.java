@@ -522,6 +522,11 @@ public class Core {
 			Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
 			
 			if (resultadoJson != null) {
+				
+				//Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+				//connection.setAutoCommit(false);
+				//conn.iniciar transaccion
+
 				createTableFacturaSendData(databaseProperties);
 				
 				String tableToUpdate = databaseProperties.get("database.facturasend_table");
@@ -550,23 +555,23 @@ public class Core {
 						guardarFacturaSendData(viewRec, datosGuardar1, databaseProperties);
 
 
-						/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
-						datosGuardar2.put("JSON", gsonPP.toJson(viewRec) + "");
-						guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);
-						 */
-						
-						Map<String, Object> datosGuardar4 = new HashMap<String, Object>();
-						datosGuardar4.put("XML", respuestaDE.get("xml") + "");
-						guardarFacturaSendData(viewRec, datosGuardar4, databaseProperties);
-						
-						
-						Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
-						datosGuardar3.put("QR", respuestaDE.get("qr") + "");
-						guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
-
 						Map<String, Object> datosGuardar5 = new HashMap<String, Object>();
 						datosGuardar5.put("TIPO", "Mayorista");
 						guardarFacturaSendData(viewRec, datosGuardar5, databaseProperties);
+
+						if ( ! databaseProperties.get("database.type").equals("dbf")) {
+							Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
+							datosGuardar3.put("QR", respuestaDE.get("qr") + "");
+							guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
+
+							Map<String, Object> datosGuardar4 = new HashMap<String, Object>();
+							datosGuardar4.put("XML", respuestaDE.get("xml") + "");
+							guardarFacturaSendData(viewRec, datosGuardar4, databaseProperties);
+						} else {
+							//El XML debe guardar en un archivo en el disco
+							
+						}
+						
 
 					}
 
@@ -591,7 +596,9 @@ public class Core {
 
 									String error = (String)errores.get(j).get("error");
 									if (databaseProperties.get("database.type").equals("dbf")) {
-										error = error.substring(0, 254);
+										if (error.length() > 254) {
+											error = error.substring(0, 254);	
+										}
 									}
 									Map<String, Object> datosGuardar = new HashMap<String, Object>();
 									datosGuardar.put("ERROR", error);
