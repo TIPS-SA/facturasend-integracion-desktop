@@ -102,10 +102,11 @@ public class Config extends JDialog {
 	private JLabel lblNombreDeLa;
 	private JCheckBox chkEnviarKudeImpresora;
 
+	private Principal parent;
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		try {
 			Config dialog = new Config();
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -114,12 +115,13 @@ public class Config extends JDialog {
 			JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e);
 			System.out.println(e);
 		}
-	}
+	}*/
 
 	/**
 	 * Create the dialog.
 	 */
-	public Config() {
+	public Config(Principal parent) {
+		this.parent = parent;
 		setModal(true);
 		setBounds(100, 100, 600, 410);
 		setMinimumSize(new Dimension(600,410));
@@ -569,7 +571,8 @@ public class Config extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				if (validation() == null) {					
 					save();
-					System.exit(0);
+//					System.exit(0);
+					parent.paginacion.refresh();
 					dispose();
 				}else {
 					JOptionPane.showMessageDialog(null, validation());

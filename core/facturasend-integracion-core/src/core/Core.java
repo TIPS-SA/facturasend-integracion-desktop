@@ -75,8 +75,7 @@ public class Core {
 	}
 			
 	private static String getSQLTransaccionesList(Map<String, String> databaseProperties, String q, Integer tipoDocumento, Integer page, Integer size) {
-		String tableName = databaseProperties.get("database.dbf.facturasend_file");
-		tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transacctions_table");
 		
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
@@ -165,7 +164,7 @@ public class Core {
 	}
 			
 	private static String getSQLTransaccionesItem(Map<String, String> databaseProperties, Integer transaccionId, Integer page, Integer size) {
-		String tableName = databaseProperties.get("database.dbf.facturasend_file");
+		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transacctions_table");
 		String sql = "";
 		
 		if (!databaseProperties.get("database.type").equals("dbf")) {
@@ -926,7 +925,7 @@ public class Core {
 	 * @return
 	 */
 	private static String obtenerSQL50registrosNoIntegrados(Map<String, String> databaseProperties, Integer tipoDocumento) {
-		String tableName = databaseProperties.get("database.dbf.facturasend_file");
+		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transacctions_table");
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT transaccion_id \n"
@@ -1057,7 +1056,7 @@ public class Core {
 	 * @return
 	 */
 	private static String obtenerTransaccionesParaEnvioLote(Map<String, String> databaseProperties, String transaccionIdString) {
-		String tableName = databaseProperties.get("database.dbf.facturasend_file");
+		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transacctions_table");
 
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {

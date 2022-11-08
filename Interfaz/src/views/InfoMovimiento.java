@@ -11,6 +11,7 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import core.Core;
 import service.FacturasendService;
 
 import java.awt.event.ActionListener;
@@ -49,10 +50,12 @@ public class InfoMovimiento extends JDialog {
 	private JPanel paneSouth;
 	private JLabel lblItemsTotal;
 	private JLabel lblCantidadItemsTotal;
+	
+	private Principal parent;
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		try {
 			InfoMovimiento dialog = new InfoMovimiento(transaccionId);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -61,12 +64,12 @@ public class InfoMovimiento extends JDialog {
 			JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e);
 			e.printStackTrace();
 		}
-	}
+	}*/
 
 	/**
 	 * Create the dialog.
 	 */
-	public InfoMovimiento(BigDecimal transaccionId) {
+	public InfoMovimiento(BigDecimal transaccionId, Principal parent) {
 		this.transaccionId = transaccionId;
 
 		setModal(true);
@@ -123,17 +126,17 @@ public class InfoMovimiento extends JDialog {
 			
 			//Asignar valores
 			if (transacconesItem.size() > 0) {
-				String cdc = (String)transacconesItem.get(0).get("cdc");
+				String cdc = (String)Core.getValueForKey(transacconesItem.get(0), "CDC");
 				if (cdc!= null) {
 					txtCdc.setText( cdc.trim() );
 				}
 				
-				String estado = (String)transacconesItem.get(0).get("estado");
+				String estado = (String)Core.getValueForKey(transacconesItem.get(0), "ESTADO");
 				if (estado != null) {
 					txtEstado.setText( estado.trim() );
 				}
 				
-				String error = (String)transacconesItem.get(0).get("error");
+				String error = (String)Core.getValueForKey(transacconesItem.get(0), "ERROR");
 				
 				if (error != null) {
 					txtAError.setText( error.trim());
@@ -243,6 +246,7 @@ public class InfoMovimiento extends JDialog {
 		// TODO Auto-generated method stub
 		okButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				//parent.paginacion.refresh();
 				dispose();
 			}
 		});

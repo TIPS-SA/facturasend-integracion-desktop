@@ -158,12 +158,13 @@ public class FacturasendService {
 				datos[4] = Core.getValueForKey(rs.get(i), "moneda");
 				datos[5] = Core.getValueForKey(rs.get(i), "total") != null ? Core.getValueForKey(rs.get(i), "total") : 0;
 				
-				String fieldEstado = Core.getValueForKey(rs.get(i), "estado")+""; 
-				String valueEstadoStr = (String) rs.get(i).get( fieldEstado );
+				String fieldEstado = (String) Core.getValueForKey(rs.get(i), "estado"); 
+				
+				//String valueEstadoStr = (String) rs.get(i).get( fieldEstado );
 				Integer valueEstadoInt = -99;	//Sin estado	
 				
-				if (valueEstadoStr != null) {
-					valueEstadoInt = Integer.valueOf( valueEstadoStr + "" );
+				if (fieldEstado != null) {
+					valueEstadoInt = Integer.valueOf( fieldEstado );
 				}
 				if (Core.getValueForKey(rs.get(i), "error") != null) {
 					datos[6] = "Error";

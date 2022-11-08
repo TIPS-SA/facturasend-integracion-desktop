@@ -99,6 +99,9 @@ public class Principal extends JFrame {
 	private JCheckBoxMenuItem chkMenuTotal;
 	private JCheckBoxMenuItem chkMenuEstado;
 	private JCheckBoxMenuItem chkMenuCdc;
+	
+	Principal oThis = this;
+
 	/**
 	 * Launch the application.
 	 */
@@ -643,13 +646,14 @@ public class Principal extends JFrame {
 		});
 		
 		jTableTransaction.addMouseListener(new java.awt.event.MouseAdapter() {
+			 
 			 public void mouseClicked(java.awt.event.MouseEvent evt) {
 				 if(evt.getClickCount()>1) {
 					//obtener la fila
 		            int row = jTableTransaction.getSelectedRow();
 	                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
 	                BigDecimal transaccionId = (BigDecimal) model.getValueAt(row, 0);
-	                movDetails = new InfoMovimiento(transaccionId);
+	                movDetails = new InfoMovimiento(transaccionId, oThis);
 	                movDetails.setVisible(true);
 				 }
 		    }
@@ -664,7 +668,7 @@ public class Principal extends JFrame {
 
 		btnCondiguracion.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Config confView = new Config();
+				Config confView = new Config(oThis);
 				confView.setVisible(true);
 			}
 		});
