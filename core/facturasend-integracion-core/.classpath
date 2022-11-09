@@ -13,6 +13,6 @@
 	<classpathentry kind="lib" path="libs/bcprov-jdk15on-160.jar"/>
 	<classpathentry kind="lib" path="libs/h2-2.1.214.jar"/>
 	<classpathentry kind="lib" path="libs/dbschema-dbf-jdbc2.0.jar"/>
-	<classpathentry kind="lib" path="libs/javadbf-1.14.0.jar" sourcepath="libs/javadbf-1.14.0-sources.jar"/>
+	<classpathentry kind="lib" path="libs/javadbf-1.14.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

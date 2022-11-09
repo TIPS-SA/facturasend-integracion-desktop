@@ -1,0 +1,7 @@
+Se re-implementa ésta libreria para poder sobre-escribir el archivo DBF existente, borrando previamente los registros que ya existen
+
+Control de Version.
+-------------------
+
+
+Referencia: https://github.com/albfernandez/javadbf

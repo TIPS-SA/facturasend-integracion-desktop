@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="Crea el JAR del javadbf-1.14.1">
+	
+	<jar 
+		destfile="C:\Users\marco\git\facturasend-integracion-desktop\facturasend-integracion-javadbf\facturasend-integracion-javadbf\javadbf-1.14.1.jar"
+		basedir="./bin"
+		excludes="**/test/**">
+	</jar>
+	
+
+	<copy todir="C:\Users\marco\git\facturasend-integracion-desktop\dbfdriver\facturasend-integracion-dbfdriver\lib\">
+		<fileset dir="C:\Users\marco\git\facturasend-integracion-desktop\facturasend-integracion-javadbf\facturasend-integracion-javadbf\">
+			<include name="javadbf-1.14.1.jar" />
+		</fileset>
+	</copy>
+
+	<copy todir="C:\Users\marco\git\facturasend-integracion-desktop\core\facturasend-integracion-core\libs\">
+		<fileset dir="C:\Users\marco\git\facturasend-integracion-desktop\facturasend-integracion-javadbf\facturasend-integracion-javadbf\">
+			<include name="javadbf-1.14.1.jar" />
+		</fileset>
+	</copy>	
+</project>
