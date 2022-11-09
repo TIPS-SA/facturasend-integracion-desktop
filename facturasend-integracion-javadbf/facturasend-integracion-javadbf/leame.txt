@@ -2,6 +2,6 @@ Se re-implementa ésta libreria para poder sobre-escribir el archivo DBF existen
 
 Control de Version.
 -------------------
-
+- DBFWritter, linea 166, 180 y 190
 
 Referencia: https://github.com/albfernandez/javadbf

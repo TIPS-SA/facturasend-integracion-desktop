@@ -158,21 +158,37 @@ public class DBFWriter extends DBFBase implements java.io.Closeable {
 			// position file pointer at the end of the raf
 			// to ignore the END_OF_DATA byte at EoF
 			// only if there are records,
-			this.raf.setLength(header.headerLength);
 			
-			if (this.raf.length() > header.headerLength) {
-				this.raf.seek(this.raf.length() - 1);
+			System.out.println("Tamaño de la cabecera del archivo " + header.headerLength);
+			System.out.println("Tamaño del raf " + this.raf.length());
+			
+			
+			/*if (this.raf.length() > header.headerLength) {
+				//Si ya existen datos 
+				//this.raf.setLength(header.headerLength);	//Tips-Agregado para sobreescribir
+			
+				System.out.println("Posicion del seek " + (this.raf.length()));
+				this.raf.setLength(0);
+				this.raf.seek(0);
+				//this.raf.seek(this.raf.length() - 1);
 			}
 			else {
+				System.out.println("Entro en contenido mas grande que cabecera? por que???? ");
 				this.raf.seek(this.raf.length());
-			}
+			}*/
+			//Con esto siempre sobreescribe
+			this.raf.setLength(header.headerLength);
+			this.raf.seek(header.headerLength);
+			
 		} catch (FileNotFoundException e) {
 			throw new DBFException("Specified file is not found. " + e.getMessage(), e);
 		} catch (IOException e) {
 			throw new DBFException(e.getMessage() + " while reading header", e);
 		}
 
-		this.recordCount = this.header.numberOfRecords;
+		//this.recordCount = this.header.numberOfRecords;
+		//Con esto siempre sobreescribe
+		this.recordCount = 0;
 	}
 
 
