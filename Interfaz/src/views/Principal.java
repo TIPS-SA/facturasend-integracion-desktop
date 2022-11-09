@@ -13,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +120,7 @@ public class Principal extends JFrame {
 					        System.out.println("Ejecutando... por delay");
 					        window.paginacion.refresh();
 					    }
-					}, 3000); //Cada 3 segundos
+					}, new Date(), 2000); //Cada 3 segundos
 
 					
 				} catch (Exception e) {

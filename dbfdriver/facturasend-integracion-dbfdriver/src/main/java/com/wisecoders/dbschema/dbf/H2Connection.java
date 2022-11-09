@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.nio.charset.Charset;
 import java.sql.*;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
@@ -107,6 +108,9 @@ public class H2Connection implements Connection {
                     args = new String[]{""};
                 }
             }
+            System.out.println(method);
+            System.out.println(target);
+            System.out.println(args);
             return method.invoke(target, args);
         }
     }
@@ -120,7 +124,9 @@ public class H2Connection implements Connection {
                         try ( DBFReader reader = new DBFReader( new FileInputStream(dbfFile), defaultCharset )) {
                             final Table table = new Table( extractTableNameFrom( dbfFolder, dbfFile ));
                             if ( !H2Loader.isFileTransferred( dbfFile, h2Connection )){
-                                H2Loader.transfer( table, reader, h2Connection );
+                                H2Loader.transferDefinition( table, reader, h2Connection );
+                                H2Loader.transferData( table, reader, h2Connection );
+                                
                                 H2Loader.saveFileIntoFilesMeta( table, dbfFile, h2Connection );
                             }
                         } catch (Exception ex) {
@@ -160,9 +166,53 @@ public class H2Connection implements Connection {
     }
 
     private void reload( String filePath ) throws Exception {
-        try (PreparedStatement st = h2Connection.prepareStatement("DELETE FROM " + FILES_META_TABLE + " WHERE file_name=?")) {
+    	
+    	String sql = "show columns from " + FILES_META_TABLE;
+		System.out.println("\n" + sql + " ");
+		Statement statement = h2Connection.createStatement();
+		ResultSet rs = statement.executeQuery(sql);
+		
+		//List<Map<String, Object>> tableColumns = SQLUtil.convertResultSetToList(rs);
+		if (rs != null) {
+		    ResultSetMetaData md = rs.getMetaData();
+		    int columns = md.getColumnCount();
+	
+		    while (rs.next()) {
+		        HashMap<String,Object> row = new HashMap<String, Object>(columns);
+		        for(int i=1; i<=columns; ++i) {
+		            row.put(md.getColumnName(i), rs.getObject(i));
+		        }
+		        System.out.println("row: " + row);
+		    }
+	    }
+		
+        if ( ( filePath.startsWith("'") || filePath.endsWith("'") ) || ( filePath.startsWith("\"") || filePath.endsWith("\"") )){
+        	filePath = filePath.substring(1, filePath.length()-1);
+        }
+		
+        try (PreparedStatement st = h2Connection.prepareStatement("DELETE FROM " + FILES_META_TABLE + " WHERE file_path=?")) {
             st.setString(1, filePath);
             st.executeUpdate();
+            
+            
+            File dbfFile = new File(filePath);
+            System.out.println("ahora intentando leer con DBF Reader... ! " + dbfFile);
+            //Charset charset = Charset.forName(defaultCharset);
+            try ( DBFReader reader = new DBFReader( new FileInputStream(filePath) )) {
+            	System.out.println("file path " + filePath + " - sepa " + File.separator);
+            	
+                String relativePath = filePath.substring(filePath.lastIndexOf(File.separator), filePath.length() - ".dbf".length());
+                System.out.println("table name " + relativePath);
+                final Table table = new Table( relativePath);
+                //if ( !H2Loader.isFileTransferred( dbfFile, h2Connection )){
+                    H2Loader.transferData( table, reader, h2Connection );
+                    H2Loader.saveFileIntoFilesMeta( table, dbfFile, h2Connection );
+                //}
+            } catch (Exception ex) {
+                LOGGER.log(Level.SEVERE, "Error transferring " + dbfFile, ex);
+                throw new SQLException(ex.getLocalizedMessage(), ex);
+            }
+                
         }
     }
 

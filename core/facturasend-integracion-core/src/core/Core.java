@@ -51,7 +51,7 @@ public class Core {
 			if (databaseProperties.get("database.type").equals("dbf")) {
 				System.out.print("\nReload ");
 				Statement st = conn.createStatement();
-				st.executeQuery("reload '" + databaseProperties.get("database.dbf.parent_folder") + "/" + databaseProperties.get("database.dbf.facturasend_file") + "'");
+				st.execute("reload '" + databaseProperties.get("database.dbf.parent_folder") + "/" + databaseProperties.get("database.dbf.facturasend_file") + "'");
 			}
 			
 			
@@ -593,7 +593,7 @@ public class Core {
 			}
 			//sqlCreateTable += sqlCreateTable.substring(0, sqlCreateTable.length() - 2);
 			sqlCreateTable += tableToUpdateKey + " VARCHAR(254), ";
-			sqlCreateTable += tableToUpdateValue + " TEXT)";
+			sqlCreateTable += tableToUpdateValue + " VARCHAR(254))";
 			
 			System.out.print("\n" + sqlCreateTable + " ");
 		

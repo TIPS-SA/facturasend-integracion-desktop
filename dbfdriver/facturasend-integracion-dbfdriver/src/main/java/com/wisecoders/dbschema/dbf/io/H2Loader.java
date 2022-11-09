@@ -62,7 +62,7 @@ public class H2Loader {
         }
     }
 
-    public static void transfer(Table table, DBFReader reader, Connection h2Connection ) throws Exception {
+    public static void transferDefinition(Table table, DBFReader reader, Connection h2Connection ) throws Exception {
         createH2MetaTable( h2Connection );
         deleteFromH2MetaTable( h2Connection, table );
 
@@ -117,6 +117,124 @@ public class H2Loader {
         //
         // TRANSFER DATA
         //
+/*
+        final PreparedStatement stInsert = h2Connection.prepareStatement(insertSql);
+        LOGGER.info("Transfer '" + table.name + "' data...");
+        Object[] record;
+        int pos = 0, pendingBatch = 0;
+        long _start = System.currentTimeMillis();
+        while( ( record = reader.nextRecord()) != null ){
+            try {
+                for (int i = 0; i < record.length && i < dbfFieldList.size(); i++) {
+                    Object value = record[i];
+                    DBFField field = dbfFieldList.get(i);
+                    if (value == null) {
+                        stInsert.setNull(i + 1, DataTypeUtil.getJavaType(field));
+                    } else {
+                        stInsert.setObject(i + 1, value);
+                    }
+                }
+            } catch ( Exception ex ){
+                LOGGER.log(Level.SEVERE, ex.toString());
+                LOGGER.log(Level.SEVERE, stInsert.toString());
+                throw ex;
+            }
+            stInsert.addBatch();
+            pos++;
+            pendingBatch++;
+            if ( pendingBatch > batchSize ){
+                stInsert.executeBatch();
+                h2Connection.commit();
+                pendingBatch = 0;
+            }
+        }
+        if ( pendingBatch > 0 ) {
+            stInsert.executeBatch();
+        }
+        h2Connection.commit();
+        LOGGER.info("------- Transferred '" + table.name + "' " + pos + " records in " + (System.currentTimeMillis() - _start) + " ms" );
+        */
+    }
+
+    //Solamente transfiere los datos
+    public static void transferData(Table table, DBFReader reader, Connection h2Connection ) throws Exception {
+        //createH2MetaTable( h2Connection );
+        //deleteFromH2MetaTable( h2Connection, table );
+
+        //
+        // TRANSFER DEFINITION
+        //
+        //LOGGER.log(Level.INFO, "Transfer table '" + table.name + "' definition.");
+        //final StringBuilder createSb = new StringBuilder("create table ").append(QUOTE_CHAR).append(table.name).append(QUOTE_CHAR).append("(\n");
+        final StringBuilder insertSb = new StringBuilder("insert into ").append(QUOTE_CHAR).append(table.name).append(QUOTE_CHAR).append("(");
+        final StringBuilder insertValuesSb = new StringBuilder("values(");
+        final StringBuilder logSb = new StringBuilder();
+        /*logSb.append("Table ").append( table.name ).append( "\n" );
+        boolean appendComma = false;
+        int numberOfFields = reader.getFieldCount();
+        final List<DBFField> dbfFieldList = new ArrayList<>();
+        for (int i = 0; i < numberOfFields; i++) {
+
+            final DBFField field = reader.getField(i);
+            logSb.append( "\t").append( DBFUtil.getFieldDescription( field )).append(" \n");
+            saveFieldInMetaTable(h2Connection, table, field);
+            dbfFieldList.add(field);
+            if (appendComma) {
+                createSb.append(",\n");
+                insertSb.append(",");
+                insertValuesSb.append(",");
+            }
+            createSb.append("\t").append(QUOTE_CHAR).append(field.getName().toLowerCase()).append(QUOTE_CHAR).append(" ");
+            insertSb.append(QUOTE_CHAR).append(field.getName().toLowerCase()).append(QUOTE_CHAR);
+            insertValuesSb.append("?");
+            createSb.append( DataTypeUtil.getH2Type( field));
+            appendComma = true;
+        }
+        createSb.append(")");
+        insertSb.append(")");
+        insertValuesSb.append(")");
+
+        LOGGER.log(Level.INFO, "Transfer "  + logSb );
+
+        String dropTableSQL = "drop table if exists " + QUOTE_CHAR + table.name + QUOTE_CHAR;
+        LOGGER.log(Level.INFO, dropTableSQL);
+        h2Connection.prepareStatement(dropTableSQL).execute();
+        h2Connection.commit();
+
+
+        LOGGER.log(Level.INFO, createSb.toString());
+        h2Connection.prepareStatement(createSb.toString()).execute();
+        h2Connection.commit();
+*/
+        
+        int numberOfFields = reader.getFieldCount();
+        final List<DBFField> dbfFieldList = new ArrayList<>();
+        boolean appendComma = false;
+        for (int i = 0; i < numberOfFields; i++) {
+            final DBFField field = reader.getField(i);
+
+            dbfFieldList.add(field);
+            
+            if (appendComma) {
+
+                insertSb.append(",");
+                insertValuesSb.append(",");
+            }
+
+            insertSb.append(QUOTE_CHAR).append(field.getName().toLowerCase()).append(QUOTE_CHAR);
+            insertValuesSb.append("?");
+
+            appendComma = true;
+        }
+        insertSb.append(")");
+        insertValuesSb.append(")");
+        
+        String insertSql = insertSb.toString() + insertValuesSb.toString();
+        final int batchSize = Math.max( 50, 500 - (numberOfFields*3) );
+
+        //
+        // TRANSFER DATA
+        //
 
         final PreparedStatement stInsert = h2Connection.prepareStatement(insertSql);
         LOGGER.info("Transfer '" + table.name + "' data...");
@@ -154,9 +272,6 @@ public class H2Loader {
         h2Connection.commit();
         LOGGER.info("------- Transferred '" + table.name + "' " + pos + " records in " + (System.currentTimeMillis() - _start) + " ms" );
     }
-
-
-
 
     private static final String CREATE_COLUMNS_META_TABLE =
             "create table if not exists " + COLUMNS_META_TABLE + "( " +
