@@ -122,6 +122,7 @@ public class H2Connection implements Connection {
                 if ( dbfFile.isFile() ){
                     if ( dbfFile.getName().toLowerCase().endsWith(".dbf") ) {
                         try ( DBFReader reader = new DBFReader( new FileInputStream(dbfFile), defaultCharset )) {
+                        	reader.setTrimRightSpaces(false);
                             final Table table = new Table( extractTableNameFrom( dbfFolder, dbfFile ));
                             if ( !H2Loader.isFileTransferred( dbfFile, h2Connection )){
                                 H2Loader.transferDefinition( table, reader, h2Connection );
@@ -195,13 +196,16 @@ public class H2Connection implements Connection {
             st.executeUpdate();
             
             
+            filePath = filePath.replace("\\", File.separator);
+            filePath = filePath.replace("/", File.separator);
+            
             File dbfFile = new File(filePath);
             System.out.println("ahora intentando leer con DBF Reader... ! " + dbfFile);
             //Charset charset = Charset.forName(defaultCharset);
             try ( DBFReader reader = new DBFReader( new FileInputStream(filePath) )) {
             	System.out.println("file path " + filePath + " - sepa " + File.separator);
             	
-                String relativePath = filePath.substring(filePath.lastIndexOf(File.separator), filePath.length() - ".dbf".length());
+                String relativePath = filePath.substring(filePath.lastIndexOf(File.separator) + 1, filePath.length() - ".dbf".length());
                 System.out.println("table name " + relativePath);
                 final Table table = new Table( relativePath);
                 //if ( !H2Loader.isFileTransferred( dbfFile, h2Connection )){

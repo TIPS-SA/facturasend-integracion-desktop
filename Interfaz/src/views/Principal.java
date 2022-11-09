@@ -114,13 +114,35 @@ public class Principal extends JFrame {
 					window.frmFacturaSend.setVisible(true);
 					window.setLocationRelativeTo(null); 
 					
-					new Timer().schedule(new TimerTask() {
-					    @Override
-					    public void run() {
-					        System.out.println("Ejecutando... por delay");
-					        window.paginacion.refresh();
-					    }
-					}, new Date(), 2000); //Cada 3 segundos
+					Integer autoUpdateTableView = Integer.valueOf(FacturasendService.readDBProperties().get("database.autoupdate_millis.table_view")+"");
+					
+					if (autoUpdateTableView > 0) {
+						new Timer().schedule(new TimerTask() {
+						    @Override
+						    public void run() {
+						        window.paginacion.refresh();
+						    }
+						}, new Date(), autoUpdateTableView); //Cada N millis segundos						
+					} else {
+						window.paginacion.refresh();
+					}
+					
+					//---
+					Integer autoUpdateIntegracion = Integer.valueOf(FacturasendService.readDBProperties().get("database.autoupdate_millis.integracion")+"");
+					
+					if (autoUpdateIntegracion > 0) {
+						new Timer().schedule(new TimerTask() {
+						    @Override
+						    public void run() {
+						    	try {
+									window.fs.iniciarIntegracion();	
+								} catch (Exception e2) {
+									JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
+									System.out.println("Mostrar error en pantalla, " + e2);
+								};
+						    }
+						}, new Date(), autoUpdateIntegracion); //Cada N millis segundos						
+					}
 
 					
 				} catch (Exception e) {
@@ -138,6 +160,8 @@ public class Principal extends JFrame {
 		fs = new FacturasendService();
 		initialize();
 		events();
+		
+		
 	}
 
 	/**
@@ -352,7 +376,6 @@ public class Principal extends JFrame {
 		
 		paginacion.setRowsPerPage(rowsPerPage);
 		paginacion.setCurrentPage(1);	//Ejecuta la Consulta
-		//paginacion.setTotal(100);
 
 		paneCenter.add(paneSouthTable, BorderLayout.SOUTH);
 		paneSouthTable.add(paginacion, BorderLayout.EAST);
@@ -416,6 +439,7 @@ public class Principal extends JFrame {
 		paginacion.addActionListener(new PaginacionListener() {
 			@Override
 			public void goTo(Integer currentPage) {
+				System.out.println("Entra en el go to");
 				paginacion.setTotal(fs.populateTransactionTable(jTableTransaction, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage));
 			}
 		});
@@ -519,7 +543,7 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					fs.iniciarIntegracion(tipoDocumento);	
+					fs.iniciarIntegracion();	
 				} catch (Exception e2) {
 					JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
 					System.out.println("Mostrar error en pantalla, " + e2);

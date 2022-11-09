@@ -108,7 +108,7 @@ public class Core {
 				+ "estado, "
 				+ "error "*/
 				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) AS cdc, "
-				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS estado, "
+				+ "CAST ((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS INTEGER) AS estado, "
 				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ERROR' LIMIT 1) AS error "
 				+ "\n"
 				+ "FROM " + tableName + " vp \n"
@@ -182,7 +182,7 @@ public class Core {
 
 			sql = "SELECT tra_id, i_descrip, i_cantidad, i_pre_uni, i_descue, \n"
 					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) AS cdc, \n"
-					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS estado, \n"
+					+ "CAST((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS INTEGER) AS estado, \n"
 					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ERROR' LIMIT 1) AS error, \n"
 					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='QR' LIMIT 1) AS qr \n"
 
@@ -384,119 +384,123 @@ public class Core {
 				url += "/lote/create?xml=true&qr=true";
 			}
 			
-			Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
-			
-			if (resultadoJson != null) {
+			if (documentosParaEnvioJsonMap.size() > 0) {
 				
-				//Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
-				//connection.setAutoCommit(false);
-				//conn.iniciar transaccion
-
-				createTableFacturaSendData(databaseProperties);
+				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
 				
-				String tableToUpdate = databaseProperties.get("database.facturasend_table");
-				if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
-
-					Map<String, Object> result = (Map<String, Object>)resultadoJson.get("result");
+				if (resultadoJson != null) {
 					
-					List<Map<String, Object>> deList = (List<Map<String, Object>>)result.get("deList");
+					//Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+					//connection.setAutoCommit(false);
+					//conn.iniciar transaccion
+	
+					createTableFacturaSendData(databaseProperties);
 					
-					for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
-						Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
-						Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
-
-						Map<String, Object> respuestaDE = deList.get(i);	//Utiliza el mismo Indice de List de Json
-								
-						//Borrar registros previamente cargados, para evitar duplicidad
-						borrarPorTransaccionId(viewRec, databaseProperties);
-
-						Map<String, Object> datosGuardar = new HashMap<String, Object>();
-						datosGuardar.put("CDC", respuestaDE.get("cdc") + "");
-						guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
-
-						String estado = respuestaDE.get("estado") != null ? respuestaDE.get("estado") + "" : "0";
-						Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
-						datosGuardar1.put("ESTADO", estado);
-						guardarFacturaSendData(viewRec, datosGuardar1, databaseProperties);
-
-
-						Map<String, Object> datosGuardar5 = new HashMap<String, Object>();
-						datosGuardar5.put("TIPO", "Mayorista");
-						guardarFacturaSendData(viewRec, datosGuardar5, databaseProperties);
-
-						if ( ! databaseProperties.get("database.type").equals("dbf")) {
-							Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
-							datosGuardar3.put("QR", respuestaDE.get("qr") + "");
-							guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
-
-							Map<String, Object> datosGuardar4 = new HashMap<String, Object>();
-							datosGuardar4.put("XML", respuestaDE.get("xml") + "");
-							guardarFacturaSendData(viewRec, datosGuardar4, databaseProperties);
-						} else {
-							//El XML debe guardar en un archivo en el disco
-							
-						}
+					String tableToUpdate = databaseProperties.get("database.facturasend_table");
+					if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
+	
+						Map<String, Object> result = (Map<String, Object>)resultadoJson.get("result");
 						
-
-					}
-
-					
-				} else {
-					//Si hay errores
-					//log.debug(arg0);
-					if (resultadoJson.get("errores") != null) {
-						List<Map<String, Object>> errores = (List<Map<String, Object>>)resultadoJson.get("errores");
-
-
+						List<Map<String, Object>> deList = (List<Map<String, Object>>)result.get("deList");
+						
 						for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
 							Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
 							Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
-							
-							
-							for (int j = 0; j < errores.size(); j++) {
-								if (i == j) {
+	
+							Map<String, Object> respuestaDE = deList.get(i);	//Utiliza el mismo Indice de List de Json
 									
-									//Borrar registros previamente cargados, para evitar duplicidad
-									borrarPorTransaccionId(viewRec, databaseProperties);
-
-									String error = (String)errores.get(j).get("error");
-									if (databaseProperties.get("database.type").equals("dbf")) {
-										if (error.length() > 254) {
-											error = error.substring(0, 254);	
-										}
-									}
-									Map<String, Object> datosGuardar = new HashMap<String, Object>();
-									datosGuardar.put("ERROR", error);
-									guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
-									
-									/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
-//									datosGuardar.put("JSON", gsonPP.toJson(viewRec) + "");
-									System.out.println(viewRec);
-									datosGuardar.put("JSON", gson.toJson(viewRec) + "");
-									System.out.println("despues del error");
-									guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);*/
-								}
-							}	
+							//Borrar registros previamente cargados, para evitar duplicidad
+							borrarPorTransaccionId(viewRec, databaseProperties);
+	
+							Map<String, Object> datosGuardar = new HashMap<String, Object>();
+							datosGuardar.put("CDC", respuestaDE.get("cdc") + "");
+							guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
+	
+							String estado = respuestaDE.get("estado") != null ? respuestaDE.get("estado") + "" : "0";
+							Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
+							datosGuardar1.put("ESTADO", estado);
+							guardarFacturaSendData(viewRec, datosGuardar1, databaseProperties);
+	
+	
+							Map<String, Object> datosGuardar5 = new HashMap<String, Object>();
+							datosGuardar5.put("TIPO", "Mayorista");
+							guardarFacturaSendData(viewRec, datosGuardar5, databaseProperties);
+	
+							if ( ! databaseProperties.get("database.type").equals("dbf")) {
+								Map<String, Object> datosGuardar3 = new HashMap<String, Object>();
+								datosGuardar3.put("QR", respuestaDE.get("qr") + "");
+								guardarFacturaSendData(viewRec, datosGuardar3, databaseProperties);
+	
+								Map<String, Object> datosGuardar4 = new HashMap<String, Object>();
+								datosGuardar4.put("XML", respuestaDE.get("xml") + "");
+								guardarFacturaSendData(viewRec, datosGuardar4, databaseProperties);
+							} else {
+								//El XML debe guardar en un archivo en el disco
+								
+							}
+							
+	
 						}
+	
 						
+					} else {
+						//Si hay errores
+						//log.debug(arg0);
+						if (resultadoJson.get("errores") != null) {
+							List<Map<String, Object>> errores = (List<Map<String, Object>>)resultadoJson.get("errores");
+	
+	
+							for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
+								Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
+								Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
+								
+								
+								for (int j = 0; j < errores.size(); j++) {
+									if (i == j) {
+										
+										//Borrar registros previamente cargados, para evitar duplicidad
+										borrarPorTransaccionId(viewRec, databaseProperties);
+	
+										String error = (String)errores.get(j).get("error");
+										if (databaseProperties.get("database.type").equals("dbf")) {
+											if (error.length() > 254) {
+												error = error.substring(0, 254);	
+											}
+										}
+										Map<String, Object> datosGuardar = new HashMap<String, Object>();
+										datosGuardar.put("ERROR", error);
+										guardarFacturaSendData(viewRec, datosGuardar, databaseProperties);
+										
+										/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
+	//									datosGuardar.put("JSON", gsonPP.toJson(viewRec) + "");
+										System.out.println(viewRec);
+										datosGuardar.put("JSON", gson.toJson(viewRec) + "");
+										System.out.println("despues del error");
+										guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);*/
+									}
+								}	
+							}
+							
+						}
 					}
-				}
-				
-				if (databaseProperties.get("database.type").equals("dbf")) {
 					
-					Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
-					
-					String sql = "save '" + databaseProperties.get("database.facturasend_table") + "' to '" + databaseProperties.get("database.dbf.parent_folder") + "'";
-					//+ "\\saved' ";
-					System.out.println("\n" + sql + " ");
-					//PreparedStatement statement = conn.prepareStatement(sql);
-					Statement statement = conn.createStatement();
-					boolean ejecutado = statement.execute(sql);
-					System.out.println("Ejecutado: " + ejecutado);
+					if (databaseProperties.get("database.type").equals("dbf")) {
+						
+						Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+						
+						String sql = "save '" + databaseProperties.get("database.facturasend_table") + "' to '" + databaseProperties.get("database.dbf.parent_folder") + "'";
+						//+ "\\saved' ";
+						System.out.println("\n" + sql + " ");
+						//PreparedStatement statement = conn.prepareStatement(sql);
+						Statement statement = conn.createStatement();
+						boolean ejecutado = statement.execute(sql);
+						System.out.println("Ejecutado: " + ejecutado);
+					}
+	
 				}
-
+			} else {
+				System.out.println("No se invoco a la Api de Facturasend por que no existian datos para enviar "  + documentosParaEnvioJsonMap);
 			}
-			
 			//
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -581,7 +585,7 @@ public class Core {
 			
 			
 			//---
-			String sqlCreateTable = "CREATE TABLE IF NOT EXISTS " + tableToCreate + " (";
+			/*String sqlCreateTable = "CREATE TABLE IF NOT EXISTS " + tableToCreate + " (";
 			Iterator itr = databaseProperties.entrySet().iterator();
 			while (itr.hasNext()) {
 				Map.Entry e = (Map.Entry)itr.next();
@@ -597,7 +601,7 @@ public class Core {
 			
 			System.out.print("\n" + sqlCreateTable + " ");
 		
-			/*statement = conn.prepareStatement(sqlCreateTable);
+			statement = conn.prepareStatement(sqlCreateTable);
 			int row = statement.executeUpdate();
 			System.out.print("rows: " + row);
 			
@@ -953,7 +957,7 @@ public class Core {
 					+ "AND ( \n"
 					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) IS NULL \n"
 					+ "OR \n"
-					+ "COALESCE((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1), 999) = 4 \n"
+					+ "COALESCE(CAST((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS INTEGER), 999) = 4 \n"
 					+ ") \n"
 					+ "GROUP BY tra_id, estable, punto, numero \n"
 					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				

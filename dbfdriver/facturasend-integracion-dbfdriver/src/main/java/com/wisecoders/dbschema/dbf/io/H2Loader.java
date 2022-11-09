@@ -2,6 +2,7 @@ package com.wisecoders.dbschema.dbf.io;
 
 import com.wisecoders.dbschema.dbf.schema.DataTypeUtil;
 import com.wisecoders.dbschema.dbf.schema.Table;
+import com.linuxense.javadbf.DBFDataType;
 import com.linuxense.javadbf.DBFField;
 import com.linuxense.javadbf.DBFReader;
 
@@ -235,7 +236,11 @@ public class H2Loader {
         //
         // TRANSFER DATA
         //
-
+        final Statement stDelete = h2Connection.createStatement();
+        String sqlDelete = "DELETE FROM " + table.name + "";
+        LOGGER.info("Delete '" + table.name + "' data...");
+        stDelete.executeUpdate(sqlDelete);
+        
         final PreparedStatement stInsert = h2Connection.prepareStatement(insertSql);
         LOGGER.info("Transfer '" + table.name + "' data...");
         Object[] record;
@@ -249,7 +254,13 @@ public class H2Loader {
                     if (value == null) {
                         stInsert.setNull(i + 1, DataTypeUtil.getJavaType(field));
                     } else {
-                        stInsert.setObject(i + 1, value);
+                    	if (field.getType().equals(DBFDataType.CHARACTER) || field.getType().equals(DBFDataType.VARCHAR) ) {
+                    		stInsert.setObject(i + 1, value.toString().trim());
+                    	} else {
+                    		stInsert.setObject(i + 1, value);	
+                    	}
+                    		
+                        
                     }
                 }
             } catch ( Exception ex ){

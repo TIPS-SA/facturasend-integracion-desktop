@@ -117,18 +117,22 @@ public class FacturasendService {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Map<String, Object> iniciarIntegracion(Integer tipoDocumento) throws Exception {
+	public static void iniciarIntegracion() throws Exception {
 		
 		//Llamar a la consulta de Datos
 		
-		Map<String, Object> returnData = Core.iniciarIntegracion(tipoDocumento, readDBProperties());
+		Map<String, Object> returnData1 = Core.iniciarIntegracion(1, readDBProperties());
+		Map<String, Object> returnData4 = Core.iniciarIntegracion(4, readDBProperties());
+		Map<String, Object> returnData5 = Core.iniciarIntegracion(5, readDBProperties());
+		Map<String, Object> returnData6 = Core.iniciarIntegracion(6, readDBProperties());
+		Map<String, Object> returnData7 = Core.iniciarIntegracion(7, readDBProperties());
 		
-		System.out.println(returnData);
+		/*System.out.println(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {
 			return returnData;
 		} else {
 			throw new Exception(returnData.get("error")+"");
-		}
+		}*/
 	}
 	
 	TableDesign tb = new TableDesign();
@@ -158,7 +162,8 @@ public class FacturasendService {
 				datos[4] = Core.getValueForKey(rs.get(i), "moneda");
 				datos[5] = Core.getValueForKey(rs.get(i), "total") != null ? Core.getValueForKey(rs.get(i), "total") : 0;
 				
-				String fieldEstado = (String) Core.getValueForKey(rs.get(i), "estado"); 
+				//String fieldEstado = (String) Core.getValueForKey(rs.get(i), "estado"); 
+				Integer fieldEstado = (Integer) Core.getValueForKey(rs.get(i), "estado");
 				
 				//String valueEstadoStr = (String) rs.get(i).get( fieldEstado );
 				Integer valueEstadoInt = -99;	//Sin estado	

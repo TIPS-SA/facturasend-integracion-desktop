@@ -53,11 +53,24 @@ public class H2Writer {
         	
         	if (contains) {
                 final File outputFile = new File( outputFolder.toURI().resolve( table.name + ".dbf"));
-                LOGGER.info("Saving " + table);
+                LOGGER.info("Saving " + table + " outputFile: " + outputFile);
 
-                final FileOutputStream os = new FileOutputStream(outputFile);
-                final DBFWriter writer = charset != null ? new DBFWriter(os, Charset.forName(charset)) : new DBFWriter(os);
-                writer.setFields( table.getDBFFields() );
+                final FileOutputStream os;
+                final DBFWriter writer;
+                if (outputFile.exists()) {
+                	//Escribira sobre el archivo existente.
+                	writer = charset != null ? new DBFWriter(outputFile, Charset.forName(charset)) : new DBFWriter(outputFile);
+                } else {
+                	//Creara un nuevo archivo
+                	os = new FileOutputStream(outputFile);
+                	writer = charset != null ? new DBFWriter(os, Charset.forName(charset)) : new DBFWriter(os);
+                	writer.setFields( table.getDBFFields() );
+                }
+                //final FileOutputStream os = new FileOutputStream(outputFile);
+                //final DBFWriter writer = charset != null ? new DBFWriter(os, Charset.forName(charset)) : new DBFWriter(os);
+                //Averiguar si la tabla no existe, para hacer el setFields.
+                //Si es existente abrir con File. 
+                //writer.setFields( table.getDBFFields() );
 
                 try ( Statement st = h2Connection.createStatement()) {
                     ResultSet rs = st.executeQuery("SELECT * FROM " + table.name);
