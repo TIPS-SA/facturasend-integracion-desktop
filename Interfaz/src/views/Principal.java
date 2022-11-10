@@ -543,7 +543,8 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					fs.iniciarIntegracion();	
+					fs.iniciarIntegracion();
+					paginacion.refresh();
 				} catch (Exception e2) {
 					JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
 					System.out.println("Mostrar error en pantalla, " + e2);

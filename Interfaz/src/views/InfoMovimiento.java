@@ -36,7 +36,7 @@ public class InfoMovimiento extends JDialog {
 	private final JPanel contentPanel = new JPanel();
 	private static BigDecimal transaccionId;
 	private JButton okButton;
-	private JTable table;
+	private JTable jTableTransaccionesItems;
 	private FacturasendService fs;
 	private JPanel infoCdcPane;
 	private JLabel lblCdc;
@@ -89,63 +89,75 @@ public class InfoMovimiento extends JDialog {
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(new BorderLayout(0, 0));
-		//{
-			JScrollPane scrollPane = new JScrollPane();
-			contentPanel.add(scrollPane, BorderLayout.CENTER);
-			//{
-			table = new JTable();
-			List<Map<String, Object>> transacconesItem = fs.populateTransactionDetailsTable(table, transaccionId);
-			scrollPane.setViewportView(table);
-			//}
-		//}
-		//{
-			infoCdcPane = new JPanel();
-			infoCdcPane.setPreferredSize(new Dimension(100, 150));
-			contentPanel.add(infoCdcPane, BorderLayout.NORTH);
-			
-			lblCdc = new JLabel("CDC: ");
-			
-			lblError = new JLabel("Error:");
-			
-			JLabel lblEstado = new JLabel("Estado:");
-			
-			txtCdc = new JTextField();
-			txtCdc.setEditable(false);
-			txtCdc.setColumns(10);
-			
-			
-			txtEstado = new JTextField();
-			txtEstado.setEditable(false);
-			txtEstado.setColumns(10);
-			
-			lblCodigoQr = new JLabel("Codigo QR");
-			
-			txtAError = new JTextArea();
-			txtAError.setLineWrap(true);
-			txtAError.setEditable(false);
-			
-			//Asignar valores
-			if (transacconesItem.size() > 0) {
-				String cdc = (String)Core.getValueForKey(transacconesItem.get(0), "CDC");
-				if (cdc!= null) {
-					txtCdc.setText( cdc.trim() );
-				}
-				
-				String estado = (String)Core.getValueForKey(transacconesItem.get(0), "ESTADO");
-				if (estado != null) {
-					txtEstado.setText( estado.trim() );
-				}
-				
-				String error = (String)Core.getValueForKey(transacconesItem.get(0), "ERROR");
-				
-				if (error != null) {
-					txtAError.setText( error.trim());
-				}
+	
+		JScrollPane scrollPane = new JScrollPane();
+		contentPanel.add(scrollPane, BorderLayout.CENTER);
+	
+		jTableTransaccionesItems = new JTable();
+		List<Map<String, Object>> transacconesItem = fs.populateTransactionDetailsTable(jTableTransaccionesItems, transaccionId);
+		
+		scrollPane.setViewportView(jTableTransaccionesItems);
+
+		infoCdcPane = new JPanel();
+		infoCdcPane.setPreferredSize(new Dimension(100, 150));
+		contentPanel.add(infoCdcPane, BorderLayout.NORTH);
+		
+		lblCdc = new JLabel("CDC: ");
+		
+		lblError = new JLabel("Error:");
+		
+		JLabel lblEstado = new JLabel("Estado:");
+		
+		txtCdc = new JTextField();
+		txtCdc.setEditable(false);
+		txtCdc.setColumns(10);
+		
+		
+		txtEstado = new JTextField();
+		txtEstado.setEditable(false);
+		txtEstado.setColumns(10);
+		
+		txtEstadoDescripcion = new JTextField();
+		txtEstadoDescripcion.setEditable(false);
+		txtEstadoDescripcion.setColumns(10);
+
+		lblCodigoQr = new JLabel("Codigo QR");
+		
+		txtAError = new JTextArea();
+		txtAError.setLineWrap(true);
+		txtAError.setEditable(false);
+		
+		//Asignar valores
+		if (transacconesItem.size() > 0) {
+			String cdc = (String)Core.getValueForKey(transacconesItem.get(0), "CDC");
+			if (cdc!= null) {
+				txtCdc.setText( cdc.trim() );
 			}
 			
-			txtEstadoDescripcion = new JTextField();
-			txtEstadoDescripcion.setEditable(false);
-			txtEstadoDescripcion.setColumns(10);
+			Object fieldEstado = Core.getValueForKey(transacconesItem.get(0), "estado");
+			
+			//String valueEstadoStr = (String) rs.get(i).get( fieldEstado );
+			Integer valueEstadoInt = -99;	//Sin estado	
+			
+			if (fieldEstado != null) {
+				valueEstadoInt = Integer.valueOf( fieldEstado+"" );
+				txtEstado.setText( valueEstadoInt + "");
+				txtEstadoDescripcion.setText(Core.getEstadoDescripcion(valueEstadoInt));
+
+			}
+			
+			/*String estado = (String)Core.getValueForKey(transacconesItem.get(0), "ESTADO");
+			if (estado != null) {
+				txtEstado.setText( estado.trim() );
+			}*/
+			
+			String error = (String)Core.getValueForKey(transacconesItem.get(0), "ERROR");
+			
+			if (error != null) {
+				txtAError.setText( error.trim());
+			}
+		}
+			
 
 			GroupLayout gl_infoCdcPane = new GroupLayout(infoCdcPane);
 			gl_infoCdcPane.setHorizontalGroup(
@@ -199,7 +211,7 @@ public class InfoMovimiento extends JDialog {
 			
 			lblItemsTotal = new JLabel("Item(s):");
 			
-			lblCantidadItemsTotal = new JLabel("");
+			lblCantidadItemsTotal = new JLabel(transacconesItem.size()+"");
 			GroupLayout gl_paneSouth = new GroupLayout(paneSouth);
 			gl_paneSouth.setHorizontalGroup(
 				gl_paneSouth.createParallelGroup(Alignment.LEADING)

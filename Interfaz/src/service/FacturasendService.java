@@ -170,7 +170,7 @@ public class FacturasendService {
 				if (Core.getValueForKey(rs.get(i), "error") != null) {
 					datos[6] = "Error";
 				} else {
-					datos[6] = tb.getEstadoDescripcion(valueEstadoInt);					
+					datos[6] = Core.getEstadoDescripcion(valueEstadoInt);					
 				}
 				
 				if (fieldPausado != null) {

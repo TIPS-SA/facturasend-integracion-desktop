@@ -231,19 +231,19 @@ public class Core {
 	}
 			
 	private static String formasPagosSQLByTransaccion(Map<String, String> databaseProperties, Integer tipoDocumento, Integer transaccionId) {
-		String tableName = databaseProperties.get("database.payment_view");
+		String paymentTableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".payment_view");
 
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT * \n"
-				+ "FROM " + tableName + " \n"
+				+ "FROM " + paymentTableName + " \n"
 				+ "WHERE 1=1 \n"
 				+ "AND tipo_documento = " + tipoDocumento + " \n"
-				+ "AND tranasaccion_id = " + transaccionId + " \n"
+				+ "AND transaccion_id = " + transaccionId + " \n"
 				+ "";
 		} else {
 			sql = "SELECT * \n"
-					+ "FROM " + tableName + " \n"
+					+ "FROM " + paymentTableName + " \n"
 					+ "WHERE 1=1 \n"
 					+ "AND tip_doc = " + tipoDocumento + " \n"
 					+ "AND tra_id = " + transaccionId + " \n"
@@ -337,7 +337,7 @@ public class Core {
 	 */
 	public static Map<String, Object> iniciarIntegracion(Integer tipoDocumento, Map<String, String> databaseProperties)  {
 		//Recupera los transaccion_id que se deben integrar
-		Map<String, Object> obtener50registrosNoIntegradosMap = obtener50registrosNoIntegrados(tipoDocumento, databaseProperties);
+		Map<String, Object> obtener50registrosNoIntegradosMap = obtenerHasta50registrosNoIntegrados(tipoDocumento, databaseProperties);
 		
 		try {
 			
@@ -846,7 +846,7 @@ public class Core {
 	 * @param databaseProperties
 	 * @return
 	 */
-	public static Map<String, Object> obtener50registrosNoIntegrados(Integer tipoDocumento, Map<String, String> databaseProperties) {
+	public static Map<String, Object> obtenerHasta50registrosNoIntegrados(Integer tipoDocumento, Map<String, String> databaseProperties) {
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
@@ -854,7 +854,7 @@ public class Core {
 			
 			Statement statement = conn.createStatement();
 			
-			String sql = obtenerSQL50registrosNoIntegrados(databaseProperties, tipoDocumento);
+			String sql = obtenerHasta50registrosSQLNoIntegrados(databaseProperties, tipoDocumento);
 
 			Integer rowsLoteRequest = 50;
 			if (databaseProperties.get("facturasend.rows_lote_request") != null) {
@@ -896,7 +896,7 @@ public class Core {
 	 * @param tipoDocumento
 	 * @return
 	 */
-	private static String obtenerSQL50registrosNoIntegrados(Map<String, String> databaseProperties, Integer tipoDocumento) {
+	private static String obtenerHasta50registrosSQLNoIntegrados(Map<String, String> databaseProperties, Integer tipoDocumento) {
 		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transacctions_table");
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
@@ -1196,5 +1196,35 @@ public class Core {
 		return result;
 	}
 
-	
+
+	public static String getEstadoDescripcion(int estado) {
+		String returnValue;
+		switch (estado) {
+		case 0:
+			returnValue= "Generado";
+			break;
+		case -1:
+			returnValue= "Borrador";
+			break;
+		case 2:
+			returnValue= "Aprobado";
+			break;
+		case 3:
+			returnValue= "Aprobado c/ Error";
+			break;
+		case 4:
+			returnValue= "Rechazado";
+			break;
+		case 98:
+			returnValue= "Inexistente";
+			break;
+		case 99:
+			returnValue= "Cancelado";
+			break;
+		default:
+			returnValue= "No integrado";
+			break;
+		}
+		return returnValue;
+	}
 }

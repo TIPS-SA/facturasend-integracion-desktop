@@ -30,37 +30,6 @@ public class TableDesign {
 		tc.setPreferredWidth(50);
 	}
 	
-	public String getEstadoDescripcion(int valor) {
-		String returnValue;
-		switch (valor) {
-		case 0:
-			returnValue= "Generado";
-			break;
-		case -1:
-			returnValue= "Borrador";
-			break;
-		case 2:
-			returnValue= "Aprobado";
-			break;
-		case 3:
-			returnValue= "Aprobado c/ Error";
-			break;
-		case 4:
-			returnValue= "Rechazado";
-			break;
-		case 98:
-			returnValue= "Inexistente";
-			break;
-		case 99:
-			returnValue= "Cancelado";
-			break;
-		default:
-			returnValue= "No integrado";
-			break;
-		}
-		return returnValue;
-	}
-	
 	public void setPrincipalTableCellsStyle(JTable table) {
 		final DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
 		defaultTableCellRenderer.setHorizontalTextPosition(0);
