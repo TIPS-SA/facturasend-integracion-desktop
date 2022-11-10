@@ -756,7 +756,6 @@ public class Core {
 			System.out.println("resultExecuteUpdate:" + resultExecuteUpdate);
 		}
 		
-		System.out.println("llego al return");
 		return result;
 	}
 	
@@ -776,12 +775,14 @@ public class Core {
 		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
 		String tableToUpdateValue = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.value");
 		
-		String transaccionIdForeignKeyField = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.field.transaccion_id");
-		
+		//String transaccionIdForeignKeyField = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.field.transaccion_id");
+		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table.field.";
+		String transaccionIdForeignKeyField = findKeyByValueInProperties(databaseProperties, prefix, "transaccion_id");	//or tra_id
+		transaccionIdForeignKeyField = transaccionIdForeignKeyField.substring(prefix.length(), transaccionIdForeignKeyField.length());
 		
 		//Obtener de la BD
-		String sqlConsulta = "SELECT " + tableToUpdateValue + " "
-				+ "FROM " + tableToUpdate + " "
+		String sqlConsulta = "SELECT CAST(" + tableToUpdateValue + " AS VARCHAR(10)) AS " + tableToUpdateValue + " "
+						+ "FROM " + tableToUpdate + " "
 						+ "WHERE "
 						+ transaccionIdForeignKeyField + " = ? " 
 						+ "AND TRIM(UPPER(" + tableToUpdateKey + ")) = 'PAUSADO' "; 
@@ -795,36 +796,33 @@ public class Core {
 		Map<String, Object> situacionPausadoActualMap = SQLUtil.convertResultSetToMap(rs);
 		System.out.println("listadoDes:" + situacionPausadoActualMap);
 		
-		if ( situacionPausadoActualMap != null && Boolean.valueOf(situacionPausadoActualMap.get(tableToUpdateValue)+"") ) {
+		if ( situacionPausadoActualMap != null && Boolean.valueOf(getValueForKey(situacionPausadoActualMap, tableToUpdateValue) +"") ) {
 			//Ya existe el registro de PAUSADO y esta PAUSADO
 			
 			String sqlDelete = "DELETE "
 					+ "FROM " + tableToUpdate + " "
 							+ "WHERE "
-							+ (! databaseProperties.get("database.type").equals("dbf") ? "transaccion_id = ? " : "tra_id = ? ") 
+							+ transaccionIdForeignKeyField + " = ? " 
 							+ "AND TRIM(UPPER(" + tableToUpdateKey + ")) = 'PAUSADO' "; 
 			
+			System.out.print("\n" + sqlDelete + " ");
+
 			PreparedStatement statementDelete = conn.prepareStatement(sqlDelete);
-			statement.setInt(1, transaccionId);
+			statementDelete.setInt(1, transaccionId);
 			
-			System.out.print("\n" + sqlConsulta + " ");
 			int resultDelete = statementDelete.executeUpdate();
 			System.out.print("resultDelete: " + resultDelete);
 			
 		} else {
 			//Consultar el objeto completo del Servidor, por el transaccion_id
 			Map<String, Object> resultViewMap = obtenerTransaccionesParaEnvioLote("(" + transaccionId + ")", databaseProperties);
-			System.out.println("resultViewMap 1");
 			if (resultViewMap != null) {
-				System.out.println("resultViewMap 2 ");
 
 				if ( Boolean.valueOf(resultViewMap.get("success")+"")) {
-					System.out.println("resultViewMap 3");
 
 					List<Map<String, Object>> listaTransaccionesView = (List<Map<String, Object>>)resultViewMap.get("result");
 					
 					if (listaTransaccionesView.size() > 0) {
-						System.out.println("resultViewMap 4");
 
 						Map<String, Object> datosGuardar = new HashMap<String, Object>();
 						datosGuardar.put("PAUSADO", "true");
@@ -1149,4 +1147,54 @@ public class Core {
 		}
 		return null;
 	}
+	
+	/**
+	 * Busca en el map o archivo de propiedades un registro cuyo valor 
+	 * coincida con el que se pasa como parámetro.
+	 * 
+	 * La clave encontrada debe coincidir tambien con el prefijo keyPrefixFilter para retornar
+	 * 
+	 * @param map
+	 * @param keyPrefixFilter
+	 * @param value
+	 * @return
+	 */
+	public static String findKeyByValue(Map<String, Object> map, String keyPrefixFilter, Object valueToFind) {
+		String result = null;
+		
+		Iterator itr = map.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry e = (Map.Entry)itr.next();
+			
+			String key = e.getKey()+"";
+			Object value = e.getValue();
+			
+			if ( value.equals(valueToFind) && key.startsWith(keyPrefixFilter)) {
+				result = key;
+			}
+		}
+		
+		return result;
+	}
+	
+
+	public static String findKeyByValueInProperties(Map<String, String> map, String keyPrefixFilter, String valueToFind) {
+		String result = null;
+		
+		Iterator itr = map.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry e = (Map.Entry)itr.next();
+			
+			String key = e.getKey()+"";
+			Object value = e.getValue();
+			
+			if ( value.equals(valueToFind) && key.startsWith(keyPrefixFilter)) {
+				result = key;
+			}
+		}
+		
+		return result;
+	}
+
+	
 }

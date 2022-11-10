@@ -258,6 +258,7 @@ public class DocumentoElectronicoCore {
 				dataMapProducto.put("ivaBase", Core.getValueForKey(transaccionItems,"item_iva_base","i_iva_bas"));
 				dataMapProducto.put("iva", Core.getValueForKey(transaccionItems,"item_iva","i_iva"));
 				dataMapProducto.put("lote", Core.getValueForKey(transaccionItems,"item_lote","i_lote"));
+				
 				dataMapProducto.put("vencimiento", Core.getValueForKey(transaccionItems,"item_vencimiento","i_venci"));
 				dataMapProducto.put("numeroSerie", Core.getValueForKey(transaccionItems,"item_numero_serie","i_num_ser"));
 				dataMapProducto.put("numeroPedido", Core.getValueForKey(transaccionItems,"item_numero_pedido","i_num_ped"));
