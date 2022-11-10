@@ -15,7 +15,7 @@ public class DocumentoElectronicoCore {
 	
 	private static Gson gson = new Gson();
 
-	public static List<Map<String, Object>> generarJSONLote(String[] transactionIds, List<Map<String, Object>> documentosParaEnvioList, Map<String, String> databaseProperties) throws Exception{
+	public static List<Map<String, Object>> generarJSONLote(String[] transactionIds, List<Map<String, Object>> documentosParaEnvioAllList, List<Map<String, Object>> parmentViewAllList, Map<String, String> databaseProperties) throws Exception{
 		 
 		List<Map<String, Object>> jsonDEs = new ArrayList<Map<String,Object>>();
 			
@@ -23,7 +23,8 @@ public class DocumentoElectronicoCore {
 			if (!transactionIds[i].trim().isEmpty()) {
 				Integer transaccionId = Integer.valueOf(transactionIds[i].trim());
 				
-				List<Map<String, Object>> documentosParaEnvioFiltradoList = documentosParaEnvioList.stream().filter( map -> {
+				//---
+				List<Map<String, Object>> documentosParaEnvioFiltradoList = documentosParaEnvioAllList.stream().filter( map -> {
 					String transaccionIdString = Core.getValueForKey(map, "transaccion_id", "tra_id") + "";
 					
 					Integer transaccionIdIterate = new BigDecimal(transaccionIdString).intValue();
@@ -31,8 +32,19 @@ public class DocumentoElectronicoCore {
 					return transaccionIdIterate == transaccionId.intValue();
 				}).collect(Collectors.toList());
 				
+				//---
+				System.out.println("parmentViewAllList " + parmentViewAllList);
+				List<Map<String, Object>> parmentViewFiltradoList = parmentViewAllList.stream().filter( map -> {
+					String transaccionIdString = Core.getValueForKey(map, "transaccion_id", "tra_id") + "";
+					
+					Integer transaccionIdIterate = new BigDecimal(transaccionIdString).intValue();
+					
+					return transaccionIdIterate == transaccionId.intValue();
+				}).collect(Collectors.toList());
+
+				//---
 				if (documentosParaEnvioFiltradoList.size() > 0) {
-					Map<String, Object> jsonDE = invocarDocumentoElectronicoDesdeView(documentosParaEnvioFiltradoList, databaseProperties);
+					Map<String, Object> jsonDE = invocarDocumentoElectronicoDesdeView(documentosParaEnvioFiltradoList, parmentViewFiltradoList, databaseProperties);
 					jsonDEs.add(jsonDE);					
 				}
 			}
@@ -49,21 +61,23 @@ public class DocumentoElectronicoCore {
 	 * @param sucursal
 	 * @throws InfoException
 	 */
-	public static Map<String, Object> invocarDocumentoElectronicoDesdeView(List<Map<String, Object>> transaccionMap, Map<String, String> databaseProperties) throws Exception{
+	public static Map<String, Object> invocarDocumentoElectronicoDesdeView(List<Map<String, Object>> transaccionMap, List<Map<String, Object>> paymentViewMap, Map<String, String> databaseProperties) throws Exception{
 		Map<String, Object> dataMap = new HashMap<String, Object>();
 
 		System.out.println("Procesando... " + gson.toJson(transaccionMap));
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 		if (transaccionMap != null && transaccionMap.size() > 0) {
-			
+			System.out.println("1");
 			Map<String, Object> transaccionCabecera = transaccionMap.get(0);
-			
+			System.out.println("2");
+
 			Integer transaccionId = Integer.valueOf(Core.getValueForKey(transaccionCabecera, "transaccion_id", "tra_id") + "");
 			Integer tipoDocumento = Integer.valueOf(Core.getValueForKey(transaccionCabecera, "tipo_documento", "tip_doc") + "");
 
 			dataMap.put("tipoDocumento", tipoDocumento);
 			String cdcGenerado = (String) Core.getValueForKey(transaccionCabecera, "cdc");
-			
+			System.out.println("3");
+
 			if (cdcGenerado != null && cdcGenerado.length() == 44) {
 				dataMap.put("cdc", cdcGenerado); //Si ya fue generado con un CDC, entonces envía para utilizar el mismo.
 			}
@@ -167,7 +181,8 @@ public class DocumentoElectronicoCore {
 			}
 			dataMap.put("usuario", dataMapUsuario);
 			//finUsuario
-			
+			System.out.println("55555");
+
 			//Factura
 			if (tipoDocumento == 1) {
 				Map<String, Object> dataMapFactura1 = new HashMap<String, Object>();
@@ -224,7 +239,11 @@ public class DocumentoElectronicoCore {
 			// Items de la compra
 			List<Map<String, Object>> lista = new ArrayList<Map<String, Object>>();
 
+			System.out.println("6666");
+
 			for (int i = 0; i < transaccionMap.size(); i++) {
+				System.out.println("ciclo .. " + i + " size " + transaccionMap.size());
+
 				// Items de la compra
 				Map<String, Object> dataMapProducto = new HashMap<String, Object>();
 				Map<String, Object> transaccionItems = transaccionMap.get(i);
@@ -291,12 +310,16 @@ public class DocumentoElectronicoCore {
 				lista.add(dataMapProducto);
 
 			}
+			System.out.println("termino ... ");
 
 			dataMap.put("items", lista);
 			
-			Map<String, Object> condicionMap = recuperarFormasDePagoParaCondicion(tipoDocumento, transaccionId, databaseProperties);
+			System.out.println("termino ... 2 ");
+
+			Map<String, Object> condicionMap = recuperarFormasDePagoParaCondicion(tipoDocumento, paymentViewMap, databaseProperties);
 			
-			
+			System.out.println("termino ... 3 ");
+
 			if (condicionMap != null) {
 				dataMap.put("condicion", condicionMap);	
 			} else {
@@ -315,6 +338,7 @@ public class DocumentoElectronicoCore {
 
 			}
 			
+			System.out.println("termino ... 4 ");
 
 			//DocumentoAsociado
 			Map<String, Object> documentoAsociadoMap = new HashMap<String, Object>();
@@ -340,6 +364,8 @@ public class DocumentoElectronicoCore {
 				dataMap.put("documentoAsociado", documentoAsociadoMap);	
 			}
 			
+			System.out.println("termino ... 5 ");
+
 
 			//Implementar Pedro
 			dataMap.put("transporte", null);
@@ -371,10 +397,10 @@ public class DocumentoElectronicoCore {
 	 * @param transaccionId
 	 * @return
 	 */
-	private static Map<String, Object> recuperarFormasDePagoParaCondicion(Integer tipoDocumento, Integer transaccionId, Map<String, String> databaseProperties) throws Exception {
+	private static Map<String, Object> recuperarFormasDePagoParaCondicion(Integer tipoDocumento, List<Map<String, Object>> paymentViewMap, Map<String, String> databaseProperties) throws Exception {
 		
-		List<Map<String, Object>> paymentViewMap = Core.formasPagosByTransaccion(tipoDocumento, transaccionId, databaseProperties);
-		
+		//List<Map<String, Object>> paymentViewMap = Core.formasPagosByTransaccion(tipoDocumento, transaccionId, databaseProperties);
+		System.out.println("Despues de la llamada " + paymentViewMap);
 		if (paymentViewMap.size() <= 0) {
 			return null;
 		}

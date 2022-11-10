@@ -214,10 +214,56 @@ public class Core {
 	
 	
 	
-	public static List<Map<String, Object>> formasPagosByTransaccion(Integer tipoDocumento, Integer transaccionId, Map<String, String> databaseProperties) throws Exception{
+	public static List<Map<String, Object>> formasPagosByTransaccion(Integer tipoDocumento, String transaccionIdString, Map<String, String> databaseProperties) throws Exception{
 		
+		System.out.println("Obteniendo conexion");
 		List<Map<String, Object>> result = new ArrayList<Map<String,Object>>();
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+		
+		System.out.println("conexion obtenida." );
+		
+		Statement statement = conn.createStatement();
+		
+		String sql = formasPagosSQLByTransaccion(databaseProperties, tipoDocumento, transaccionIdString);
+		System.out.print("\n" + sql + " ");
+		ResultSet rs = statement.executeQuery(sql);
+		
+		result = SQLUtil.convertResultSetToList(rs);
+		System.out.println("result: " + result);
+		return result;
+	}
+			
+	private static String formasPagosSQLByTransaccion(Map<String, String> databaseProperties, Integer tipoDocumento, String transaccionIdString) {
+		String paymentTableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".payment_view");
+
+		String sql = "";
+		if (!databaseProperties.get("database.type").equals("dbf")) {
+			sql = "SELECT * \n"
+				+ "FROM " + paymentTableName + " \n"
+				+ "WHERE 1=1 \n"
+				+ "AND tipo_documento = " + tipoDocumento + " \n"
+				+ "AND transaccion_id IN (" + transaccionIdString + ") \n"
+				+ "";
+		} else {
+			sql = "SELECT * \n"
+					+ "FROM " + paymentTableName + " \n"
+					+ "WHERE 1=1 \n"
+					+ "AND tip_doc = " + tipoDocumento + " \n"
+					+ "AND tra_id IN (" + transaccionIdString + ") \n"
+					+ "";
+		}
+		return sql;
+	}
+	
+	/*
+	 * 
+	 	public static List<Map<String, Object>> formasPagosByTransaccion(Integer tipoDocumento, Integer transaccionId, Map<String, String> databaseProperties) throws Exception{
+		
+		System.out.println("Obteniendo conexion");
+		List<Map<String, Object>> result = new ArrayList<Map<String,Object>>();
+		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
+		
+		System.out.println("conexion obtenida." );
 		
 		Statement statement = conn.createStatement();
 		
@@ -251,7 +297,8 @@ public class Core {
 		}
 		return sql;
 	}
-	
+	 
+	 */
 	
 	
 	
@@ -361,20 +408,22 @@ public class Core {
 			
 			//De acuerdo a los transaccion_id obtendidos, busca todos los registros relacionados.
 			String transaccionIdStringInClause = "(" + transaccionIdString + "-1)";
-			Map<String, Object> documentosParaEnvioMap = procesarTransacciones(transaccionIdStringInClause, databaseProperties);
-			List<Map<String, Object>> documentoParaEnvioJsonMap = null;
+			Map<String, Object> documentosParaEnvioAllMap = procesarTransacciones(transaccionIdStringInClause, databaseProperties);
+			List<Map<String, Object>> documentoParaEnvioAllJsonMap = null;
 			
-			if (Boolean.valueOf(documentosParaEnvioMap.get("success")+"") == true) {
-				documentoParaEnvioJsonMap = (List<Map<String, Object>>)documentosParaEnvioMap.get("result");
+			if (Boolean.valueOf(documentosParaEnvioAllMap.get("success")+"") == true) {
+				documentoParaEnvioAllJsonMap = (List<Map<String, Object>>)documentosParaEnvioAllMap.get("result");
 			} else {
-				throw new Exception(documentosParaEnvioMap.get("error")+"");
+				throw new Exception(documentosParaEnvioAllMap.get("error")+"");
 
 			}
 			
-			
+			//Tambien busca todas las formas de Cobro relacionados a las transacciones
+			List<Map<String, Object>> paymentViewAllMap = Core.formasPagosByTransaccion(tipoDocumento, transaccionIdStringInClause, databaseProperties);
+
 			
 			//Generar JSON de documentos electronicos.
-			List<Map<String, Object>> documentosParaEnvioJsonMap = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentoParaEnvioJsonMap, databaseProperties);
+			List<Map<String, Object>> documentosParaEnvioJsonMap = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentoParaEnvioAllJsonMap, paymentViewAllMap, databaseProperties);
 
 			Map header = new HashMap();
 			header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
@@ -406,7 +455,7 @@ public class Core {
 						
 						for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
 							Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
-							Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
+							Map<String, Object> viewRec = documentoParaEnvioAllJsonMap.get(i);
 	
 							Map<String, Object> respuestaDE = deList.get(i);	//Utiliza el mismo Indice de List de Json
 									
@@ -453,7 +502,7 @@ public class Core {
 	
 							for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
 								Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
-								Map<String, Object> viewRec = documentoParaEnvioJsonMap.get(i);
+								Map<String, Object> viewRec = documentoParaEnvioAllJsonMap.get(i);
 								
 								
 								for (int j = 0; j < errores.size(); j++) {
