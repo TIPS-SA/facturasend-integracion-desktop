@@ -94,18 +94,12 @@ public class FacturasendService {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Map<String, Object> pausarIniciar(Integer transaccionId) throws Exception {
+	public static void pausarIniciar(Integer transaccionId) throws Exception {
 		
 		//Llamar a la consulta de Datos
 		
-		Map<String, Object> returnData = Core.pausarIniciar(transaccionId, readDBProperties());
+		Core.pausarIniciar(transaccionId, readDBProperties());
 		
-		System.out.println(returnData);
-		if (Boolean.valueOf(returnData.get("success")+"") == true) {
-			return returnData;
-		} else {
-			throw new Exception(returnData.get("error")+"");
-		}
 	}
 
 	/**
@@ -163,18 +157,24 @@ public class FacturasendService {
 				datos[5] = Core.getValueForKey(rs.get(i), "total") != null ? Core.getValueForKey(rs.get(i), "total") : 0;
 				
 				//String fieldEstado = (String) Core.getValueForKey(rs.get(i), "estado"); 
-				Integer fieldEstado = (Integer) Core.getValueForKey(rs.get(i), "estado");
+				//Integer fieldEstado = (Integer) Core.getValueForKey(rs.get(i), "estado");
+				String fieldPausado = (String)Core.getValueForKey(rs.get(i), "pausado");
+				Object fieldEstado = Core.getValueForKey(rs.get(i), "estado");
 				
 				//String valueEstadoStr = (String) rs.get(i).get( fieldEstado );
 				Integer valueEstadoInt = -99;	//Sin estado	
 				
 				if (fieldEstado != null) {
-					valueEstadoInt = Integer.valueOf( fieldEstado );
+					valueEstadoInt = Integer.valueOf( fieldEstado+"" );
 				}
 				if (Core.getValueForKey(rs.get(i), "error") != null) {
 					datos[6] = "Error";
 				} else {
 					datos[6] = tb.getEstadoDescripcion(valueEstadoInt);					
+				}
+				
+				if (fieldPausado != null) {
+					datos[6] += "(Pausado)";
 				}
 				
 				datos[7] = Core.getValueForKey(rs.get(i), "cdc");

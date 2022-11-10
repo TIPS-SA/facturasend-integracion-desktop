@@ -525,7 +525,7 @@ public class Principal extends JFrame {
 					if (jTableTransaction.getSelectedRow() >= 0) {
 						DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
 						
-		                Integer transaccionId = (Integer) model.getValueAt(row, 0);
+		                Integer transaccionId = Integer.valueOf(model.getValueAt(row, 0) + "");
 		                
 						fs.pausarIniciar(transaccionId);
 						

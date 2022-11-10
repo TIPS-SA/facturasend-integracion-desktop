@@ -122,6 +122,10 @@ class CeldaPersonalizada extends DefaultTableCellRenderer {
 				componente.setBackground(Color.red);
 				componente.setForeground(Color.white);
 				break;
+			case "Error(Pausado)":
+				componente.setBackground(Color.red);
+				componente.setForeground(Color.white);
+				break;
 			case "Generado":
 				componente.setBackground(Color.gray);
 				componente.setForeground(Color.white);

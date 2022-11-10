@@ -81,7 +81,7 @@ public class Core {
 		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
-				+ "establecimiento, punto, numero, serie, total, cdc, estado, error \n"
+				+ "establecimiento, punto, numero, serie, total, cdc, estado, error, pausado \n"
 				+ "FROM " + tableName + " \n"
 				+ "WHERE "
 				+ "( \n"
@@ -93,7 +93,7 @@ public class Core {
 				+ "AND tipo_documento = " + tipoDocumento + " \n"
 				+ "GROUP BY transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
-				+ "establecimiento, punto, numero, serie, total, cdc, estado, error \n"
+				+ "establecimiento, punto, numero, serie, total, cdc, estado, error, pausado \n"
 				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";			
 		} else {
 			//DBF
@@ -109,7 +109,8 @@ public class Core {
 				+ "error "*/
 				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) AS cdc, "
 				+ "CAST ((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS INTEGER) AS estado, "
-				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ERROR' LIMIT 1) AS error "
+				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ERROR' LIMIT 1) AS error, "
+				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='PAUSADO' LIMIT 1) AS pausado "
 				+ "\n"
 				+ "FROM " + tableName + " vp \n"
 				+ "WHERE "
@@ -122,7 +123,7 @@ public class Core {
 				+ "AND tip_doc = " + tipoDocumento + " \n"
 				+ "GROUP BY tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
 				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
-				+ "estable, punto, numero, serie, total, cdc, estado, error \n"
+				+ "estable, punto, numero, serie, total, cdc, estado, error, pausado \n"
 				+ "ORDER BY estable DESC, punto DESC, numero DESC \n";			
 		}
 		
@@ -273,12 +274,12 @@ public class Core {
 	
 	
 	/**
-	 * Paso 1. Proceso que inicia la integración, dependiendo del tipo de documento.
+	 * Paso 1. Proceso que marca el registro de ventas con una opcion para pausar (o iniciar en caso que estaba pausado) 
 	 * @param tipoDocumento
 	 * @param databaseProperties
 	 * @return
 	 */
-	public static Map<String, Object> pausarIniciar(Integer transaccionId, Map<String, String> databaseProperties)  {
+	public static void pausarIniciar(Integer transaccionId, Map<String, String> databaseProperties)  {
 		//Recupera los transaccion_id que se deben integrar
 		
 		try {
@@ -292,7 +293,7 @@ public class Core {
 		}
 		//Cambiar éste resultado, por el resultado del lote
 		
-		return null;
+		return;
 	}
 
 	
@@ -396,7 +397,7 @@ public class Core {
 	
 					createTableFacturaSendData(databaseProperties);
 					
-					String tableToUpdate = databaseProperties.get("database.facturasend_table");
+					String tableToUpdate = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table");
 					if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
 	
 						Map<String, Object> result = (Map<String, Object>)resultadoJson.get("result");
@@ -488,7 +489,7 @@ public class Core {
 						
 						Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 						
-						String sql = "save '" + databaseProperties.get("database.facturasend_table") + "' to '" + databaseProperties.get("database.dbf.parent_folder") + "'";
+						String sql = "save '" + databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table") + "' to '" + databaseProperties.get("database.dbf.parent_folder") + "'";
 						//+ "\\saved' ";
 						System.out.println("\n" + sql + " ");
 						//PreparedStatement statement = conn.prepareStatement(sql);
@@ -524,9 +525,9 @@ public class Core {
 
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 		
-		String tableToUpdate = databaseProperties.get("database.facturasend_table");
-		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
-		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
+		String tableToUpdate = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table");
+		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.value");
 
 		String pk = "";
 		//Buscar el campo que relaciona con el transaccion_id 
@@ -537,12 +538,12 @@ public class Core {
 			String key = e.getKey()+"";
 			String value = e.getValue()+""; 
 			if ( value.equalsIgnoreCase("transaccion_id") || value.equalsIgnoreCase("tra_id")) {
-				pk = key.substring("database.facturasend_table.field.".length(), key.length()) + "";
+				pk = key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + "";
 			}
 		}
 		
 		String sql = "DELETE FROM " + tableToUpdate + " WHERE " + pk + " = "+ getValueForKey(de, "transaccion_id", "tra_id") + " "
-				+ " AND TRIM(UPPER(" + tableToUpdateKey + ")) IN ('ERROR','ESTADO', 'XML', 'JSON', 'QR', 'CDC', 'TIPO') ";
+				+ " AND TRIM(UPPER(" + tableToUpdateKey + ")) IN ('ERROR', 'ESTADO', 'PAUSADO', 'XML', 'JSON', 'QR', 'CDC', 'TIPO') ";
 		
 		System.out.print("\n" + sql);
 		PreparedStatement statement = conn.prepareStatement(sql);
@@ -566,9 +567,9 @@ public class Core {
 	
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 		
-		String tableToCreate = databaseProperties.get("database.facturasend_table");
-		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
-		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
+		String tableToCreate = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table");
+		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.value");
 
 		PreparedStatement statement = null;
 		
@@ -591,8 +592,8 @@ public class Core {
 				Map.Entry e = (Map.Entry)itr.next();
 				
 				String key = e.getKey()+""; 
-				if ((key).startsWith("database.facturasend_table.field.")) {
-					sqlCreateTable += key.substring("database.facturasend_table.field.".length(), key.length()) + " VARCHAR(254), ";
+				if ((key).startsWith("database." + databaseProperties.get("database.type") + ".facturasend_table.field.")) {
+					sqlCreateTable += key.substring("database." + databaseProperties.get("database.type") + ".facturasend_table.field.".length(), key.length()) + " VARCHAR(254), ";
 				}
 			}
 			//sqlCreateTable += sqlCreateTable.substring(0, sqlCreateTable.length() - 2);
@@ -630,11 +631,11 @@ public class Core {
 	
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 		
-		String tableToUpdate = databaseProperties.get("database.facturasend_table");
-		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
-		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
+		String tableToUpdate = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table");
+		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.value");
 		
-		String preUpdateSQL = databaseProperties.get("database.facturasend_table.pre_update_sql");
+		String preUpdateSQL = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.pre_update_sql");
 		if (preUpdateSQL != null) {
 			PreparedStatement statement2 = conn.prepareStatement(preUpdateSQL);
 			ResultSet rs = statement2.executeQuery();
@@ -645,7 +646,7 @@ public class Core {
 				
 				Iterator itrPreSQL = preSQLMap.entrySet().iterator();
 				while (itrPreSQL.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
-					
+					//Agregar el valor previo generado desde la consulta pre-update
 					Map.Entry eDato = (Map.Entry)itrPreSQL.next();
 					viewPrincipal.put(eDato.getKey()+"", eDato.getValue());	//Si en el array hay mas de una fila, entonces el ultimo perdurará
 				}
@@ -663,8 +664,8 @@ public class Core {
 			Map.Entry e = (Map.Entry)itr.next();
 			
 			String key = e.getKey()+""; 
-			if ((key).startsWith("database.facturasend_table.field.")) {
-				sqlUpdate += key.substring("database.facturasend_table.field.".length(), key.length()) + ", ";
+			if ((key).startsWith("database." + databaseProperties.get("database.type") + ".facturasend_table.field.")) {
+				sqlUpdate += key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + ", ";
 			}
 		}
 				
@@ -683,7 +684,7 @@ public class Core {
 				
 				String key = e.getKey()+""; 
 				String value = e.getValue()+"";
-				if ((key).startsWith("database.facturasend_table.field.")) {
+				if ((key).startsWith("database." + databaseProperties.get("database.type") + ".facturasend_table.field.")) {
 					if (value.startsWith("@SQL(")) {
 						//Si es un SQL debe colocar directo la sentencia
 						sqlUpdate += "" + value.substring(4, value.length() ) +  ", ";
@@ -720,11 +721,12 @@ public class Core {
 				
 				String key = e.getKey()+""; 
 				String value = e.getValue()+"";
-				if ((key).startsWith("database.facturasend_table.field.")) {
+				if ((key).startsWith("database." + databaseProperties.get("database.type") + ".facturasend_table.field.")) {
 					if (value.startsWith("@SQL(")) {
 						//Como ya coloco el SQL, entonces aqui no inserta los parámetros.
 						
 					} else {
+						//Toma los valores del view-principal, dependiendo de las claves que estan en el config.
 						statement.setObject(f++, getValueForKey(viewPrincipal, e.getValue()+""));
 					}
 				}
@@ -738,17 +740,23 @@ public class Core {
 			statement.setClob(f++, clob );
 		}
 	
-		System.out.println("" + sqlUpdate);
-		result = statement.executeUpdate();
+		System.out.print("\n" + sqlUpdate + " ");
 		
-		String posUpdateSQL = databaseProperties.get("database.facturasend_table.pos_update_sql");
+		result = statement.executeUpdate();
+		System.out.println("result: " + result + "");
+		
+		String posUpdateSQL = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.pos_update_sql");
 		if (posUpdateSQL != null) {
-			System.out.println(posUpdateSQL);
+			System.out.print("\n" + posUpdateSQL + " ");
 			PreparedStatement statement2 = conn.prepareStatement(posUpdateSQL);
-			statement2.executeQuery();
+			//ResultSet rs = statement2.executeQuery();
+			Integer resultExecuteUpdate = statement2.executeUpdate();
 			
+			//Map<String, Object> posUpdateSQLMap = SQLUtil.convertResultSetToMap(rs);
+			System.out.println("resultExecuteUpdate:" + resultExecuteUpdate);
 		}
 		
+		System.out.println("llego al return");
 		return result;
 	}
 	
@@ -764,107 +772,69 @@ public class Core {
 	
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 		
-		String tableToUpdate = databaseProperties.get("database.facturasend_table");
-		String tableToUpdateKey = databaseProperties.get("database.facturasend_table.key");
-		String tableToUpdateValue = databaseProperties.get("database.facturasend_table.value");
+		String tableToUpdate = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table");
+		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.value");
+		
+		String transaccionIdForeignKeyField = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.field.transaccion_id");
+		
 		
 		//Obtener de la BD
+		String sqlConsulta = "SELECT " + tableToUpdateValue + " "
+				+ "FROM " + tableToUpdate + " "
+						+ "WHERE "
+						+ transaccionIdForeignKeyField + " = ? " 
+						+ "AND TRIM(UPPER(" + tableToUpdateKey + ")) = 'PAUSADO' "; 
 		
+		PreparedStatement statement = conn.prepareStatement(sqlConsulta);
+		statement.setInt(1, transaccionId);
 		
+		System.out.print("\n" + sqlConsulta + " ");
+		ResultSet rs = statement.executeQuery();
 		
-		String sqlUpdate = "INSERT INTO " + tableToUpdate + " (";
+		Map<String, Object> situacionPausadoActualMap = SQLUtil.convertResultSetToMap(rs);
+		System.out.println("listadoDes:" + situacionPausadoActualMap);
 		
-		//Buscar fields adicionales
-		Iterator itr = databaseProperties.entrySet().iterator();
-		while (itr.hasNext()) {
-			Map.Entry e = (Map.Entry)itr.next();
+		if ( situacionPausadoActualMap != null && Boolean.valueOf(situacionPausadoActualMap.get(tableToUpdateValue)+"") ) {
+			//Ya existe el registro de PAUSADO y esta PAUSADO
 			
-			String key = e.getKey()+""; 
-			if ((key).startsWith("database.facturasend_table.field.")) {
-				sqlUpdate += key.substring("database.facturasend_table.field.".length(), key.length()) + ", ";
-			}
-		}
-				/*
-		sqlUpdate += tableToUpdateKey + ", ";
-		sqlUpdate += tableToUpdateValue + ") VALUES ";
-		
-		//Buscar fields value adicionales
-		Iterator itrDato = datosGuardar.entrySet().iterator();
-		while (itrDato.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
-			Map.Entry eDato = (Map.Entry)itrDato.next();
+			String sqlDelete = "DELETE "
+					+ "FROM " + tableToUpdate + " "
+							+ "WHERE "
+							+ (! databaseProperties.get("database.type").equals("dbf") ? "transaccion_id = ? " : "tra_id = ? ") 
+							+ "AND TRIM(UPPER(" + tableToUpdateKey + ")) = 'PAUSADO' "; 
+			
+			PreparedStatement statementDelete = conn.prepareStatement(sqlDelete);
+			statement.setInt(1, transaccionId);
+			
+			System.out.print("\n" + sqlConsulta + " ");
+			int resultDelete = statementDelete.executeUpdate();
+			System.out.print("resultDelete: " + resultDelete);
+			
+		} else {
+			//Consultar el objeto completo del Servidor, por el transaccion_id
+			Map<String, Object> resultViewMap = obtenerTransaccionesParaEnvioLote("(" + transaccionId + ")", databaseProperties);
+			System.out.println("resultViewMap 1");
+			if (resultViewMap != null) {
+				System.out.println("resultViewMap 2 ");
 
-			sqlUpdate += "( ";
-			itr = databaseProperties.entrySet().iterator();
-			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
-				Map.Entry e = (Map.Entry)itr.next();
-				
-				String key = e.getKey()+""; 
-				String value = e.getValue()+"";
-				if ((key).startsWith("database.facturasend_table.field.")) {
-					if (value.startsWith("@SQL(")) {
-						//Si es un SQL debe colocar directo la sentencia
-						sqlUpdate += "" + value.substring(4, value.length() ) +  ", ";
+				if ( Boolean.valueOf(resultViewMap.get("success")+"")) {
+					System.out.println("resultViewMap 3");
+
+					List<Map<String, Object>> listaTransaccionesView = (List<Map<String, Object>>)resultViewMap.get("result");
+					
+					if (listaTransaccionesView.size() > 0) {
+						System.out.println("resultViewMap 4");
+
+						Map<String, Object> datosGuardar = new HashMap<String, Object>();
+						datosGuardar.put("PAUSADO", "true");
+						guardarFacturaSendData(listaTransaccionesView.get(0), datosGuardar, databaseProperties);
 						
-					} else {
-						sqlUpdate += "?, ";	
 					}
 				}
 			}
-		
-			sqlUpdate += "?, ? ";
-			sqlUpdate += "), ";
+			
 		}
-		
-		//Al final retirar la coma restante
-		sqlUpdate = sqlUpdate.substring(0, sqlUpdate.length() - 2);
-		
-		PreparedStatement statement = conn.prepareStatement(sqlUpdate);
-
-		*/
-
-		
-		
-/*		//Agregar los parametros.
-		
-		itrDato = datosGuardar.entrySet().iterator();
-		while (itrDato.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
-			Map.Entry eDato = (Map.Entry)itrDato.next();
-			
-			itr = databaseProperties.entrySet().iterator();
-			int f = 1;
-			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
-				Map.Entry e = (Map.Entry)itr.next();
-				
-				String key = e.getKey()+""; 
-				String value = e.getValue()+"";
-				if ((key).startsWith("database.facturasend_table.field.")) {
-					if (value.startsWith("@SQL(")) {
-						//Como ya coloco el SQL, entonces aqui no inserta los parámetros.
-						
-					} else {
-						statement.setObject(f++, getValueForKey(viewPrincipal, e.getValue()+""));
-					}
-				}
-			}
-		
-			statement.setString(f++, eDato.getKey() + "");
-			
-			Clob clob = conn.createClob();
-			clob.setString(1, eDato.getValue()+"" );
-
-			statement.setClob(f++, clob );
-		}
-	
-		System.out.println("" + sqlUpdate);
-		result = statement.executeUpdate();
-		
-		String posUpdateSQL = databaseProperties.get("database.facturasend_table.pos_update_sql");
-		if (posUpdateSQL != null) {
-			System.out.println(posUpdateSQL);
-			PreparedStatement statement2 = conn.prepareStatement(posUpdateSQL);
-			statement2.executeQuery();
-			
-		}*/
 		
 		return result;
 	}
@@ -988,7 +958,7 @@ public class Core {
 	 */
 	public static Map<String, Object> procesarTransacciones(String transaccionIdString, Map<String, String> databaseProperties)  {
 		
-		Map<String, Object> obtenerTransaccionesMap = procesarTransaccionesParaEnvioLote(transaccionIdString, databaseProperties);
+		Map<String, Object> obtenerTransaccionesMap = obtenerTransaccionesParaEnvioLote(transaccionIdString, databaseProperties);
 
 		try {
 			
@@ -1020,7 +990,7 @@ public class Core {
 	 * @param databaseProperties
 	 * @return
 	 */
-	public static Map<String, Object> procesarTransaccionesParaEnvioLote(String transaccionIdString, Map<String, String> databaseProperties) {
+	public static Map<String, Object> obtenerTransaccionesParaEnvioLote(String transaccionIdString, Map<String, String> databaseProperties) {
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
@@ -1028,7 +998,7 @@ public class Core {
 			
 			Statement statement = conn.createStatement();
 			
-			String sql = obtenerTransaccionesParaEnvioLote(databaseProperties, transaccionIdString);
+			String sql = obtenerTransaccionesSQLParaEnvioLote(databaseProperties, transaccionIdString);
 			
 			//result.put("count", SQLUtil.getCountFromSQL(statement, sql));
 
@@ -1059,7 +1029,7 @@ public class Core {
 	 * @param tipoDocumento
 	 * @return
 	 */
-	private static String obtenerTransaccionesParaEnvioLote(Map<String, String> databaseProperties, String transaccionIdString) {
+	private static String obtenerTransaccionesSQLParaEnvioLote(Map<String, String> databaseProperties, String transaccionIdString) {
 		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transacctions_table");
 
 		String sql = "";
