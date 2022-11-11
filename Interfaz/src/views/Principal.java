@@ -128,21 +128,7 @@ public class Principal extends JFrame {
 					}
 					
 					//---
-					Integer autoUpdateIntegracion = Integer.valueOf(FacturasendService.readDBProperties().get("database.autoupdate_millis.integracion")+"");
-					
-					if (autoUpdateIntegracion > 0) {
-						new Timer().schedule(new TimerTask() {
-						    @Override
-						    public void run() {
-						    	try {
-									window.fs.iniciarIntegracion();	
-								} catch (Exception e2) {
-									JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
-									System.out.println("Mostrar error en pantalla, " + e2);
-								};
-						    }
-						}, new Date(), autoUpdateIntegracion); //Cada N millis segundos						
-					}
+
 
 					
 				} catch (Exception e) {

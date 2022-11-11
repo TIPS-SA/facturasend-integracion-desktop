@@ -4,6 +4,9 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -13,6 +16,9 @@ public class SQLConnection {
 	private static SQLConnection sqlConnection;
     private BasicDataSource basicDataSource = null;
     private static BDConnect bdConnect;
+    
+    private Map<String, Connection> connections = new HashMap<String, Connection>();
+    
     //DBF
     private Connection dbfConnection = null;
     
@@ -109,10 +115,35 @@ public class SQLConnection {
 		}
 	}
 
-	public Connection getConnection() throws Exception {
+	public Connection getConnection(String connName) throws Exception {
 		if (!this.bdConnect.getTipo().equals("dbf")) {
-			return this.basicDataSource.getConnection();	
+			
+			//Buscar la conexion por el nombre y si existe enviar el que ya fue creado
+			Iterator itr = connections.entrySet().iterator();
+			Connection connEncontrado = null;
+			while (itr.hasNext()) {
+				Map.Entry e = (Map.Entry)itr.next();
+				
+				String key = e.getKey()+"";
+				if ( key.equals(connName)) {
+					connEncontrado = (Connection) e.getValue();
+				}
+			}
+			
+			if (connEncontrado != null) {
+				if (connEncontrado.isClosed()) {
+					System.out.println("Conexion estaba cerrada");
+				}
+				return connEncontrado;	
+			} else {
+				System.out.println("Obteniendo nueva conexión del pool");
+				Connection newConn = this.basicDataSource.getConnection();
+				connections.put(connName, newConn);
+				return newConn;
+			}
+				
 		} else {
+			//DBF
 			return this.getDBFConnection();
 		}
 		

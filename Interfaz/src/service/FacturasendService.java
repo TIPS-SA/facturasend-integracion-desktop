@@ -1,39 +1,16 @@
 package service;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.font.TextAttribute;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JCheckBox;
 import javax.swing.JTable;
-import javax.swing.SwingConstants;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
 
-import bean.Cliente;
-import bean.DocumentoElectronico;
-import connect.BDConnect;
-import core.Core;
+import core.CoreService;
+import core.CoreServiceIntegracion;
 import views.table.TableDesign;
 
 public class FacturasendService {
@@ -51,7 +28,7 @@ public class FacturasendService {
 		//Llamar a la consulta de Datos
 		//ConfigProperties configProperties = new ConfigProperties();
 		
-		Map<String, Object> returnData = Core.getTransaccionesList(q, tipo, page, size, readDBProperties());
+		Map<String, Object> returnData = CoreService.getTransaccionesList(q, tipo, page, size, readDBProperties());
 		
 		System.out.println(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {
@@ -75,7 +52,7 @@ public class FacturasendService {
 		//Llamar a la consulta de Datos
 		//ConfigProperties configProperties = new ConfigProperties();
 		
-		Map<String, Object> returnData = Core.getTransaccionesItem(transaccionId, page, size, readDBProperties());
+		Map<String, Object> returnData = CoreService.getTransaccionesItem(transaccionId, page, size, readDBProperties());
 		
 		System.out.println(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {
@@ -98,7 +75,7 @@ public class FacturasendService {
 		
 		//Llamar a la consulta de Datos
 		
-		Core.pausarIniciar(transaccionId, readDBProperties());
+		CoreServiceIntegracion.pausarIniciar(transaccionId, readDBProperties());
 		
 	}
 
@@ -115,11 +92,11 @@ public class FacturasendService {
 		
 		//Llamar a la consulta de Datos
 		
-		Map<String, Object> returnData1 = Core.iniciarIntegracion(1, readDBProperties());
-		Map<String, Object> returnData4 = Core.iniciarIntegracion(4, readDBProperties());
-		Map<String, Object> returnData5 = Core.iniciarIntegracion(5, readDBProperties());
-		Map<String, Object> returnData6 = Core.iniciarIntegracion(6, readDBProperties());
-		Map<String, Object> returnData7 = Core.iniciarIntegracion(7, readDBProperties());
+		Map<String, Object> returnData1 = CoreServiceIntegracion.iniciarIntegracion(1, readDBProperties());
+		Map<String, Object> returnData4 = CoreServiceIntegracion.iniciarIntegracion(4, readDBProperties());
+		Map<String, Object> returnData5 = CoreServiceIntegracion.iniciarIntegracion(5, readDBProperties());
+		Map<String, Object> returnData6 = CoreServiceIntegracion.iniciarIntegracion(6, readDBProperties());
+		Map<String, Object> returnData7 = CoreServiceIntegracion.iniciarIntegracion(7, readDBProperties());
 		
 		/*System.out.println(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {
@@ -149,17 +126,17 @@ public class FacturasendService {
 			//System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
 				
-				datos[0] = Core.getValueForKey(rs.get(i), "transaccion_id", "tra_id");
-				datos[1] = Core.getValueForKey(rs.get(i), "fecha");
-				datos[2] = Core.getValueForKey(rs.get(i), "cliente_razon_social", "c_raz_soc");
-				datos[3] = StringUtil.padLeftZeros(Core.getValueForKey(rs.get(i), "establecimiento", "estable")+"", 3)  + "-" + StringUtil.padLeftZeros(Core.getValueForKey(rs.get(i), "punto")+"", 3) + "-" + StringUtil.padLeftZeros(Core.getValueForKey(rs.get(i), "numero")+"", 7);
-				datos[4] = Core.getValueForKey(rs.get(i), "moneda");
-				datos[5] = Core.getValueForKey(rs.get(i), "total") != null ? Core.getValueForKey(rs.get(i), "total") : 0;
+				datos[0] = CoreService.getValueForKey(rs.get(i), "transaccion_id", "tra_id");
+				datos[1] = CoreService.getValueForKey(rs.get(i), "fecha");
+				datos[2] = CoreService.getValueForKey(rs.get(i), "cliente_razon_social", "c_raz_soc");
+				datos[3] = StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "establecimiento", "estable")+"", 3)  + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "punto")+"", 3) + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "numero")+"", 7);
+				datos[4] = CoreService.getValueForKey(rs.get(i), "moneda");
+				datos[5] = CoreService.getValueForKey(rs.get(i), "total") != null ? CoreService.getValueForKey(rs.get(i), "total") : 0;
 				
 				//String fieldEstado = (String) Core.getValueForKey(rs.get(i), "estado"); 
 				//Integer fieldEstado = (Integer) Core.getValueForKey(rs.get(i), "estado");
-				String fieldPausado = (String)Core.getValueForKey(rs.get(i), "pausado");
-				Object fieldEstado = Core.getValueForKey(rs.get(i), "estado");
+				String fieldPausado = (String)CoreService.getValueForKey(rs.get(i), "pausado");
+				Object fieldEstado = CoreService.getValueForKey(rs.get(i), "estado");
 				
 				//String valueEstadoStr = (String) rs.get(i).get( fieldEstado );
 				Integer valueEstadoInt = -99;	//Sin estado	
@@ -167,17 +144,17 @@ public class FacturasendService {
 				if (fieldEstado != null) {
 					valueEstadoInt = Integer.valueOf( fieldEstado+"" );
 				}
-				if (Core.getValueForKey(rs.get(i), "error") != null) {
+				if (CoreService.getValueForKey(rs.get(i), "error") != null) {
 					datos[6] = "Error";
 				} else {
-					datos[6] = Core.getEstadoDescripcion(valueEstadoInt);					
+					datos[6] = CoreService.getEstadoDescripcion(valueEstadoInt);					
 				}
 				
 				if (fieldPausado != null) {
 					datos[6] += "(Pausado)";
 				}
 				
-				datos[7] = Core.getValueForKey(rs.get(i), "cdc");
+				datos[7] = CoreService.getValueForKey(rs.get(i), "cdc");
 
 				model.addRow(datos);
 			}
@@ -215,11 +192,11 @@ public class FacturasendService {
 			System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
 				
-				datos[0] = Core.getValueForKey(rs.get(i), "transaccion_id", "tra_id");
-				datos[1] = Core.getValueForKey(rs.get(i), "item_descripcion", "i_descrip");
-				datos[2] = Core.getValueForKey(rs.get(i), "item_cantidad", "i_cantidad");
-				datos[3] = Core.getValueForKey(rs.get(i), "item_precio_unitario", "i_pre_uni");
-				datos[4] = Core.getValueForKey(rs.get(i), "item_descuento", "i_descue");
+				datos[0] = CoreService.getValueForKey(rs.get(i), "transaccion_id", "tra_id");
+				datos[1] = CoreService.getValueForKey(rs.get(i), "item_descripcion", "i_descrip");
+				datos[2] = CoreService.getValueForKey(rs.get(i), "item_cantidad", "i_cantidad");
+				datos[3] = CoreService.getValueForKey(rs.get(i), "item_precio_unitario", "i_pre_uni");
+				datos[4] = CoreService.getValueForKey(rs.get(i), "item_descuento", "i_descue");
 				
 				DecimalFormat df = new DecimalFormat("###########.00");
 		        double subtotalNumber = Double.valueOf(datos[2].toString()) * Double.valueOf(datos[3].toString()) - Double.valueOf(datos[4].toString());

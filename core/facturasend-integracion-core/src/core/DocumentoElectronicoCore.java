@@ -25,7 +25,7 @@ public class DocumentoElectronicoCore {
 				
 				//---
 				List<Map<String, Object>> documentosParaEnvioFiltradoList = documentosParaEnvioAllList.stream().filter( map -> {
-					String transaccionIdString = Core.getValueForKey(map, "transaccion_id", "tra_id") + "";
+					String transaccionIdString = CoreService.getValueForKey(map, "transaccion_id", "tra_id") + "";
 					
 					Integer transaccionIdIterate = new BigDecimal(transaccionIdString).intValue();
 					
@@ -35,7 +35,7 @@ public class DocumentoElectronicoCore {
 				//---
 				System.out.println("parmentViewAllList " + parmentViewAllList);
 				List<Map<String, Object>> parmentViewFiltradoList = parmentViewAllList.stream().filter( map -> {
-					String transaccionIdString = Core.getValueForKey(map, "transaccion_id", "tra_id") + "";
+					String transaccionIdString = CoreService.getValueForKey(map, "transaccion_id", "tra_id") + "";
 					
 					Integer transaccionIdIterate = new BigDecimal(transaccionIdString).intValue();
 					
@@ -71,94 +71,94 @@ public class DocumentoElectronicoCore {
 			Map<String, Object> transaccionCabecera = transaccionMap.get(0);
 			System.out.println("2");
 
-			Integer transaccionId = Integer.valueOf(Core.getValueForKey(transaccionCabecera, "transaccion_id", "tra_id") + "");
-			Integer tipoDocumento = Integer.valueOf(Core.getValueForKey(transaccionCabecera, "tipo_documento", "tip_doc") + "");
+			Integer transaccionId = Integer.valueOf(CoreService.getValueForKey(transaccionCabecera, "transaccion_id", "tra_id") + "");
+			Integer tipoDocumento = Integer.valueOf(CoreService.getValueForKey(transaccionCabecera, "tipo_documento", "tip_doc") + "");
 
 			dataMap.put("tipoDocumento", tipoDocumento);
-			String cdcGenerado = (String) Core.getValueForKey(transaccionCabecera, "cdc");
+			String cdcGenerado = (String) CoreService.getValueForKey(transaccionCabecera, "cdc");
 			System.out.println("3");
 
 			if (cdcGenerado != null && cdcGenerado.length() == 44) {
 				dataMap.put("cdc", cdcGenerado); //Si ya fue generado con un CDC, entonces envía para utilizar el mismo.
 			}
 
-			dataMap.put("establecimiento", Core.getValueForKey(transaccionCabecera, "establecimiento", "estable"));
-			dataMap.put("punto", Core.getValueForKey(transaccionCabecera, "punto"));
-			dataMap.put("numero", Core.getValueForKey(transaccionCabecera, "numero"));
-			dataMap.put("serie", Core.getValueForKey(transaccionCabecera, "serie"));
-			if (Core.getValueForKey(transaccionCabecera,"descripcion","descrip") != null) {
-				dataMap.put("descripcion", Core.getValueForKey(transaccionCabecera, "descripcion", "descrip").toString().trim());
+			dataMap.put("establecimiento", CoreService.getValueForKey(transaccionCabecera, "establecimiento", "estable"));
+			dataMap.put("punto", CoreService.getValueForKey(transaccionCabecera, "punto"));
+			dataMap.put("numero", CoreService.getValueForKey(transaccionCabecera, "numero"));
+			dataMap.put("serie", CoreService.getValueForKey(transaccionCabecera, "serie"));
+			if (CoreService.getValueForKey(transaccionCabecera,"descripcion","descrip") != null) {
+				dataMap.put("descripcion", CoreService.getValueForKey(transaccionCabecera, "descripcion", "descrip").toString().trim());
 			}
-			if (Core.getValueForKey(transaccionCabecera,"observacion","observa") != null) {
-				dataMap.put("observacion", Core.getValueForKey(transaccionCabecera,"observacion","observa").toString().trim());
+			if (CoreService.getValueForKey(transaccionCabecera,"observacion","observa") != null) {
+				dataMap.put("observacion", CoreService.getValueForKey(transaccionCabecera,"observacion","observa").toString().trim());
 			}
 
-			if ( Core.getValueForKey(transaccionCabecera,"fecha") instanceof Date) {
-				dataMap.put("fecha", sdf.format((Date) Core.getValueForKey(transaccionCabecera,"fecha")) );
+			if ( CoreService.getValueForKey(transaccionCabecera,"fecha") instanceof Date) {
+				dataMap.put("fecha", sdf.format((Date) CoreService.getValueForKey(transaccionCabecera,"fecha")) );
 			} else {
-				dataMap.put("fecha", Core.getValueForKey(transaccionCabecera,"fecha") );
+				dataMap.put("fecha", CoreService.getValueForKey(transaccionCabecera,"fecha") );
 			}
-			dataMap.put("tipoEmision", Core.getValueForKey(transaccionCabecera, "tipo_emision", "tip_emi"));
-			dataMap.put("tipoTransaccion", Core.getValueForKey(transaccionCabecera, "tipo_transaccion", "tip_tra"));
-			dataMap.put("tipoImpuesto", Core.getValueForKey(transaccionCabecera, "tipo_impuesto", "tip_imp"));
+			dataMap.put("tipoEmision", CoreService.getValueForKey(transaccionCabecera, "tipo_emision", "tip_emi"));
+			dataMap.put("tipoTransaccion", CoreService.getValueForKey(transaccionCabecera, "tipo_transaccion", "tip_tra"));
+			dataMap.put("tipoImpuesto", CoreService.getValueForKey(transaccionCabecera, "tipo_impuesto", "tip_imp"));
 			
-			if (Core.getValueForKey(transaccionCabecera,"moneda") != null) {
-				dataMap.put("moneda", Core.getValueForKey(transaccionCabecera, "moneda").toString().trim());
+			if (CoreService.getValueForKey(transaccionCabecera,"moneda") != null) {
+				dataMap.put("moneda", CoreService.getValueForKey(transaccionCabecera, "moneda").toString().trim());
 			}
-			dataMap.put("condicionAnticipo", Core.getValueForKey(transaccionCabecera, "anticipo"));
-			dataMap.put("descuentoGlobal", Core.getValueForKey(transaccionCabecera, "descuento_global", "des_glo"));
-			dataMap.put("anticipoGlobal", Core.getValueForKey(transaccionCabecera, "anticipo_global", "ant_glo"));
-			dataMap.put("total", Core.getValueForKey(transaccionCabecera, "total"));
+			dataMap.put("condicionAnticipo", CoreService.getValueForKey(transaccionCabecera, "anticipo"));
+			dataMap.put("descuentoGlobal", CoreService.getValueForKey(transaccionCabecera, "descuento_global", "des_glo"));
+			dataMap.put("anticipoGlobal", CoreService.getValueForKey(transaccionCabecera, "anticipo_global", "ant_glo"));
+			dataMap.put("total", CoreService.getValueForKey(transaccionCabecera, "total"));
 
-			dataMap.put("condicionTipoCambio", Core.getValueForKey(transaccionCabecera,"tipo_cambio","tip_cam"));			
-			dataMap.put("cambio", Core.getValueForKey(transaccionCabecera,"cambio"));
+			dataMap.put("condicionTipoCambio", CoreService.getValueForKey(transaccionCabecera,"tipo_cambio","tip_cam"));			
+			dataMap.put("cambio", CoreService.getValueForKey(transaccionCabecera,"cambio"));
 			
 			// Cliente
 			Map<String, Object> cliente = new HashMap<String, Object>();
 			
-			cliente.put("contribuyente", Boolean.valueOf(Core.getValueForKey(transaccionCabecera,"cliente_contribuyente","c_contribu")+""));
+			cliente.put("contribuyente", Boolean.valueOf(CoreService.getValueForKey(transaccionCabecera,"cliente_contribuyente","c_contribu")+""));
 			
-			if (Core.getValueForKey(transaccionCabecera,"cliente_ruc","c_ruc") != null) {
-				cliente.put("ruc", Core.getValueForKey(transaccionCabecera,"cliente_ruc","c_ruc").toString().trim());
+			if (CoreService.getValueForKey(transaccionCabecera,"cliente_ruc","c_ruc") != null) {
+				cliente.put("ruc", CoreService.getValueForKey(transaccionCabecera,"cliente_ruc","c_ruc").toString().trim());
 			}
-			if (Core.getValueForKey(transaccionCabecera,"cliente_razon_social","c_raz_soc") != null) {
-				cliente.put("razonSocial", Core.getValueForKey(transaccionCabecera,"cliente_razon_social","c_raz_soc").toString().trim());
+			if (CoreService.getValueForKey(transaccionCabecera,"cliente_razon_social","c_raz_soc") != null) {
+				cliente.put("razonSocial", CoreService.getValueForKey(transaccionCabecera,"cliente_razon_social","c_raz_soc").toString().trim());
 			}
-			if (Core.getValueForKey(transaccionCabecera,"cliente_nombre_fantasia","c_nom_fan") != null) {
-				cliente.put("nombreFantasia", Core.getValueForKey(transaccionCabecera,"cliente_nombre_fantasia","c_nom_fan").toString().trim());
+			if (CoreService.getValueForKey(transaccionCabecera,"cliente_nombre_fantasia","c_nom_fan") != null) {
+				cliente.put("nombreFantasia", CoreService.getValueForKey(transaccionCabecera,"cliente_nombre_fantasia","c_nom_fan").toString().trim());
 			}
 
-			cliente.put("tipoOperacion", Core.getValueForKey(transaccionCabecera,"cliente_tipo_operacion","c_tip_ope"));
+			cliente.put("tipoOperacion", CoreService.getValueForKey(transaccionCabecera,"cliente_tipo_operacion","c_tip_ope"));
 			
-			if (Core.getValueForKey(transaccionCabecera,"cliente_direccion","c_direcc") != null) {
-				cliente.put("direccion", Core.getValueForKey(transaccionCabecera,"cliente_direccion","c_direcc").toString().trim());
+			if (CoreService.getValueForKey(transaccionCabecera,"cliente_direccion","c_direcc") != null) {
+				cliente.put("direccion", CoreService.getValueForKey(transaccionCabecera,"cliente_direccion","c_direcc").toString().trim());
 			}
-			if (Core.getValueForKey(transaccionCabecera,"cliente_numero_casa","c_num_cas") != null) {
-				cliente.put("numeroCasa", Core.getValueForKey(transaccionCabecera,"cliente_numero_casa","c_num_cas").toString().trim());
+			if (CoreService.getValueForKey(transaccionCabecera,"cliente_numero_casa","c_num_cas") != null) {
+				cliente.put("numeroCasa", CoreService.getValueForKey(transaccionCabecera,"cliente_numero_casa","c_num_cas").toString().trim());
 			}
 
-			cliente.put("ciudad", Core.getValueForKey(transaccionCabecera,"cliente_ciudad","c_ciudad"));
-			cliente.put("departamento", Core.getValueForKey(transaccionCabecera,"cliente_departamento","c_depart"));
-			cliente.put("distrito", Core.getValueForKey(transaccionCabecera,"cliente_distrito","c_distri"));
-			cliente.put("pais", Core.getValueForKey(transaccionCabecera,"cliente_pais","c_pais"));
+			cliente.put("ciudad", CoreService.getValueForKey(transaccionCabecera,"cliente_ciudad","c_ciudad"));
+			cliente.put("departamento", CoreService.getValueForKey(transaccionCabecera,"cliente_departamento","c_depart"));
+			cliente.put("distrito", CoreService.getValueForKey(transaccionCabecera,"cliente_distrito","c_distri"));
+			cliente.put("pais", CoreService.getValueForKey(transaccionCabecera,"cliente_pais","c_pais"));
 
-			cliente.put("tipoContribuyente", Core.getValueForKey(transaccionCabecera,"cliente_tipo_contribuyente","c_tip_con"));
+			cliente.put("tipoContribuyente", CoreService.getValueForKey(transaccionCabecera,"cliente_tipo_contribuyente","c_tip_con"));
 					
-			cliente.put("documentoTipo", Core.getValueForKey(transaccionCabecera,"cliente_documento_tipo","c_doc_tip"));
+			cliente.put("documentoTipo", CoreService.getValueForKey(transaccionCabecera,"cliente_documento_tipo","c_doc_tip"));
 			
-			cliente.put("documentoNumero", Core.getValueForKey(transaccionCabecera,"cliente_documento_numero","c_doc_num"));
+			cliente.put("documentoNumero", CoreService.getValueForKey(transaccionCabecera,"cliente_documento_numero","c_doc_num"));
 			
-			if (Core.getValueForKey(transaccionCabecera,"cliente_telefono","c_tel") != null) {
-				cliente.put("telefono", Core.getValueForKey(transaccionCabecera,"cliente_telefono","c_tel").toString().trim());
+			if (CoreService.getValueForKey(transaccionCabecera,"cliente_telefono","c_tel") != null) {
+				cliente.put("telefono", CoreService.getValueForKey(transaccionCabecera,"cliente_telefono","c_tel").toString().trim());
 			}
-			if (Core.getValueForKey(transaccionCabecera,"cliente_celular","c_cel") != null) {
-				cliente.put("celular", Core.getValueForKey(transaccionCabecera,"cliente_celular","c_cel").toString().trim() );
+			if (CoreService.getValueForKey(transaccionCabecera,"cliente_celular","c_cel") != null) {
+				cliente.put("celular", CoreService.getValueForKey(transaccionCabecera,"cliente_celular","c_cel").toString().trim() );
 			}
-			if (Core.getValueForKey(transaccionCabecera,"cliente_email","c_ema") != null) {
-				cliente.put("email", Core.getValueForKey(transaccionCabecera,"cliente_email","c_ema").toString().trim() );
+			if (CoreService.getValueForKey(transaccionCabecera,"cliente_email","c_ema") != null) {
+				cliente.put("email", CoreService.getValueForKey(transaccionCabecera,"cliente_email","c_ema").toString().trim() );
 			}
-			if (Core.getValueForKey(transaccionCabecera,"cliente_codigo","c_cod") != null) {
-				cliente.put("codigo", Core.getValueForKey(transaccionCabecera,"cliente_codigo","c_cod").toString().trim() );
+			if (CoreService.getValueForKey(transaccionCabecera,"cliente_codigo","c_cod") != null) {
+				cliente.put("codigo", CoreService.getValueForKey(transaccionCabecera,"cliente_codigo","c_cod").toString().trim() );
 			}
 			
 			dataMap.put("cliente", cliente );
@@ -168,16 +168,16 @@ public class DocumentoElectronicoCore {
 			// inicioUsuario
 			Map<String, Object> dataMapUsuario = new HashMap<String, Object>();
 
-			dataMapUsuario.put("documentoTipo", Core.getValueForKey(transaccionCabecera,"usuario_documento_tipo","u_doc_tip"));
+			dataMapUsuario.put("documentoTipo", CoreService.getValueForKey(transaccionCabecera,"usuario_documento_tipo","u_doc_tip"));
 			
-			if (Core.getValueForKey(transaccionCabecera,"usuario_documento_numero","u_doc_num") != null) {
-				dataMapUsuario.put("documentoNumero", Core.getValueForKey(transaccionCabecera,"usuario_documento_numero","u_doc_num").toString().trim());
+			if (CoreService.getValueForKey(transaccionCabecera,"usuario_documento_numero","u_doc_num") != null) {
+				dataMapUsuario.put("documentoNumero", CoreService.getValueForKey(transaccionCabecera,"usuario_documento_numero","u_doc_num").toString().trim());
 			}
-			if (Core.getValueForKey(transaccionCabecera,"usuario_nombre","u_nom") != null) {
-				dataMapUsuario.put("nombre", Core.getValueForKey(transaccionCabecera,"usuario_nombre","u_nom").toString().trim());
+			if (CoreService.getValueForKey(transaccionCabecera,"usuario_nombre","u_nom") != null) {
+				dataMapUsuario.put("nombre", CoreService.getValueForKey(transaccionCabecera,"usuario_nombre","u_nom").toString().trim());
 			}
-			if (Core.getValueForKey(transaccionCabecera,"usuario_cargo","u_car") != null) {
-				dataMapUsuario.put("cargo", Core.getValueForKey(transaccionCabecera,"usuario_cargo","u_car").toString().trim());
+			if (CoreService.getValueForKey(transaccionCabecera,"usuario_cargo","u_car") != null) {
+				dataMapUsuario.put("cargo", CoreService.getValueForKey(transaccionCabecera,"usuario_cargo","u_car").toString().trim());
 			}
 			dataMap.put("usuario", dataMapUsuario);
 			//finUsuario
@@ -186,33 +186,33 @@ public class DocumentoElectronicoCore {
 			//Factura
 			if (tipoDocumento == 1) {
 				Map<String, Object> dataMapFactura1 = new HashMap<String, Object>();
-				dataMapFactura1.put("presencia", Core.getValueForKey(transaccionCabecera,"factura_presencia","fa_pre"));
-				dataMapFactura1.put("fechaEnvio", Core.getValueForKey(transaccionCabecera,"factura_fecha_envio","fa_fec_env"));
-				dataMapFactura1.put("ticket", Core.getValueForKey(transaccionCabecera,"factura_ticket","fa_ticket"));				
+				dataMapFactura1.put("presencia", CoreService.getValueForKey(transaccionCabecera,"factura_presencia","fa_pre"));
+				dataMapFactura1.put("fechaEnvio", CoreService.getValueForKey(transaccionCabecera,"factura_fecha_envio","fa_fec_env"));
+				dataMapFactura1.put("ticket", CoreService.getValueForKey(transaccionCabecera,"factura_ticket","fa_ticket"));				
 				dataMap.put("factura", dataMapFactura1);
 			}
 			
 			//AutoFactura
 			if (tipoDocumento == 4) {
 				Map<String, Object> dataMapFactura = new HashMap<String, Object>();
-				dataMapFactura.put("tipoVendedor", Core.getValueForKey(transaccionCabecera,"autofactura_tipo_vendedor","af_tip_ven"));
-				dataMapFactura.put("documentoTipo", Core.getValueForKey(transaccionCabecera,"autofactura_documento_tipo","af_doc_tip"));
-				dataMapFactura.put("documentoNumero", Core.getValueForKey(transaccionCabecera,"autofactura_documento_numero","af_doc_num"));
-				dataMapFactura.put("nombre", Core.getValueForKey(transaccionCabecera,"autofactura_nombre","af_tip_ven"));				
-				dataMapFactura.put("direccion", Core.getValueForKey(transaccionCabecera,"autofactura_direccion","af_tip_ven"));
-				dataMapFactura.put("numeroCasa", Core.getValueForKey(transaccionCabecera,"autofactura_numero_casa","af_num_cas"));
-				dataMapFactura.put("departamento", Core.getValueForKey(transaccionCabecera,"autofactura_departamento","af_depart"));
-				dataMapFactura.put("distrito", Core.getValueForKey(transaccionCabecera,"autofactura_distrito","af_distri"));
-				dataMapFactura.put("ciudad", Core.getValueForKey(transaccionCabecera,"autofactura_ciudad","af_ciudad"));
-				dataMapFactura.put("pais", Core.getValueForKey(transaccionCabecera,"autofactura_pais","af_pais"));
+				dataMapFactura.put("tipoVendedor", CoreService.getValueForKey(transaccionCabecera,"autofactura_tipo_vendedor","af_tip_ven"));
+				dataMapFactura.put("documentoTipo", CoreService.getValueForKey(transaccionCabecera,"autofactura_documento_tipo","af_doc_tip"));
+				dataMapFactura.put("documentoNumero", CoreService.getValueForKey(transaccionCabecera,"autofactura_documento_numero","af_doc_num"));
+				dataMapFactura.put("nombre", CoreService.getValueForKey(transaccionCabecera,"autofactura_nombre","af_tip_ven"));				
+				dataMapFactura.put("direccion", CoreService.getValueForKey(transaccionCabecera,"autofactura_direccion","af_tip_ven"));
+				dataMapFactura.put("numeroCasa", CoreService.getValueForKey(transaccionCabecera,"autofactura_numero_casa","af_num_cas"));
+				dataMapFactura.put("departamento", CoreService.getValueForKey(transaccionCabecera,"autofactura_departamento","af_depart"));
+				dataMapFactura.put("distrito", CoreService.getValueForKey(transaccionCabecera,"autofactura_distrito","af_distri"));
+				dataMapFactura.put("ciudad", CoreService.getValueForKey(transaccionCabecera,"autofactura_ciudad","af_ciudad"));
+				dataMapFactura.put("pais", CoreService.getValueForKey(transaccionCabecera,"autofactura_pais","af_pais"));
 				
 				Map<String, Object> ubicacion = new HashMap<String, Object>();
 				
 				//Ubicacion de la Autofactura, local del cliente.
-				ubicacion.put("lugar", Core.getValueForKey(transaccionCabecera,"cliente_direccion","c_direcc"));
-				ubicacion.put("ciudad", Core.getValueForKey(transaccionCabecera,"cliente_ciudad","c_ciudad"));
-				ubicacion.put("distrito", Core.getValueForKey(transaccionCabecera,"cliente_distrito","c_distri"));				
-				ubicacion.put("departamento", Core.getValueForKey(transaccionCabecera,"cliente_departamento","c_depart"));
+				ubicacion.put("lugar", CoreService.getValueForKey(transaccionCabecera,"cliente_direccion","c_direcc"));
+				ubicacion.put("ciudad", CoreService.getValueForKey(transaccionCabecera,"cliente_ciudad","c_ciudad"));
+				ubicacion.put("distrito", CoreService.getValueForKey(transaccionCabecera,"cliente_distrito","c_distri"));				
+				ubicacion.put("departamento", CoreService.getValueForKey(transaccionCabecera,"cliente_departamento","c_depart"));
 				dataMapFactura.put("ubicacion", ubicacion);
 				
 				dataMap.put("autoFactura", dataMapFactura);
@@ -221,7 +221,7 @@ public class DocumentoElectronicoCore {
 			//NotaCredito y Debito
 			if (tipoDocumento == 5) {
 				Map<String, Object> dataMapNotaCreditoDebito = new HashMap<String, Object>();
-				dataMapNotaCreditoDebito.put("motivo", Core.getValueForKey(transaccionCabecera,"nc_motivo","nc_motivo"));
+				dataMapNotaCreditoDebito.put("motivo", CoreService.getValueForKey(transaccionCabecera,"nc_motivo","nc_motivo"));
 			
 				dataMap.put("notaCreditoDebito", dataMapNotaCreditoDebito);		
 			}
@@ -229,9 +229,9 @@ public class DocumentoElectronicoCore {
 			//NotaRemision			
 			if (tipoDocumento == 7) {
 				Map<String, Object> dataMapNotaRemision = new HashMap<String, Object>();
-				dataMapNotaRemision.put("motivo", Core.getValueForKey(transaccionCabecera,"nota_remision_motivo","nr_motivo"));
-				dataMapNotaRemision.put("tipoResponsable", Core.getValueForKey(transaccionCabecera,"nota_remision_tipo_responsable","nr_tip_res"));
-				dataMapNotaRemision.put("kms", Core.getValueForKey(transaccionCabecera,"nota_remision_kms","nr_kms"));
+				dataMapNotaRemision.put("motivo", CoreService.getValueForKey(transaccionCabecera,"nota_remision_motivo","nr_motivo"));
+				dataMapNotaRemision.put("tipoResponsable", CoreService.getValueForKey(transaccionCabecera,"nota_remision_tipo_responsable","nr_tip_res"));
+				dataMapNotaRemision.put("kms", CoreService.getValueForKey(transaccionCabecera,"nota_remision_kms","nr_kms"));
 	
 				dataMap.put("remision", dataMapNotaRemision);
 			}
@@ -248,50 +248,50 @@ public class DocumentoElectronicoCore {
 				Map<String, Object> dataMapProducto = new HashMap<String, Object>();
 				Map<String, Object> transaccionItems = transaccionMap.get(i);
 				
-				if (Core.getValueForKey(transaccionItems,"item_codigo","i_codigo") != null) {
-					dataMapProducto.put("codigo", Core.getValueForKey(transaccionItems,"item_codigo","i_codigo").toString().trim());
+				if (CoreService.getValueForKey(transaccionItems,"item_codigo","i_codigo") != null) {
+					dataMapProducto.put("codigo", CoreService.getValueForKey(transaccionItems,"item_codigo","i_codigo").toString().trim());
 				}
-				if (Core.getValueForKey(transaccionItems,"item_descripcion","i_descrip") != null) {
-					dataMapProducto.put("descripcion", Core.getValueForKey(transaccionItems,"item_descripcion","i_descrip").toString().trim());
-				}
-				
-				if (Core.getValueForKey(transaccionItems,"item_observacion","i_obs") != null) {
-					dataMapProducto.put("observacion", Core.getValueForKey(transaccionItems,"item_observacion","i_obs").toString().trim());
+				if (CoreService.getValueForKey(transaccionItems,"item_descripcion","i_descrip") != null) {
+					dataMapProducto.put("descripcion", CoreService.getValueForKey(transaccionItems,"item_descripcion","i_descrip").toString().trim());
 				}
 				
-				dataMapProducto.put("partidaArancelaria", Core.getValueForKey(transaccionItems,"item_partida_arancelaria","i_par_ara"));
-				dataMapProducto.put("ncm", Core.getValueForKey(transaccionItems,"item_ncm","i_ncm"));
-				dataMapProducto.put("unidadMedida", Core.getValueForKey(transaccionItems,"item_unidad_medida","i_uni_med"));
-				dataMapProducto.put("cantidad", Core.getValueForKey(transaccionItems,"item_cantidad","i_cantidad"));
-				dataMapProducto.put("precioUnitario", Core.getValueForKey(transaccionItems,"item_precio_unitario","i_pre_uni"));
-				dataMapProducto.put("cambio", Core.getValueForKey(transaccionItems,"item_cambio", "i_cambio"));
-				dataMapProducto.put("descuento", Core.getValueForKey(transaccionItems,"item_descuento","i_descue"));
-				dataMapProducto.put("anticipo", Core.getValueForKey(transaccionItems,"item_anticipo","i_anti"));
-				dataMapProducto.put("pais", Core.getValueForKey(transaccionItems,"item_pais","i_pais"));
-				dataMapProducto.put("tolerancia", Core.getValueForKey(transaccionItems,"item_tolerancia","i_tol"));
-				dataMapProducto.put("toleranciaCantidad", Core.getValueForKey(transaccionItems,"item_tolerancia_cantidad","i_tol_can"));
-				dataMapProducto.put("toleranciaPorcentaje", Core.getValueForKey(transaccionItems,"item_tolerancia_porcentaje","i_tol_por"));
-				dataMapProducto.put("cdcAnticipo", Core.getValueForKey(transaccionItems,"item_cdc_anticipo","i_cdc_ant"));
+				if (CoreService.getValueForKey(transaccionItems,"item_observacion","i_obs") != null) {
+					dataMapProducto.put("observacion", CoreService.getValueForKey(transaccionItems,"item_observacion","i_obs").toString().trim());
+				}
 				
-				dataMapProducto.put("ivaTipo", Core.getValueForKey(transaccionItems,"item_iva_tipo","i_iva_tip"));
-				dataMapProducto.put("ivaBase", Core.getValueForKey(transaccionItems,"item_iva_base","i_iva_bas"));
-				dataMapProducto.put("iva", Core.getValueForKey(transaccionItems,"item_iva","i_iva"));
-				dataMapProducto.put("lote", Core.getValueForKey(transaccionItems,"item_lote","i_lote"));
+				dataMapProducto.put("partidaArancelaria", CoreService.getValueForKey(transaccionItems,"item_partida_arancelaria","i_par_ara"));
+				dataMapProducto.put("ncm", CoreService.getValueForKey(transaccionItems,"item_ncm","i_ncm"));
+				dataMapProducto.put("unidadMedida", CoreService.getValueForKey(transaccionItems,"item_unidad_medida","i_uni_med"));
+				dataMapProducto.put("cantidad", CoreService.getValueForKey(transaccionItems,"item_cantidad","i_cantidad"));
+				dataMapProducto.put("precioUnitario", CoreService.getValueForKey(transaccionItems,"item_precio_unitario","i_pre_uni"));
+				dataMapProducto.put("cambio", CoreService.getValueForKey(transaccionItems,"item_cambio", "i_cambio"));
+				dataMapProducto.put("descuento", CoreService.getValueForKey(transaccionItems,"item_descuento","i_descue"));
+				dataMapProducto.put("anticipo", CoreService.getValueForKey(transaccionItems,"item_anticipo","i_anti"));
+				dataMapProducto.put("pais", CoreService.getValueForKey(transaccionItems,"item_pais","i_pais"));
+				dataMapProducto.put("tolerancia", CoreService.getValueForKey(transaccionItems,"item_tolerancia","i_tol"));
+				dataMapProducto.put("toleranciaCantidad", CoreService.getValueForKey(transaccionItems,"item_tolerancia_cantidad","i_tol_can"));
+				dataMapProducto.put("toleranciaPorcentaje", CoreService.getValueForKey(transaccionItems,"item_tolerancia_porcentaje","i_tol_por"));
+				dataMapProducto.put("cdcAnticipo", CoreService.getValueForKey(transaccionItems,"item_cdc_anticipo","i_cdc_ant"));
 				
-				dataMapProducto.put("vencimiento", Core.getValueForKey(transaccionItems,"item_vencimiento","i_venci"));
-				dataMapProducto.put("numeroSerie", Core.getValueForKey(transaccionItems,"item_numero_serie","i_num_ser"));
-				dataMapProducto.put("numeroPedido", Core.getValueForKey(transaccionItems,"item_numero_pedido","i_num_ped"));
-				dataMapProducto.put("numeroSeguimiento", Core.getValueForKey(transaccionItems,"item_numero_seguimiento","i_num_seg"));
-				dataMapProducto.put("registroSenave", Core.getValueForKey(transaccionItems,"item_registro_senave","i_reg_sen"));
-				dataMapProducto.put("registroEntidadComercial", Core.getValueForKey(transaccionItems,"item_registro_entidad_comercial","i_reg_ent"));
+				dataMapProducto.put("ivaTipo", CoreService.getValueForKey(transaccionItems,"item_iva_tipo","i_iva_tip"));
+				dataMapProducto.put("ivaBase", CoreService.getValueForKey(transaccionItems,"item_iva_base","i_iva_bas"));
+				dataMapProducto.put("iva", CoreService.getValueForKey(transaccionItems,"item_iva","i_iva"));
+				dataMapProducto.put("lote", CoreService.getValueForKey(transaccionItems,"item_lote","i_lote"));
+				
+				dataMapProducto.put("vencimiento", CoreService.getValueForKey(transaccionItems,"item_vencimiento","i_venci"));
+				dataMapProducto.put("numeroSerie", CoreService.getValueForKey(transaccionItems,"item_numero_serie","i_num_ser"));
+				dataMapProducto.put("numeroPedido", CoreService.getValueForKey(transaccionItems,"item_numero_pedido","i_num_ped"));
+				dataMapProducto.put("numeroSeguimiento", CoreService.getValueForKey(transaccionItems,"item_numero_seguimiento","i_num_seg"));
+				dataMapProducto.put("registroSenave", CoreService.getValueForKey(transaccionItems,"item_registro_senave","i_reg_sen"));
+				dataMapProducto.put("registroEntidadComercial", CoreService.getValueForKey(transaccionItems,"item_registro_entidad_comercial","i_reg_ent"));
 				
 				Map<String, Object> dataMapDncp = new HashMap<String, Object>();
-				dataMapDncp.put("codigoNivelGeneral", Core.getValueForKey(transaccionItems,"item_dncp_codigo_nivel_general","i_dncp_cng"));
-				dataMapDncp.put("codigoNivelEspecifico", Core.getValueForKey(transaccionItems,"item_dncp_codigo_nivel_especifico","i_dncp_cne"));
-				dataMapDncp.put("codigoGtinProducto", Core.getValueForKey(transaccionItems,"item_dncp_codigo_gtin_producto","i_dncp_cgp"));
-				dataMapDncp.put("codigoNivelPaquete", Core.getValueForKey(transaccionItems,"item_dncp_codigo_nivel_paquete","i_dncp_cnp"));
+				dataMapDncp.put("codigoNivelGeneral", CoreService.getValueForKey(transaccionItems,"item_dncp_codigo_nivel_general","i_dncp_cng"));
+				dataMapDncp.put("codigoNivelEspecifico", CoreService.getValueForKey(transaccionItems,"item_dncp_codigo_nivel_especifico","i_dncp_cne"));
+				dataMapDncp.put("codigoGtinProducto", CoreService.getValueForKey(transaccionItems,"item_dncp_codigo_gtin_producto","i_dncp_cgp"));
+				dataMapDncp.put("codigoNivelPaquete", CoreService.getValueForKey(transaccionItems,"item_dncp_codigo_nivel_paquete","i_dncp_cnp"));
 
-				if (Core.getValueForKey(transaccionItems,"item_dncp_codigo_nivel_general","i_dncp_cng") != null) {
+				if (CoreService.getValueForKey(transaccionItems,"item_dncp_codigo_nivel_general","i_dncp_cng") != null) {
 					dataMapProducto.put("dncp", dataMapDncp);	
 				}
 				
@@ -342,25 +342,25 @@ public class DocumentoElectronicoCore {
 
 			//DocumentoAsociado
 			Map<String, Object> documentoAsociadoMap = new HashMap<String, Object>();
-			documentoAsociadoMap.put("formato", Core.getValueForKey(transaccionCabecera,"documento_asociado_formato","d_aso_for"));
+			documentoAsociadoMap.put("formato", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_formato","d_aso_for"));
 			
-			if (Core.getValueForKey(transaccionCabecera,"documento_asociado_cdc","d_aso_cdc") != null) {
-				documentoAsociadoMap.put("cdc", Core.getValueForKey(transaccionCabecera,"documento_asociado_cdc","d_aso_cdc").toString().trim());
+			if (CoreService.getValueForKey(transaccionCabecera,"documento_asociado_cdc","d_aso_cdc") != null) {
+				documentoAsociadoMap.put("cdc", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_cdc","d_aso_cdc").toString().trim());
 			}
 
-			documentoAsociadoMap.put("tipoDocumentoImpreso", Core.getValueForKey(transaccionCabecera,"documento_asociado_cdc","d_aso_tdi"));
-			documentoAsociadoMap.put("timbrado", Core.getValueForKey(transaccionCabecera,"documento_asociado_timbrado","d_aso_tim"));
-			documentoAsociadoMap.put("establecimiento", Core.getValueForKey(transaccionCabecera,"documento_asociado_establecimiento","d_aso_est"));
-			documentoAsociadoMap.put("punto", Core.getValueForKey(transaccionCabecera,"documento_asociado_punto","d_aso_pun"));
-			documentoAsociadoMap.put("numero", Core.getValueForKey(transaccionCabecera,"documento_asociado_numero","d_aso_num"));
-			documentoAsociadoMap.put("fecha", Core.getValueForKey(transaccionCabecera,"documento_asociado_fecha","d_aso_fec"));
-			documentoAsociadoMap.put("numeroRetencion", Core.getValueForKey(transaccionCabecera,"documento_asociado_numero_retencion","d_aso_ret"));
-			documentoAsociadoMap.put("resolucionCreditoFiscal", Core.getValueForKey(transaccionCabecera,"documento_asociado_resolucion_credito_fiscal","d_aso_rcf"));
-			documentoAsociadoMap.put("constanciaTipo", Core.getValueForKey(transaccionCabecera,"documento_asociado_constancia_tipo","d_aso_cti"));
-			documentoAsociadoMap.put("constanciaNumero", Core.getValueForKey(transaccionCabecera,"documento_asociado_constancia_numero","d_aso_cnu"));
-			documentoAsociadoMap.put("constanciaControl", Core.getValueForKey(transaccionCabecera,"documento_asociado_constancia_control","d_aso_cco"));
+			documentoAsociadoMap.put("tipoDocumentoImpreso", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_cdc","d_aso_tdi"));
+			documentoAsociadoMap.put("timbrado", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_timbrado","d_aso_tim"));
+			documentoAsociadoMap.put("establecimiento", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_establecimiento","d_aso_est"));
+			documentoAsociadoMap.put("punto", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_punto","d_aso_pun"));
+			documentoAsociadoMap.put("numero", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_numero","d_aso_num"));
+			documentoAsociadoMap.put("fecha", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_fecha","d_aso_fec"));
+			documentoAsociadoMap.put("numeroRetencion", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_numero_retencion","d_aso_ret"));
+			documentoAsociadoMap.put("resolucionCreditoFiscal", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_resolucion_credito_fiscal","d_aso_rcf"));
+			documentoAsociadoMap.put("constanciaTipo", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_constancia_tipo","d_aso_cti"));
+			documentoAsociadoMap.put("constanciaNumero", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_constancia_numero","d_aso_cnu"));
+			documentoAsociadoMap.put("constanciaControl", CoreService.getValueForKey(transaccionCabecera,"documento_asociado_constancia_control","d_aso_cco"));
 			
-			if (Core.getValueForKey(transaccionCabecera,"documento_asociado_formato","d_aso_for") != null) {
+			if (CoreService.getValueForKey(transaccionCabecera,"documento_asociado_formato","d_aso_for") != null) {
 				dataMap.put("documentoAsociado", documentoAsociadoMap);	
 			}
 			
@@ -412,7 +412,7 @@ public class DocumentoElectronicoCore {
 		for (int i = 0; i < paymentViewMap.size(); i++) {
 			Map<String, Object> formaCobro = paymentViewMap.get(i);
 
-			Integer tipo = Integer.valueOf(Core.getValueForKey(formaCobro,"tipo")+"");
+			Integer tipo = Integer.valueOf(CoreService.getValueForKey(formaCobro,"tipo")+"");
 			
 			if (tipo.intValue() == 2) {
 				esACredito = true;
@@ -430,23 +430,23 @@ public class DocumentoElectronicoCore {
 		condicionMap.put("tipo", esACredito ? 2 : 1);
 				
 		// Forma de Cobro
-		Integer tipoFormaPagoAnterior = Integer.valueOf(Core.getValueForKey(paymentViewMap.get(0),"tipo") + "");
+		Integer tipoFormaPagoAnterior = Integer.valueOf(CoreService.getValueForKey(paymentViewMap.get(0),"tipo") + "");
 		//Integer monedaFormaPagoAnterior = Integer.valueOf(Core.getValueForKey(paymentViewMap.get(0),"moneda") + "");
 		double sumatoriaMontoEntrega = 0.0;
 		for (int i = 0; i < paymentViewMap.size(); i++) {
 			Map<String, Object> formaCobro = paymentViewMap.get(i);
 
-			Integer tipo = Integer.valueOf( Core.getValueForKey(formaCobro,"tipo") + "" );
-			Integer creditoTipo = Integer.valueOf( Core.getValueForKey(formaCobro,"credito_tipo","c_tipo") + "" );
+			Integer tipo = Integer.valueOf( CoreService.getValueForKey(formaCobro,"tipo") + "" );
+			Integer creditoTipo = Integer.valueOf( CoreService.getValueForKey(formaCobro,"credito_tipo","c_tipo") + "" );
 			
 			if (tipo == 1) {
 				Map<String, Object> efectivoMap = new HashMap<String, Object>();
 
-				double monto = Double.valueOf(Core.getValueForKey(formaCobro,"monto")+"");
+				double monto = Double.valueOf(CoreService.getValueForKey(formaCobro,"monto")+"");
 				efectivoMap.put("tipo", 1);
 				efectivoMap.put("monto", monto);
-				efectivoMap.put("moneda", Core.getValueForKey(formaCobro,"moneda"));
-				efectivoMap.put("cambio", Core.getValueForKey(formaCobro,"cambio"));
+				efectivoMap.put("moneda", CoreService.getValueForKey(formaCobro,"moneda"));
+				efectivoMap.put("cambio", CoreService.getValueForKey(formaCobro,"cambio"));
 				entregasListMap.add(efectivoMap);
 
 				sumatoriaMontoEntrega += monto;
@@ -495,7 +495,7 @@ public class DocumentoElectronicoCore {
 					//Map<String, Object> creditoMap = new HashMap<String, Object>();
 
 					creditoMap.put("tipo", 1);	//1=Plazo,2=Cuotas
-					creditoMap.put("plazo", Core.getValueForKey(formaCobro,"credito_plazo","c_plazo") + "");
+					creditoMap.put("plazo", CoreService.getValueForKey(formaCobro,"credito_plazo","c_plazo") + "");
 					
 					//creditoMap.put("credito", creditoMap);
 

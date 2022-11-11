@@ -11,7 +11,7 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import core.Core;
+import core.CoreService;
 import service.FacturasendService;
 
 import java.awt.event.ActionListener;
@@ -129,12 +129,12 @@ public class InfoMovimiento extends JDialog {
 		
 		//Asignar valores
 		if (transacconesItem.size() > 0) {
-			String cdc = (String)Core.getValueForKey(transacconesItem.get(0), "CDC");
+			String cdc = (String)CoreService.getValueForKey(transacconesItem.get(0), "CDC");
 			if (cdc!= null) {
 				txtCdc.setText( cdc.trim() );
 			}
 			
-			Object fieldEstado = Core.getValueForKey(transacconesItem.get(0), "estado");
+			Object fieldEstado = CoreService.getValueForKey(transacconesItem.get(0), "estado");
 			
 			//String valueEstadoStr = (String) rs.get(i).get( fieldEstado );
 			Integer valueEstadoInt = -99;	//Sin estado	
@@ -142,7 +142,7 @@ public class InfoMovimiento extends JDialog {
 			if (fieldEstado != null) {
 				valueEstadoInt = Integer.valueOf( fieldEstado+"" );
 				txtEstado.setText( valueEstadoInt + "");
-				txtEstadoDescripcion.setText(Core.getEstadoDescripcion(valueEstadoInt));
+				txtEstadoDescripcion.setText(CoreService.getEstadoDescripcion(valueEstadoInt));
 
 			}
 			
@@ -151,7 +151,7 @@ public class InfoMovimiento extends JDialog {
 				txtEstado.setText( estado.trim() );
 			}*/
 			
-			String error = (String)Core.getValueForKey(transacconesItem.get(0), "ERROR");
+			String error = (String)CoreService.getValueForKey(transacconesItem.get(0), "ERROR");
 			
 			if (error != null) {
 				txtAError.setText( error.trim());
