@@ -88,7 +88,7 @@ public class CoreService {
 	}
 			
 	private static String getSQLTransaccionesList(Map<String, String> databaseProperties, String q, Integer tipoDocumento, Integer page, Integer size) {
-		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transacctions_table");
+		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
 		
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
@@ -178,7 +178,7 @@ public class CoreService {
 	}
 			
 	private static String getSQLTransaccionesItem(Map<String, String> databaseProperties, Integer transaccionId, Integer page, Integer size) {
-		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transacctions_table");
+		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
 		String sql = "";
 		
 		if (!databaseProperties.get("database.type").equals("dbf")) {
