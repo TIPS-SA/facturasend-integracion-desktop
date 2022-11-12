@@ -521,7 +521,8 @@ public class Principal extends JFrame {
 							JOptionPane.showMessageDialog(null, "La transacción ya está Aprobada");
 			
 						} else {
-							fs.pausarEnviar(transaccionId, tipoDocumento);
+							//fs.pausarEnviar(transaccionId, tipoDocumento);
+							fs.actualizarEstado(tipoDocumento);
 							
 							paginacion.refresh();
 							

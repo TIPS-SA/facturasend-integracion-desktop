@@ -129,7 +129,13 @@ public class CoreServiceIntegracion {
 				
 				
 				//Generar JSON de documentos electronicos.
-				List<Map<String, Object>> documentosParaEnvioJsonMap = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentoParaEnvioAllJsonMap, paymentViewAllMap, databaseProperties);
+				//List<Map<String, Object>> documentosParaEnvioJsonMap = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentoParaEnvioAllJsonMap, paymentViewAllMap, databaseProperties);
+				Map<String, Object> documentosStructurado = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentoParaEnvioAllJsonMap, paymentViewAllMap, databaseProperties);
+				
+				//Obtener un array de documentos a integrar
+				List<Map<String, Object>> documentosParaEnvioJsonMap = (List<Map<String, Object>>)documentosStructurado.get("jsonDEs");
+				//Obtener los registros de la vista relacionados con el documento a Integrar
+				List<List<Map<String,Object>>> documentosParaEnvioFiltradoList = (List<List<Map<String,Object>>>)documentosStructurado.get("documentosParaEnvioFiltradoList");
 				
 				if (documentosParaEnvioJsonMap.size() > 0) {
 					
@@ -145,6 +151,7 @@ public class CoreServiceIntegracion {
 					System.out.println("Total de Documentos Electronicos enviados: " + documentosParaEnvioJsonMap.size());
 					Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
 					
+					List<Map<String, Object>> deList = null;
 					if (resultadoJson != null) {
 						
 						createTableFacturaSendData(databaseProperties);
@@ -154,7 +161,7 @@ public class CoreServiceIntegracion {
 		
 							Map<String, Object> result = (Map<String, Object>)resultadoJson.get("result");
 							
-							List<Map<String, Object>> deList = (List<Map<String, Object>>)result.get("deList");
+							deList = (List<Map<String, Object>>)result.get("deList");
 							System.out.println("Total de Documentos Electronicos recibidos: " + deList.size());
 							
 							if (documentosParaEnvioJsonMap.size() != deList.size()) {
@@ -162,7 +169,7 @@ public class CoreServiceIntegracion {
 							}
 							for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
 								Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
-								Map<String, Object> viewRec = documentoParaEnvioAllJsonMap.get(i);
+								Map<String, Object> viewRec = documentosParaEnvioFiltradoList.get(i).get(0);	//Toma el primer registro.
 		
 								Map<String, Object> respuestaDE = deList.get(i);	//Utiliza el mismo Indice de List de Json
 										
@@ -174,7 +181,7 @@ public class CoreServiceIntegracion {
 								datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
 								datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(viewRec, "transaccion_id", "tra_id"));
 								
-								updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties);
+								updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, true);
 								//---
 								
 								//Borrar registros previamente cargados, para evitar duplicidad
@@ -238,7 +245,7 @@ public class CoreServiceIntegracion {
 											datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
 											datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(viewRec, "transaccion_id", "tra_id"));
 											
-											updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties);
+											updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, true);
 											//---
 											
 											//Borrar registros previamente cargados, para evitar duplicidad
@@ -273,6 +280,10 @@ public class CoreServiceIntegracion {
 							boolean ejecutado = statement.execute(sql);
 							System.out.println("Ejecutado: " + ejecutado);
 						}
+						
+						
+						//Aqui ejecutar la consulta de Estado.
+						setTimeout(() -> actualizarEstadoDesdeFacturaSend(tipoDocumento, databaseProperties), 1000);
 		
 					}
 				} else {
@@ -398,9 +409,12 @@ public class CoreServiceIntegracion {
 	 * 									error
 	 * @param tipoDocumento			Tipo de documento a actualizar
 	 * @param databaseProperties
+	 * @param updateWithNullNotPassedParams Indica si se va actualizar con nulos, los valores que están en el archivo de 
+	 * 										configuracion y que no son pasados como parametros en datosUpdate.
+	 * 										Pasarle false, si solo se desea actualizar en la tabla el parametro pasado sin tocar los demas valores. 
 	 * @throws Exception
 	 */
-	private static void updateFacturaSendDataInTableTransacciones(Map<String, Object> datosUpdate, Map<String, String> databaseProperties) throws Exception {
+	private static void updateFacturaSendDataInTableTransacciones(Map<String, Object> datosUpdate, Map<String, String> databaseProperties, boolean updateWithNullNotPassedParams) throws Exception {
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
 
 		Integer tipoDocumento = (Integer)CoreService.getValueForKey(datosUpdate, "tipo_documento", "tip_doc");
@@ -426,7 +440,9 @@ public class CoreServiceIntegracion {
 					if (valor != null) {
 						sql += key + "= '" + valor + "', ";
 					} else {
-						sql += key + "= NULL, ";						
+						if (updateWithNullNotPassedParams) {
+							sql += key + "= NULL, ";
+						}
 					}
 				}
 			}
@@ -468,14 +484,94 @@ public class CoreServiceIntegracion {
 		}				
 	}
 
+	
+	public static Map<String, Object> actualizarEstadoDesdeFacturaSend(Integer tipoDocumento, Map<String, String> databaseProperties)  {
+		//Recupera los transaccion_id que se deben integrar
+		Map<String, Object> result = new HashMap<String, Object>();
+		
+		
+		try {
+			//cdcList=> contendrá el campo cdc, y el campo transaccion_id|tra_id, para uso futuro
+			List<Map<String, Object>> cdcList = obtenerCDCsConEstadoGenerado(tipoDocumento, databaseProperties);
+
+			if (cdcList.size() > 0) {	
+				
+				Map<String, Object> data = new HashMap<String, Object>();
+				data.put("cdcList", cdcList);
+				
+				Map header = new HashMap();
+				header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
+				String url = databaseProperties.get("facturasend.url");
+				url += "/de/estado";
+				
+				System.out.println("Verificar estados de : " + data.size() + " De(s)");
+				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(data), header);
+				
+				if (resultadoJson != null) {
+					if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
+						Map<String, Object> resultMap = (Map<String, Object>)resultadoJson.get("result");
+						
+						List<Map<String, Object>> deListConEstados = (List<Map<String, Object>>)resultMap.get("deList");
+						
+						if (deListConEstados.size() > 0) {
+							//Actualizar estados en la Base de datos, solo si el estado es != 0
+							for (int j = 0; j < deListConEstados.size(); j++) {
+								Map<String, Object> deConEstado = deListConEstados.get(j);
+							
+								if ( ! (CoreService.getValueForKey(deConEstado, "estado") + "").equals("0")) {
+									
+									//---
+									//Actualiza la tabla destino de acuerdo a la configuracion
+									Map<String, Object> datosUpdate = new HashMap<String, Object>();
+									datosUpdate.put("ESTADO", CoreService.getValueForKey(deConEstado, "estado") + "");
+									datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
+									datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id"));
+									
+									updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, false);
+									//---
+									
+									//Borrar registros de ESTADO previamente cargados, para evitar duplicidad
+									deleteFacturaSendTableByTransaccionId(cdcList.get(j), databaseProperties, "('ESTADO')");
+
+			
+									String estado = CoreService.getValueForKey(deConEstado, "estado") + "";
+									Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
+									datosGuardar1.put("ESTADO", estado);
+									saveDataToFacturaSendTable(cdcList.get(j), datosGuardar1, databaseProperties);
+								}
+							}
+						}
+					} else {
+						throw new Exception(resultadoJson.get("error") + "");
+					}
+				}
+				
+				result.put("success", true);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("success", false);
+			result.put("error", e.getMessage());
+		}
+		return result;
+	}
+
+	
+	public static Integer deleteFacturaSendTableByTransaccionId(Map<String, Object> de, Map<String, String> databaseProperties) throws Exception{
+		Integer result = deleteFacturaSendTableByTransaccionId(de, databaseProperties, "('ERROR', 'ESTADO', 'PAUSADO', 'XML', 'JSON', 'QR', 'CDC', 'TIPO')");
+
+		return result;
+	}
+
 	/**
 	 * 
-	 * @param de
+	 * @param de		Map conteniendo el transaccion_id|tra_id
 	 * @param error
 	 * @param databaseProperties
 	 * @return
 	 */
-	public static Integer deleteFacturaSendTableByTransaccionId(Map<String, Object> de, Map<String, String> databaseProperties) throws Exception{
+	public static Integer deleteFacturaSendTableByTransaccionId(Map<String, Object> de, Map<String, String> databaseProperties, String inNames) throws Exception{
 		Integer result = 0;
 
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
@@ -491,23 +587,8 @@ public class CoreServiceIntegracion {
 		}
 		transaccionIdForeignKeyField = transaccionIdForeignKeyField.substring(prefix.length(), transaccionIdForeignKeyField.length());
 		
-		
-		/*String pk = "";
-		
-		//Buscar el campo que relaciona con el transaccion_id 
-		Iterator itr = databaseProperties.entrySet().iterator();
-		while (itr.hasNext()) {
-			Map.Entry e = (Map.Entry)itr.next();
-			
-			String key = e.getKey()+"";
-			String value = e.getValue()+""; 
-			if ( value.equalsIgnoreCase("transaccion_id") || value.equalsIgnoreCase("tra_id")) {
-				pk = key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + "";
-			}
-		}*/
-		
 		String sql = "DELETE FROM " + tableToUpdate + " WHERE " + transaccionIdForeignKeyField + " = " + CoreService.getValueForKey(de, "transaccion_id", "tra_id") + " "
-				+ " AND TRIM(UPPER(" + tableToUpdateKey + ")) IN ('ERROR', 'ESTADO', 'PAUSADO', 'XML', 'JSON', 'QR', 'CDC', 'TIPO') ";
+				+ " AND TRIM(UPPER(" + tableToUpdateKey + ")) IN " + inNames;
 		
 		System.out.print("\n" + sql);
 		PreparedStatement statement = conn.prepareStatement(sql);
@@ -552,7 +633,9 @@ public class CoreServiceIntegracion {
 	
 	/**
 	 * 
-	 * @param viewPrincipal
+	 * @param viewPrincipal		Map conteniendo el transaccion_id|tra_id, como asi tambien los valores para la 
+	 * 							actualización de los elementos cuyos campos se definen en el archivo de configuración
+	 * 							en el campo database.type.facturasend_table.field.
 	 * @param error
 	 * @param databaseProperties
 	 * @return
@@ -718,6 +801,29 @@ public class CoreServiceIntegracion {
 
 	
 	/**
+	 *  
+	 * @param tipoDocumento
+	 * @param databaseProperties
+	 * @return
+	 */
+	public static void actualizarEstado(Integer tipoDocumento, Map<String, String> databaseProperties)  {
+		//Recupera los transaccion_id que se deben integrar
+		
+		try {
+						
+			
+			actualizarEstadoDesdeFacturaSend(tipoDocumento, databaseProperties);
+			
+			//
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		//Cambiar éste resultado, por el resultado estandar
+		
+		return;
+	}
+	
+	/**
 	 * 
 	 * @param viewPrincipal
 	 * @param error
@@ -756,7 +862,7 @@ public class CoreServiceIntegracion {
 			datosUpdate.put("PAUSADO", null);
 			datosUpdate.put("ERROR", CoreService.getValueForKey(situacionPausadoActualMap, "error"));
 		}
-		updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties);
+		updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, true);
 		
 		return result;
 	}
@@ -959,6 +1065,89 @@ public class CoreServiceIntegracion {
 	
 	
 	/**
+	 * 
+	 * 
+	 * @param tipoDocumento
+	 * @param databaseProperties
+	 * @return
+	 */
+	public static List<Map<String, Object>> obtenerCDCsConEstadoGenerado(Integer tipoDocumento, Map<String, String> databaseProperties) throws Exception {
+		
+		List<Map<String, Object>> listadoDes = new ArrayList<Map<String,Object>>();
+		
+		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
+		
+		Statement statement = conn.createStatement();
+		
+		String sql = obtenerCDCsConEstadoGeneradoSQL(databaseProperties, tipoDocumento);
+
+		System.out.print("\n" + sql + " ");
+
+		ResultSet rs = statement.executeQuery(sql);
+		
+		listadoDes = SQLUtil.convertResultSetToList(rs);
+		System.out.println("listadoDes:" + listadoDes);
+		
+		return listadoDes;
+		
+
+	}
+			
+	/**
+	 * 
+	 * 
+	 * @param databaseProperties
+	 * @param tipoDocumento
+	 * @return
+	 */
+	private static String obtenerCDCsConEstadoGeneradoSQL(Map<String, String> databaseProperties, Integer tipoDocumento) {
+		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
+		String sql = "";
+		if (!databaseProperties.get("database.type").equals("dbf")) {
+			//agregar mas campos 
+			sql = "SELECT transaccion_id, cdc AS \"cdc\" \n"
+						+ "FROM " + tableName + " \n"
+						+ "WHERE 1=1 \n"
+						+ "AND tipo_documento = " + tipoDocumento + " \n"
+						
+						
+						+ "AND \n"
+							+ "CDC IS NOT NULL \n"
+							+ "AND \n"
+							+ "TRIM(ESTADO) = 0 \n"
+						+ "GROUP BY transaccion_id, cdc \n";	//Ordena de forma normal, para obtener el ultimo	
+		} else {
+			
+			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+
+			sql = "SELECT tra_id \n"
+					+ "FROM " + tableName + " vp \n"
+					+ "WHERE 1=1 \n"
+					+ "AND tip_doc = " + tipoDocumento + " \n"
+
+					+ "AND ( \n"
+						+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) IS NOT NULL \n"
+						+ "AND \n"
+						+ "COALESCE(CAST((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS INTEGER), 999) = 0 \n"
+					+ ") \n"
+					+ "GROUP BY tra_id, estable, punto, numero \n"
+					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				
+		}
+		
+		
+		return sql;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
 	 * Paso 2 - Recibe los transaccion_id de 50 o N registros que hay que integrar
 	 * y busca todos esos registros de la base de datos 
 	 * 
@@ -1102,5 +1291,16 @@ public class CoreServiceIntegracion {
 		}
 		return sql;
 	}
-	
+
+	public static void setTimeout(Runnable runnable, int delay){
+	    new Thread(() -> {
+	        try {
+	            Thread.sleep(delay);
+	            runnable.run();
+	        }
+	        catch (Exception e){
+	            System.err.println(e);
+	        }
+	    }).start();
+	}
 }

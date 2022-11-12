@@ -15,9 +15,23 @@ public class DocumentoElectronicoCore {
 	
 	private static Gson gson = new Gson();
 
-	public static List<Map<String, Object>> generarJSONLote(String[] transactionIds, List<Map<String, Object>> documentosParaEnvioAllList, List<Map<String, Object>> parmentViewAllList, Map<String, String> databaseProperties) throws Exception{
+	/**
+	 * Retorna un Map con 2 listas independientes, pero con el mismo indice, para su uso posterior
+	 * 	1 el array de Jsons que se deben enviar a facturasend
+	 * 	2 el array de transacciones que esta relacionado con cada documento electronico, del array
+	 * 
+	 * @param transactionIds
+	 * @param documentosParaEnvioAllList
+	 * @param parmentViewAllList
+	 * @param databaseProperties
+	 * @return
+	 * @throws Exception
+	 */
+	public static Map<String, Object> generarJSONLote(String[] transactionIds, List<Map<String, Object>> documentosParaEnvioAllList, List<Map<String, Object>> parmentViewAllList, Map<String, String> databaseProperties) throws Exception{
 		 
+		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, Object>> jsonDEs = new ArrayList<Map<String,Object>>();
+		List<List<Map<String,Object>>> transacctionsView = new ArrayList<List<Map<String,Object>>>();
 			
 		for (int i = 0; i < transactionIds.length; i++) {
 			if (!transactionIds[i].trim().isEmpty()) {
@@ -33,7 +47,7 @@ public class DocumentoElectronicoCore {
 				}).collect(Collectors.toList());
 				
 				//---
-				System.out.println("parmentViewAllList " + parmentViewAllList);
+				//System.out.println("parmentViewAllList " + parmentViewAllList);
 				List<Map<String, Object>> parmentViewFiltradoList = parmentViewAllList.stream().filter( map -> {
 					String transaccionIdString = CoreService.getValueForKey(map, "transaccion_id", "tra_id") + "";
 					
@@ -45,12 +59,15 @@ public class DocumentoElectronicoCore {
 				//---
 				if (documentosParaEnvioFiltradoList.size() > 0) {
 					Map<String, Object> jsonDE = invocarDocumentoElectronicoDesdeView(documentosParaEnvioFiltradoList, parmentViewFiltradoList, databaseProperties);
-					jsonDEs.add(jsonDE);					
+					
+					jsonDEs.add(jsonDE);
+					transacctionsView.add(documentosParaEnvioFiltradoList);
 				}
 			}
 		}
-		
-		return jsonDEs;
+		result.put("jsonDEs", jsonDEs);
+		result.put("documentosParaEnvioFiltradoList", transacctionsView);
+		return result;
 	}
 			
 	/**

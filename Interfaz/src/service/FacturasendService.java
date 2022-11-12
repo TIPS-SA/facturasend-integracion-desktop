@@ -78,6 +78,14 @@ public class FacturasendService {
 		CoreServiceIntegracion.pausarEnviar(transaccionId, tipoDocumento, readDBProperties());
 		
 	}
+	
+	public static void actualizarEstado(Integer tipoDocumento) throws Exception {
+		
+		//Llamar a la consulta de Datos
+		
+		CoreServiceIntegracion.actualizarEstado(tipoDocumento, readDBProperties());
+		
+	}
 
 	/**
 	 * Ejecuta el proceso de integración desde el Core, el 
