@@ -140,7 +140,7 @@ public class InfoMovimiento extends JDialog {
 			Integer valueEstadoInt = -99;	//Sin estado	
 			
 			if (fieldEstado != null) {
-				valueEstadoInt = Integer.valueOf( fieldEstado+"" );
+				valueEstadoInt = Integer.valueOf( (fieldEstado+"").trim() );
 				txtEstado.setText( valueEstadoInt + "");
 				txtEstadoDescripcion.setText(CoreService.getEstadoDescripcion(valueEstadoInt));
 

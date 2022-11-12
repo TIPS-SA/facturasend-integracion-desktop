@@ -336,6 +336,20 @@ public class CoreService {
 		return null;
 	}
 	
+	public static Object getValueFromMapCaseInsensitive(Map<String, String> map, String keyToFind) {
+		Object valueReturn = null;
+		Iterator itr = map.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry e = (Map.Entry)itr.next();
+			
+			String key = e.getKey()+"";
+			
+			if ( key.equalsIgnoreCase(keyToFind)) {
+				valueReturn = e.getValue();
+			}
+		}
+		return valueReturn;
+	}
 	/**
 	 * Busca en el map o archivo de propiedades un registro cuyo valor 
 	 * coincida con el que se pasa como parámetro.

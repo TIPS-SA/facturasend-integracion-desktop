@@ -71,11 +71,11 @@ public class FacturasendService {
 	 * @return
 	 * @throws Exception
 	 */
-	public static void pausarIniciar(Integer transaccionId) throws Exception {
+	public static void pausarEnviar(Integer transaccionId, Integer tipoDocumento) throws Exception {
 		
 		//Llamar a la consulta de Datos
 		
-		CoreServiceIntegracion.pausarIniciar(transaccionId, readDBProperties());
+		CoreServiceIntegracion.pausarEnviar(transaccionId, tipoDocumento, readDBProperties());
 		
 	}
 
@@ -142,7 +142,7 @@ public class FacturasendService {
 				Integer valueEstadoInt = -99;	//Sin estado	
 				
 				if (fieldEstado != null) {
-					valueEstadoInt = Integer.valueOf( fieldEstado+"" );
+					valueEstadoInt = Integer.valueOf( (fieldEstado+"").trim() );
 				}
 				if (CoreService.getValueForKey(rs.get(i), "error") != null) {
 					datos[6] = "Error";

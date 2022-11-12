@@ -70,7 +70,7 @@ public class Principal extends JFrame {
 	private JButton btnBuscar;
 	private JButton btnLogs;
 	private JButton btnCondiguracion;
-	private JButton btnNoEnviar;
+	private JButton btnPausarEnviar;
 	private JButton btnReintegrar;
 	private JButton btnVerXml;
 	private JButton btnVerkude;
@@ -177,8 +177,8 @@ public class Principal extends JFrame {
 		btnCondiguracion = new JButton("Configuracion");
 		btnCondiguracion.setIcon(new ImageIcon(Principal.class.getResource("/resources/agt_softwareD.png")));
 		
-		btnNoEnviar = new JButton("Pausar/Enviar");
-		btnNoEnviar.setIcon(new ImageIcon(Principal.class.getResource("/resources/agt_stop.png")));
+		btnPausarEnviar = new JButton("Pausar/Enviar");
+		btnPausarEnviar.setIcon(new ImageIcon(Principal.class.getResource("/resources/agt_stop.png")));
 		
 		
 		btnReintegrar = new JButton("Reintegrar");
@@ -204,7 +204,7 @@ public class Principal extends JFrame {
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnCondiguracion, GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnNoEnviar, GroupLayout.DEFAULT_SIZE, 139, Short.MAX_VALUE)
+					.addComponent(btnPausarEnviar, GroupLayout.DEFAULT_SIZE, 139, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnReintegrar, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
@@ -222,7 +222,7 @@ public class Principal extends JFrame {
 					.addGroup(gl_paneSouth.createParallelGroup(Alignment.BASELINE)
 						.addComponent(btnLogs, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnCondiguracion)
-						.addComponent(btnNoEnviar)
+						.addComponent(btnPausarEnviar)
 						.addComponent(btnReintegrar)
 						.addComponent(btnVerXml)
 						.addComponent(btnVerkude)
@@ -503,7 +503,7 @@ public class Principal extends JFrame {
 			}
 		});
 		
-		btnNoEnviar.addActionListener(new ActionListener() {
+		btnPausarEnviar.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -512,10 +512,22 @@ public class Principal extends JFrame {
 						DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
 						
 		                Integer transaccionId = Integer.valueOf(model.getValueAt(row, 0) + "");
+		                String descripcionEstado = model.getValueAt(row, 7) + "";
 		                
-						fs.pausarIniciar(transaccionId);
-						
-						paginacion.refresh();
+		                System.out.println("model 6 " + model.getValueAt(row, 6));
+		                System.out.println("model 7 " + model.getValueAt(row, 7));
+		                
+		                if (descripcionEstado != null && descripcionEstado.startsWith("Aprobado")) {
+							JOptionPane.showMessageDialog(null, "La transacción ya está Aprobada");
+			
+						} else {
+							fs.pausarEnviar(transaccionId, tipoDocumento);
+							
+							paginacion.refresh();
+							
+						}
+					} else {
+						JOptionPane.showMessageDialog(null, "Debe seleccionar un registro");
 					}
 				} catch (Exception e2) {
 					JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);

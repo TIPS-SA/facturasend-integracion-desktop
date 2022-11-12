@@ -142,6 +142,7 @@ public class CoreServiceIntegracion {
 						url += "/lote/create?xml=true&qr=true";
 					}
 					
+					System.out.println("Total de Documentos Electronicos enviados: " + documentosParaEnvioJsonMap.size());
 					Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
 					
 					if (resultadoJson != null) {
@@ -154,7 +155,11 @@ public class CoreServiceIntegracion {
 							Map<String, Object> result = (Map<String, Object>)resultadoJson.get("result");
 							
 							List<Map<String, Object>> deList = (List<Map<String, Object>>)result.get("deList");
+							System.out.println("Total de Documentos Electronicos recibidos: " + deList.size());
 							
+							if (documentosParaEnvioJsonMap.size() != deList.size()) {
+								throw new Exception("Error, Cantidad de Documentos enviados difiere de los recibidos ");
+							}
 							for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
 								Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
 								Map<String, Object> viewRec = documentoParaEnvioAllJsonMap.get(i);
@@ -165,11 +170,11 @@ public class CoreServiceIntegracion {
 								//Actualiza la tabla destino de acuerdo a la configuracion
 								Map<String, Object> datosUpdate = new HashMap<String, Object>();
 								datosUpdate.put("CDC", CoreService.getValueForKey(respuestaDE, "cdc") + "");
-								datosUpdate.put("ESTADO", CoreService.getValueForKey(respuestaDE, "estado"));
+								datosUpdate.put("ESTADO", respuestaDE.get("estado") != null ? respuestaDE.get("estado") + "" : "0");
 								datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
 								datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(viewRec, "transaccion_id", "tra_id"));
 								
-								updateTableWithValues(datosUpdate, databaseProperties);
+								updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties);
 								//---
 								
 								//Borrar registros previamente cargados, para evitar duplicidad
@@ -233,7 +238,7 @@ public class CoreServiceIntegracion {
 											datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
 											datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(viewRec, "transaccion_id", "tra_id"));
 											
-											updateTableWithValues(datosUpdate, databaseProperties);
+											updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties);
 											//---
 											
 											//Borrar registros previamente cargados, para evitar duplicidad
@@ -287,6 +292,96 @@ public class CoreServiceIntegracion {
 	}
 	
 	/**
+	 * Utiliza la misma logica del WHERE del update pero para recuperar los datos relacionados a FacturaSend
+	 * de la tabla Transacciones
+	 *  
+	 * @param datosUpdate
+	 * @param databaseProperties
+	 * @throws Exception
+	 */
+	private static Map<String, Object> selectFacturaSendDataFromTableTransacciones(Map<String, Object> datosUpdate, Map<String, String> databaseProperties) throws Exception {
+		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
+
+		Integer tipoDocumento = (Integer)CoreService.getValueForKey(datosUpdate, "tipo_documento", "tip_doc");
+		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
+		
+		Map<String, Object> preSQLListMap = new HashMap<String, Object>();
+				
+		if (databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE) != null) {
+			//Si existe un nombre de tabla para actualizar
+			
+			String sql = "SELECT ";
+			
+			//Realiza el Seteo de los campos
+			Iterator itr = databaseProperties.entrySet().iterator();
+			while (itr.hasNext()) {
+				Map.Entry e = (Map.Entry)itr.next();
+				
+				String key = e.getKey()+"";
+				String value = e.getValue()+""; 
+				String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".field.";
+				if ( key.startsWith(prefix)) {
+					key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
+					Object valor = CoreService.getValueForKey(datosUpdate, value);
+					sql += key + ", ";
+
+				}
+			}
+			sql = sql.substring(0, sql.length()-2) +  " ";
+			sql += "FROM " + databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE) + " ";
+			sql += "WHERE ";
+					
+			boolean poseeWhere = false;
+			//Realiza el WHERE
+			Iterator itr2 = databaseProperties.entrySet().iterator();
+			while (itr2.hasNext()) {
+				Map.Entry e = (Map.Entry)itr2.next();
+				
+				String key = e.getKey()+"";
+				String value = e.getValue()+""; 
+				String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".where.";
+				if ( key.startsWith(prefix)) {
+					key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
+					Object valor = CoreService.getValueForKey(datosUpdate, value);
+					if (valor != null) {
+						poseeWhere = true;
+						sql += key + "= '" + valor + "' AND ";
+					}
+				}
+			}
+			sql = sql.substring(0, sql.length()-4) + "";
+			
+			if (poseeWhere) {
+				//System.out.println("Comando a ejecutar para actualizar la BD " + sql);
+
+				System.out.print("\n" + sql + " ");
+				PreparedStatement statement = conn.prepareStatement(sql);
+
+				ResultSet rs = statement.executeQuery();
+				
+				Map<String, Object> preSQLListMapPrevio = SQLUtil.convertResultSetToMap(rs);
+
+				//Antes de retornar, adiciona los mismos campos pero con el nombre de las key por defecto utilizado en la aplicacion
+				Iterator itr3 = preSQLListMapPrevio.entrySet().iterator();
+				while (itr3.hasNext()) {
+					Map.Entry e = (Map.Entry)itr3.next();
+					
+					String key = e.getKey()+"";
+					Object value = e.getValue(); 
+					
+					String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".field." + key;
+
+					preSQLListMap.put(CoreService.getValueFromMapCaseInsensitive(databaseProperties, prefix) + "", value);
+				}
+				
+			} else {
+				System.out.println("No se ejecutó el SELECT por que el WHERE no pudo ser resuelto " + sql);
+			}
+		}
+		return preSQLListMap;
+	}
+
+	/**
 	 * Actualiza la tabla, luego de realizar la integración de acuerdo al archivo de configuración
 	 * 
 	 * Se actualizarán solo los campos que no contengan valores nulos, independiente de que 
@@ -305,7 +400,7 @@ public class CoreServiceIntegracion {
 	 * @param databaseProperties
 	 * @throws Exception
 	 */
-	private static void updateTableWithValues(Map<String, Object> datosUpdate, Map<String, String> databaseProperties) throws Exception {
+	private static void updateFacturaSendDataInTableTransacciones(Map<String, Object> datosUpdate, Map<String, String> databaseProperties) throws Exception {
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
 
 		Integer tipoDocumento = (Integer)CoreService.getValueForKey(datosUpdate, "tipo_documento", "tip_doc");
@@ -360,7 +455,7 @@ public class CoreServiceIntegracion {
 			if (poseeWhere) {
 				//System.out.println("Comando a ejecutar para actualizar la BD " + sql);
 
-				System.out.print("\n" + sql);
+				System.out.print("\n" + sql + " ");
 				PreparedStatement statement = conn.prepareStatement(sql);
 
 				int result = statement.executeUpdate();
@@ -602,12 +697,14 @@ public class CoreServiceIntegracion {
 	 * @param databaseProperties
 	 * @return
 	 */
-	public static void pausarIniciar(Integer transaccionId, Map<String, String> databaseProperties)  {
+	public static void pausarEnviar(Integer transaccionId, Integer tipoDocumento, Map<String, String> databaseProperties)  {
 		//Recupera los transaccion_id que se deben integrar
 		
 		try {
 						
-			guardarPausarIniciar(transaccionId, databaseProperties);
+			
+			guardarPausarEnviarTablaTransacciones(transaccionId, tipoDocumento, databaseProperties);
+			guardarPausarEnviar(transaccionId, tipoDocumento, databaseProperties);
 
 			
 			//
@@ -627,7 +724,51 @@ public class CoreServiceIntegracion {
 	 * @param databaseProperties
 	 * @return
 	 */
-	public static Integer guardarPausarIniciar(Integer transaccionId, Map<String, String> databaseProperties) throws Exception{
+	public static Integer guardarPausarEnviarTablaTransacciones(Integer transaccionId, Integer tipoDocumento, Map<String, String> databaseProperties) throws Exception{
+		Integer result = 0;
+		
+		//Antes recuperar Datos, por si ya tenga almacenado el Error 
+		//o por si el registro ya haya sido integrado antes.
+		Map<String, Object> datosWhere = new HashMap<String, Object>();
+		datosWhere.put("TIPO_DOCUMENTO", tipoDocumento);
+		datosWhere.put("TRANSACCION_ID", transaccionId);
+		Map<String, Object> situacionPausadoActualMap = selectFacturaSendDataFromTableTransacciones(datosWhere, databaseProperties);
+		
+		if (CoreService.getValueForKey(situacionPausadoActualMap, "estado") != null) {
+			throw new Exception("La transacción # " + transaccionId + " - Tipo: " + tipoDocumento + " ya está integrado");
+		}
+		
+		//Actualiza la tabla destino de acuerdo a la configuracion
+		Map<String, Object> datosUpdate = new HashMap<String, Object>();
+		//datosUpdate.put("CDC", CoreService.getValueForKey(respuestaDE, "cdc") + "");
+		//datosUpdate.put("PAUSADO", CoreService.getValueForKey(respuestaDE, "estado"));
+		datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
+		datosUpdate.put("TRANSACCION_ID", transaccionId);
+		
+		if (situacionPausadoActualMap.get("pausado") == null) {
+			//Significa que aun luego no se integro
+			//Significa que aun no tiene pausado, entonces debe poner
+			datosUpdate.put("PAUSADO", 1);
+			datosUpdate.put("ERROR", CoreService.getValueForKey(situacionPausadoActualMap, "error"));
+			
+		} else {
+			//Ya tiene pausado, debe retirar.
+			datosUpdate.put("PAUSADO", null);
+			datosUpdate.put("ERROR", CoreService.getValueForKey(situacionPausadoActualMap, "error"));
+		}
+		updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties);
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @param viewPrincipal
+	 * @param error
+	 * @param databaseProperties
+	 * @return
+	 */
+	public static Integer guardarPausarEnviar(Integer transaccionId, Integer tipoDocumento, Map<String, String> databaseProperties) throws Exception{
 		Integer result = 0;
 	
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
@@ -660,7 +801,7 @@ public class CoreServiceIntegracion {
 		Map<String, Object> situacionPausadoActualMap = SQLUtil.convertResultSetToMap(rs);
 		System.out.println("listadoDes:" + situacionPausadoActualMap);
 		
-		if ( situacionPausadoActualMap != null && Boolean.valueOf(CoreService.getValueForKey(situacionPausadoActualMap, tableToUpdateValue) +"") ) {
+		if ( situacionPausadoActualMap != null && Integer.valueOf(CoreService.getValueForKey(situacionPausadoActualMap, tableToUpdateValue) +"") == 1 ) {
 			//Ya existe el registro de PAUSADO y esta PAUSADO
 			
 			String sqlDelete = "DELETE "
@@ -689,7 +830,7 @@ public class CoreServiceIntegracion {
 					if (listaTransaccionesView.size() > 0) {
 
 						Map<String, Object> datosGuardar = new HashMap<String, Object>();
-						datosGuardar.put("PAUSADO", "true");
+						datosGuardar.put("PAUSADO", "1");
 						saveDataToFacturaSendTable(listaTransaccionesView.get(0), datosGuardar, databaseProperties);
 						
 					}
@@ -697,6 +838,7 @@ public class CoreServiceIntegracion {
 			}
 			
 		}
+		
 		
 		return result;
 	}
@@ -772,11 +914,12 @@ public class CoreServiceIntegracion {
 						+ "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"
 						+ "AND tipo_documento = " + tipoDocumento + " \n"
+						+ "AND pausado IS NULL \n"
 						
 						+ "AND ( \n"
-						+ "CDC IS NULL \n"
-						+ "OR \n"
-						+ "TRIM(ESTADO) = 4 \n"
+							+ "CDC IS NULL \n"
+							+ "OR \n"
+							+ "TRIM(ESTADO) = 4 \n"
 						+ ") \n"
 						+ "GROUP BY transaccion_id, establecimiento, punto, numero \n"
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
@@ -789,11 +932,12 @@ public class CoreServiceIntegracion {
 					+ "FROM " + tableName + " vp \n"
 					+ "WHERE 1=1 \n"
 					+ "AND tip_doc = " + tipoDocumento + " \n"
-					
+					+ "AND pausado IS NULL \n"
+
 					+ "AND ( \n"
-					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) IS NULL \n"
-					+ "OR \n"
-					+ "COALESCE(CAST((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS INTEGER), 999) = 4 \n"
+						+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) IS NULL \n"
+						+ "OR \n"
+						+ "COALESCE(CAST((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS INTEGER), 999) = 4 \n"
 					+ ") \n"
 					+ "GROUP BY tra_id, estable, punto, numero \n"
 					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				
