@@ -367,15 +367,29 @@ public class DocumentoElectronicoCore {
 
 			documentoAsociadoMap.put("tipoDocumentoImpreso", CoreService.getValueForKey(transaccionCabecera,"doc_aso_cdc","d_aso_tdi"));
 			documentoAsociadoMap.put("timbrado", CoreService.getValueForKey(transaccionCabecera,"doc_aso_timbrado","d_aso_tim"));
-			documentoAsociadoMap.put("establecimiento", CoreService.getValueForKey(transaccionCabecera,"doc_aso_establecimiento","d_aso_est"));
-			documentoAsociadoMap.put("punto", CoreService.getValueForKey(transaccionCabecera,"doc_aso_punto","d_aso_pun"));
-			documentoAsociadoMap.put("numero", CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero","d_aso_num"));
-			documentoAsociadoMap.put("fecha", CoreService.getValueForKey(transaccionCabecera,"doc_aso_fecha","d_aso_fec"));
-			documentoAsociadoMap.put("numeroRetencion", CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero_retencion","d_aso_ret"));
-			documentoAsociadoMap.put("resolucionCreditoFiscal", CoreService.getValueForKey(transaccionCabecera,"doc_aso_reso_credito_fiscal","d_aso_rcf"));
+			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_establecimiento","d_aso_est") != null) {
+				documentoAsociadoMap.put("establecimiento", CoreService.getValueForKey(transaccionCabecera,"doc_aso_establecimiento","d_aso_est")).toString().trim();
+			}
+			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_punto","d_aso_pun") != null) {
+				documentoAsociadoMap.put("punto", CoreService.getValueForKey(transaccionCabecera,"doc_aso_punto","d_aso_pun")).toString().trim();
+			}
+			if(CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero","d_aso_num") != null){
+				documentoAsociadoMap.put("numero", CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero","d_aso_num")).toString().trim();
+			}
+			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_fecha","d_aso_fec") != null) {
+				documentoAsociadoMap.put("fecha", CoreService.getValueForKey(transaccionCabecera,"doc_aso_fecha","d_aso_fec")).toString().trim();
+			}
+			if(CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero_retencion","d_aso_ret") != null) {
+				documentoAsociadoMap.put("numeroRetencion", CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero_retencion","d_aso_ret")).toString().trim();
+			}
+			if(CoreService.getValueForKey(transaccionCabecera,"doc_aso_reso_credito_fiscal","d_aso_rcf") != null) {
+				documentoAsociadoMap.put("resolucionCreditoFiscal", CoreService.getValueForKey(transaccionCabecera,"doc_aso_reso_credito_fiscal","d_aso_rcf")).toString().trim();
+			}
 			documentoAsociadoMap.put("constanciaTipo", CoreService.getValueForKey(transaccionCabecera,"doc_aso_constancia_tipo","d_aso_cti"));
 			documentoAsociadoMap.put("constanciaNumero", CoreService.getValueForKey(transaccionCabecera,"doc_aso_constancia_numero","d_aso_cnu"));
-			documentoAsociadoMap.put("constanciaControl", CoreService.getValueForKey(transaccionCabecera,"doc_aso_constancia_control","d_aso_cco"));
+			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_constancia_control","d_aso_cco") != null) {
+				documentoAsociadoMap.put("constanciaControl", CoreService.getValueForKey(transaccionCabecera,"doc_aso_constancia_control","d_aso_cco")).toString().trim();
+			}
 			
 			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_formato","d_aso_for") != null) {
 				dataMap.put("documentoAsociado", documentoAsociadoMap);	
