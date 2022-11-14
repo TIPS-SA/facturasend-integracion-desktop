@@ -509,9 +509,9 @@ public class CoreServiceIntegracion {
 				
 				if (resultadoJson != null) {
 					if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
-						Map<String, Object> resultMap = (Map<String, Object>)resultadoJson.get("result");
+						//Map<String, Object> resultMap = (Map<String, Object>)resultadoJson.get("result");
 						
-						List<Map<String, Object>> deListConEstados = (List<Map<String, Object>>)resultMap.get("deList");
+						List<Map<String, Object>> deListConEstados = (List<Map<String, Object>>)resultadoJson.get("deList");
 						
 						if (deListConEstados.size() > 0) {
 							//Actualizar estados en la Base de datos, solo si el estado es != 0
@@ -521,23 +521,30 @@ public class CoreServiceIntegracion {
 								if ( ! (CoreService.getValueForKey(deConEstado, "estado") + "").equals("0")) {
 									
 									//---
-									//Actualiza la tabla destino de acuerdo a la configuracion
-									Map<String, Object> datosUpdate = new HashMap<String, Object>();
-									datosUpdate.put("ESTADO", CoreService.getValueForKey(deConEstado, "estado") + "");
-									datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
-									datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id"));
+									Object transaccion_id = CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id");
+									Integer estadoActualizar = Double.valueOf(CoreService.getValueForKey(deConEstado, "situacion") + "").intValue();
 									
-									updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, false);
-									//---
-									
-									//Borrar registros de ESTADO previamente cargados, para evitar duplicidad
-									deleteFacturaSendTableByTransaccionId(cdcList.get(j), databaseProperties, "('ESTADO')");
-
-			
-									String estado = CoreService.getValueForKey(deConEstado, "estado") + "";
-									Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
-									datosGuardar1.put("ESTADO", estado);
-									saveDataToFacturaSendTable(cdcList.get(j), datosGuardar1, databaseProperties);
+									if (estadoActualizar > 0) {
+										//Solo actualizar si el estado es > 0
+										
+										//Actualiza la tabla destino de acuerdo a la configuracion
+										Map<String, Object> datosUpdate = new HashMap<String, Object>();
+										datosUpdate.put("ESTADO", estadoActualizar);
+										datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
+										datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id"));
+										
+										updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, false);
+										//---
+										
+										//Borrar registros de ESTADO previamente cargados, para evitar duplicidad
+										deleteFacturaSendTableByTransaccionId(cdcList.get(j), databaseProperties, "('ESTADO')");
+				
+										Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
+										datosGuardar1.put("ESTADO", estadoActualizar);
+										saveDataToFacturaSendTable(cdcList.get(j), datosGuardar1, databaseProperties);
+									} else {
+										System.out.println("transaccion_id=" + transaccion_id + " sin variación de estado(0). Ignorado");
+									}
 								}
 							}
 						}
@@ -1025,7 +1032,7 @@ public class CoreServiceIntegracion {
 						+ "AND ( \n"
 							+ "CDC IS NULL \n"
 							+ "OR \n"
-							+ "TRIM(ESTADO) = 4 \n"
+							+ "(ESTADO IS NOT NULL AND ESTADO = 4) \n"
 						+ ") \n"
 						+ "GROUP BY transaccion_id, establecimiento, punto, numero \n"
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
@@ -1103,25 +1110,49 @@ public class CoreServiceIntegracion {
 	private static String obtenerCDCsConEstadoGeneradoSQL(Map<String, String> databaseProperties, Integer tipoDocumento) {
 		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
 		String sql = "";
+		
+		String extraFields = "";
+
+		Iterator itr = databaseProperties.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry e = (Map.Entry)itr.next();
+			
+			String key = e.getKey()+""; 
+			if ((key).startsWith("database." + databaseProperties.get("database.type") + ".facturasend_table.field.")) {
+				//sql += key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + ", ";
+				if (!(e.getValue()+"").startsWith("@SQL") && !(e.getValue()+"").equals("transaccion_id") && !(e.getValue()+"").equals("tra_id")) {
+					extraFields += e.getValue() + ", ";	
+				}
+				
+			}
+		}
+
+		
 		if (!databaseProperties.get("database.type").equals("dbf")) {
 			//agregar mas campos 
-			sql = "SELECT transaccion_id, cdc AS \"cdc\" \n"
-						+ "FROM " + tableName + " \n"
+			sql = "SELECT ";
+					//Primero los Fields adicionales que se requerirán al guardar 
+					sql += extraFields;
+					sql += "transaccion_id, cdc AS \"cdc\" \n";
+
+					sql += "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"
 						+ "AND tipo_documento = " + tipoDocumento + " \n"
-						
-						
 						+ "AND \n"
 							+ "CDC IS NOT NULL \n"
 							+ "AND \n"
-							+ "TRIM(ESTADO) = 0 \n"
-						+ "GROUP BY transaccion_id, cdc \n";	//Ordena de forma normal, para obtener el ultimo	
+							+ "(ESTADO IS NOT NULL AND ESTADO = 0) \n"
+						+ "GROUP BY "
+						+ extraFields
+						+ "transaccion_id, cdc \n";	//Ordena de forma normal, para obtener el ultimo	
 		} else {
 			
 			tableName = databaseProperties.get("database.dbf.facturasend_file");
 			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
 
-			sql = "SELECT tra_id \n"
+			sql = "SELECT "
+					+ extraFields
+					+ "tra_id, cdc AS \"cdc\" \n"
 					+ "FROM " + tableName + " vp \n"
 					+ "WHERE 1=1 \n"
 					+ "AND tip_doc = " + tipoDocumento + " \n"
@@ -1131,8 +1162,9 @@ public class CoreServiceIntegracion {
 						+ "AND \n"
 						+ "COALESCE(CAST((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS INTEGER), 999) = 0 \n"
 					+ ") \n"
-					+ "GROUP BY tra_id, estable, punto, numero \n"
-					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				
+					+ "GROUP BY "
+					+ extraFields
+					+ "tra_id, cdc AS \"cdc\"";
 		}
 		
 		

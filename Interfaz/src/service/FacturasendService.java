@@ -145,7 +145,7 @@ public class FacturasendService {
 				//Integer fieldEstado = (Integer) Core.getValueForKey(rs.get(i), "estado");
 				String fieldPausado = (String)CoreService.getValueForKey(rs.get(i), "pausado");
 				Object fieldEstado = CoreService.getValueForKey(rs.get(i), "estado");
-				
+				System.out.println("ESTADO.................... " + fieldEstado);
 				//String valueEstadoStr = (String) rs.get(i).get( fieldEstado );
 				Integer valueEstadoInt = -99;	//Sin estado	
 				
