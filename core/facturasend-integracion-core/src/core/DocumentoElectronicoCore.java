@@ -385,7 +385,85 @@ public class DocumentoElectronicoCore {
 
 
 			//Implementar Pedro
-			dataMap.put("transporte", null);
+			Map<String, Object> transporteMap = new HashMap<String, Object>();
+			transporteMap.put("tipo", CoreService.getValueForKey(transaccionCabecera,"transporte_tipo","t_tip"));
+			transporteMap.put("modalidad", CoreService.getValueForKey(transaccionCabecera,"transporte_modalidad","t_mod"));
+			transporteMap.put("tipoResponsable", CoreService.getValueForKey(transaccionCabecera,"transporte_tipo_responsable","t_tip_res"));
+			transporteMap.put("condicionNegociacion", CoreService.getValueForKey(transaccionCabecera,"transporte_condicion_negociacion","t_con_neg"));
+			/*transporteMap.put("NumeroManifiesto", CoreService.getValueForKey(transaccionCabecera,"transporte_tipo","t_tip"));
+			transporteMap.put("numeroDespachoImportacion", CoreService.getValueForKey(transaccionCabecera,"transporte_tipo","t_tip"));
+			transporteMap.put("inicioEstimadoTranslado", CoreService.getValueForKey(transaccionCabecera,"transporte_tipo","t_tip"));
+			transporteMap.put("finEstimadoTranslado", CoreService.getValueForKey(transaccionCabecera,"transporte_tipo","t_tip"));
+			transporteMap.put("paisDestino", CoreService.getValueForKey(transaccionCabecera,"transporte_tipo","t_tip"));
+			transporteMap.put("paisDestinoNombre", CoreService.getValueForKey(transaccionCabecera,"transporte_tipo","t_tip"));*/
+			
+			
+			Map<String, Object> transporteSalidaMap = new HashMap<String, Object>();
+			transporteSalidaMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"transporte_salida_direccion","t_sal_dir"));
+			transporteSalidaMap.put("numeroCasa", CoreService.getValueForKey(transaccionCabecera,"transporte_salida_numero_casa","t_sal_nca"));
+			transporteSalidaMap.put("complementoDireccion1", CoreService.getValueForKey(transaccionCabecera,"transporte_salida_complemento_direccion1","t_sal_cd1"));
+			transporteSalidaMap.put("complementoDireccion2", CoreService.getValueForKey(transaccionCabecera,"tranposrte_salida_complemento_direccion2","t_sal_cd2"));
+			transporteSalidaMap.put("departamento", CoreService.getValueForKey(transaccionCabecera,"tranposrte_salida_departamento","t_sal_dep"));
+			transporteSalidaMap.put("distrito", CoreService.getValueForKey(transaccionCabecera,"tranposrte_salida_distrito","t_sal_dis"));
+			transporteSalidaMap.put("ciudad", CoreService.getValueForKey(transaccionCabecera,"tranposrte_salida_ciudad","t_sal_ciu"));
+			transporteSalidaMap.put("pais", CoreService.getValueForKey(transaccionCabecera,"tranposrte_salida_pais","t_sal_pai"));
+			transporteSalidaMap.put("telefonoContacto", CoreService.getValueForKey(transaccionCabecera,"tranposrte_salida_telefono_contacto","t_sal_tel"));
+			
+			
+			Map<String, Object> transporteEntregaMap = new HashMap<String, Object>();
+			transporteEntregaMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"transporteEntregaMap","t_ent_dir"));
+			transporteEntregaMap.put("numeroCasa", CoreService.getValueForKey(transaccionCabecera,"transporte_entrega_numero_casa","t_ent_nca"));
+			transporteEntregaMap.put("complementoDireccion1", CoreService.getValueForKey(transaccionCabecera,"transporte_entrega_complemento_direccion1","t_ent_cd1"));
+			transporteEntregaMap.put("complementoDireccion2", CoreService.getValueForKey(transaccionCabecera,"tranposrte_entrega_complemento_direccion2","t_ent_cd2"));
+			transporteEntregaMap.put("departamento", CoreService.getValueForKey(transaccionCabecera,"tranposrte_entrega_departamento","t_ent_dep"));
+			transporteEntregaMap.put("distrito", CoreService.getValueForKey(transaccionCabecera,"tranposrte_entrega_distrito","t_ent_dis"));
+			transporteEntregaMap.put("ciudad", CoreService.getValueForKey(transaccionCabecera,"tranposrte_entrega_ciudad","t_ent_ciu"));
+			transporteEntregaMap.put("pais", CoreService.getValueForKey(transaccionCabecera,"tranposrte_entrega_pais","t_ent_pai"));
+			transporteEntregaMap.put("telefonoContacto", CoreService.getValueForKey(transaccionCabecera,"tranposrte_entrega_telefono_contacto","t_ent_tel"));
+			
+			
+			Map<String, Object> transporteVehiculoMap = new HashMap<String, Object>();
+			transporteVehiculoMap.put("tipo", CoreService.getValueForKey(transaccionCabecera,"transporte_vehiculo_tipo","t_veh_tip"));
+			transporteVehiculoMap.put("marca", CoreService.getValueForKey(transaccionCabecera,"transporte_vehiculo_marca","t_veh_mar"));
+			transporteVehiculoMap.put("documentoTipo", CoreService.getValueForKey(transaccionCabecera,"transporte_vehiculo_documento_tipo","t_veh_dti"));
+			transporteVehiculoMap.put("documentoNumero", CoreService.getValueForKey(transaccionCabecera,"transporte_vehiculo_documento_numero","t_veh_dnu"));
+			transporteVehiculoMap.put("obs", CoreService.getValueForKey(transaccionCabecera,"transporte_vehiculo_obs","t_veh_obs"));
+			transporteVehiculoMap.put("numeroMatricula", CoreService.getValueForKey(transaccionCabecera,"transporte_vehiculo_numero_matricula","t_veh_mat"));
+			transporteVehiculoMap.put("numeroVuelo", CoreService.getValueForKey(transaccionCabecera,"transporte_vehiculo_numero_vuelo","t_veh_vue"));
+			
+			
+			Map<String, Object> transporteTransportistaMap = new HashMap<String, Object>();
+			transporteTransportistaMap.put("contribuyente", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_contribuyente","t_t_con"));
+			transporteTransportistaMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_nombre","t_t_nom"));
+			transporteTransportistaMap.put("ruc", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_ruc","t_t_ruc"));
+			transporteTransportistaMap.put("documentoTipo", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_documento_tipo","t_t_dti"));
+			transporteTransportistaMap.put("documentoNumero", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_documento_numero","t_t_dnu"));
+			transporteTransportistaMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_direccion","t_t_dir"));
+			transporteTransportistaMap.put("obs", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_obs","t_t_obs"));
+			transporteTransportistaMap.put("pais", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_pais","t_t_pai"));
+			
+			
+			Map<String, Object> transporteTransportistaChoferMap = new HashMap<String, Object>();
+			
+			transporteTransportistaChoferMap.put("documentoNumero", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_chofer_documento_numero","t_t_c_dnu"));
+			transporteTransportistaChoferMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_chofer_nombre","t_t_c_nom"));
+			transporteTransportistaChoferMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_chofer_direccion","t_t_c_dir"));
+			
+			Map<String, Object> transporteTransportistaAgenteMap = new HashMap<String, Object>();
+			transporteTransportistaAgenteMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_agente_nombre","t_t_a_nom"));
+			transporteTransportistaAgenteMap.put("ruc", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_agente_ruc","t_t_a_ruc"));
+			transporteTransportistaAgenteMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"transporte_transportista_agente_direccion","t_t_a_dir"));
+			
+			
+			
+			transporteTransportistaMap.put("chofer",transporteTransportistaChoferMap );
+			transporteTransportistaMap.put("agente", transporteTransportistaAgenteMap);
+			
+			transporteMap.put("salida", transporteSalidaMap);
+			transporteMap.put("entrega", transporteEntregaMap);
+			transporteMap.put("vehiculo", transporteVehiculoMap);
+			transporteMap.put("transportista", transporteTransportistaMap);
+			dataMap.put("transporte", transporteMap);
 
 			//A futuro
 			dataMap.put("sectorEnergiaElectrica", null);
