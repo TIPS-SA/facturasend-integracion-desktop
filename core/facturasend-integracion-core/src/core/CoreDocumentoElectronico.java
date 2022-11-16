@@ -398,7 +398,6 @@ public class CoreDocumentoElectronico {
 			System.out.println("termino ... 5 ");
 
 
-			//Implementar Pedro
 			Map<String, Object> transporteMap = new HashMap<String, Object>();
 			transporteMap.put("tipo", CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip"));
 			transporteMap.put("modalidad", CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod"));
@@ -406,6 +405,13 @@ public class CoreDocumentoElectronico {
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_condicion_negociacion","t_con_neg") != null) {
 				transporteMap.put("condicionNegociacion", CoreService.getValueForKey(transaccionCabecera,"tra_condicion_negociacion","t_con_neg")).toString().trim();
 			}
+			if (CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip") != null &&
+					CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod") != null) {
+				dataMap.put("transporte", transporteMap);	//Agrega transporte si tiene datos básicos	
+			}
+				
+			
+			
 			/*transporteMap.put("NumeroManifiesto", CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip"));
 			transporteMap.put("numeroDespachoImportacion", CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip"));
 			transporteMap.put("inicioEstimadoTranslado", CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip"));
@@ -534,7 +540,7 @@ public class CoreDocumentoElectronico {
 			transporteMap.put("entrega", transporteEntregaMap);
 			transporteMap.put("vehiculo", transporteVehiculoMap);
 			transporteMap.put("transportista", transporteTransportistaMap);
-			dataMap.put("transporte", transporteMap);
+			
 
 			//A futuro
 			dataMap.put("sectorEnergiaElectrica", null);

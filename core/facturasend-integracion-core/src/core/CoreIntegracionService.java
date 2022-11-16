@@ -444,6 +444,7 @@ public class CoreIntegracionService {
 					Object valor = CoreService.getValueForKey(datosUpdate, value);
 					if (valor != null) {
 						sql += key + "= ?, ";
+						
 					} else {
 						if (updateWithNullNotPassedParams) {
 							sql += key + "= ?, ";
@@ -493,9 +494,12 @@ public class CoreIntegracionService {
 						key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
 						Object valor = CoreService.getValueForKey(datosUpdate, value);
 						if (valor != null) {
+							System.out.println("Params(" + cParams + "," + valor +")");
 							statement.setObject(cParams++, valor);
+							
 						} else {
 							if (updateWithNullNotPassedParams) {
+								System.out.println("Params(" + cParams + "," + valor +")");
 								statement.setObject(cParams++, null);
 							}
 						}
@@ -515,6 +519,7 @@ public class CoreIntegracionService {
 						Object valor = CoreService.getValueForKey(datosUpdate, value);
 						if (valor != null) {
 							poseeWhere = true;
+							System.out.println("Params(" + cParams + "," + valor +")");
 							//sql += key + "= '" + valor + "' AND ";
 							statement.setObject(cParams++, valor);
 						}
