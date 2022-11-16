@@ -2,6 +2,10 @@ package core;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.OutputStream;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,6 +22,7 @@ import javax.swing.JOptionPane;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.h2.util.IOUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -221,10 +226,11 @@ public class CoreIntegracionService {
 									saveDataToFacturaSendTable(viewRec, datosGuardar4, databaseProperties);
 								} else {
 									//El XML debe guardar en un archivo en el disco
-									
+									//facturasend.carpetaXML
 								}
 								
-								setTimeout(() -> imprimirKUDEFacturaSend(respuestaDE.get("cdc")+"", databaseProperties), 10);	//Ejecuta en un thread						
+								setTimeout(() -> imprimirXMLFacturaSend(respuestaDE.get("cdc")+"", respuestaDE.get("xml") + "", tipoDocumento, databaseProperties), 10);	//Ejecuta en un thread						
+								setTimeout(() -> imprimirKUDEFacturaSend(respuestaDE.get("cdc")+"", tipoDocumento, databaseProperties), 10);	//Ejecuta en un thread						
 							}	// end-for 
 							
 						} else {
@@ -634,8 +640,53 @@ public class CoreIntegracionService {
 		}
 		return result;
 	}
+	
+	public static Map<String, Object> imprimirXMLFacturaSend(String cdc, String xml, Integer tipoDocumento, Map<String, String> databaseProperties)  {
+		//Recupera los transaccion_id que se deben integrar
+		Map<String, Object> result = new HashMap<String, Object>();
+		
+		
+		try {
+			if (cdc != null) {
+                cdc = cdc.trim();
+                     
+				String nombreDE = tipoDocumento == 1 ? "FE" : tipoDocumento == 2 ? "NI" : tipoDocumento == 3 ? "NE" : tipoDocumento == 4 ? "AF" : tipoDocumento == 5 ? "NC" : tipoDocumento == 6 ? "ND" : tipoDocumento == 7 ? "NR" : "";
+				String establecimiento = cdc.substring(11, 14);
+				String punto = cdc.substring(14, 17);
+				String numero = cdc.substring(17, 24);
+				String carpetaKude = databaseProperties.get("facturasend.carpetaXML");
 
-	public static Map<String, Object> imprimirKUDEFacturaSend(String cdc, Map<String, String> databaseProperties)  {
+				if (carpetaKude != null) {
+					if (new File(carpetaKude).exists()) {
+						File targetFile = new File(carpetaKude + File.separator + nombreDE + "_" + establecimiento + "-" + punto + "-" + numero + ".xml");
+					    //OutputStream outStream = new FileOutputStream(targetFile);
+					    //outStream.write(xml);
+
+					    //IOUtils.closeSilently(outStream);				
+					    FileWriter myWriter = new FileWriter(targetFile);
+					    myWriter.write(xml);
+					    myWriter.close();
+					      
+					} else {
+						System.out.println("Carpeta " + carpetaKude + " no encontrado. Ignorado guardado de archivo");
+					}
+				} else {
+					System.out.println("Parametro facturasend.carpetaKude no informado. Ignorado guardado de archivo");
+				}
+			    
+			} else {
+            	JOptionPane.showMessageDialog(null, "El item no posee CDC");
+            }
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("success", false);
+			result.put("error", e.getMessage());
+		}
+		return result;
+	}
+
+	public static Map<String, Object> imprimirKUDEFacturaSend(String cdc, Integer tipoDocumento, Map<String, String> databaseProperties)  {
 		//Recupera los transaccion_id que se deben integrar
 		Map<String, Object> result = new HashMap<String, Object>();
 		
@@ -665,7 +716,28 @@ public class CoreIntegracionService {
 					//probar con un pdf fijo, del folder
 					if (resultadoJson != null) {
 						if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
+							String nombreDE = tipoDocumento == 1 ? "FE" : tipoDocumento == 2 ? "NI" : tipoDocumento == 3 ? "NE" : tipoDocumento == 4 ? "AF" : tipoDocumento == 5 ? "NC" : tipoDocumento == 6 ? "ND" : tipoDocumento == 7 ? "NR" : "";
+							String establecimiento = cdc.substring(11, 14);
+							String punto = cdc.substring(14, 17);
+							String numero = cdc.substring(17, 24);
+							String carpetaKude = databaseProperties.get("facturasend.carpetaKude");
 
+							if (carpetaKude != null) {
+								if (new File(carpetaKude).exists()) {
+									File targetFile = new File(carpetaKude + File.separator + nombreDE + "_" + establecimiento + "-" + punto + "-" + numero + ".pdf");
+								    OutputStream outStream = new FileOutputStream(targetFile);
+								    outStream.write(Base64.getDecoder().decode(resultadoJson.get("value") + ""));
+
+								    IOUtils.closeSilently(outStream);									
+								} else {
+									System.out.println("Carpeta " + carpetaKude + " no encontrado. Ignorado guardado de archivo");
+								}
+							} else {
+								System.out.println("Parametro facturasend.carpetaKude no informado. Ignorado guardado de archivo");
+							}
+						    
+
+							//Impresion 
 							ByteArrayOutputStream out = new ByteArrayOutputStream();
 
 							byte[] decoder = Base64.getDecoder().decode(resultadoJson.get("value") + "");
@@ -675,9 +747,14 @@ public class CoreIntegracionService {
 							ByteArrayInputStream inStream = new ByteArrayInputStream(out.toByteArray());
 
 							String printerName = databaseProperties.get("config.otros.nombre_impresora")+"";
-
-							PrintPdf printPDFFile = new PrintPdf(inStream, "FacturaSend", printerName, "PDF");
-				            printPDFFile.print();
+							String enviarKUDEImpresora = databaseProperties.get("config.otros.enviar_kude_impresora")+"";
+							
+							
+							if (enviarKUDEImpresora.equalsIgnoreCase("Y")) {
+								PrintPdf printPDFFile = new PrintPdf(inStream, "FacturaSend", printerName, "PDF");
+					            printPDFFile.print();	
+							}
+							
 
 						}
 
