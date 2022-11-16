@@ -239,7 +239,8 @@ public class CoreIntegracionService {
 							if (resultadoJson.get("errores") != null) {
 								List<Map<String, Object>> errores = (List<Map<String, Object>>)resultadoJson.get("errores");
 		
-		
+								String pauseIfError = databaseProperties.get("database." + databaseProperties.get("database.type") + ".pause_if_error");
+								
 								for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
 									Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
 									Map<String, Object> viewRec = documentoParaEnvioAllJsonMap.get(i);
@@ -258,6 +259,9 @@ public class CoreIntegracionService {
 											//Actualiza la tabla destino de acuerdo a la configuracion
 											Map<String, Object> datosUpdate = new HashMap<String, Object>();
 											datosUpdate.put("ERROR", error);
+											if (pauseIfError != null && pauseIfError.equalsIgnoreCase("Y")){
+												datosUpdate.put("PAUSADO", 1);	//Si dio Error debe pausar.
+											}
 											datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
 											datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(viewRec, "transaccion_id", "tra_id"));
 											
@@ -271,13 +275,12 @@ public class CoreIntegracionService {
 											datosGuardar.put("ERROR", error);
 											saveDataToFacturaSendTable(viewRec, datosGuardar, databaseProperties);
 											
-											/*Map<String, Object> datosGuardar2 = new HashMap<String, Object>();
-		//									datosGuardar.put("JSON", gsonPP.toJson(viewRec) + "");
-											System.out.println(viewRec);
-											datosGuardar.put("JSON", gson.toJson(viewRec) + "");
-											System.out.println("despues del error");
-											guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);*/
-											
+											if (pauseIfError != null && pauseIfError.equalsIgnoreCase("Y")){
+												//Si dio Error debe pausar.
+												Map<String, Object> datosPausar = new HashMap<String, Object>();
+												datosPausar.put("PAUSADO", 1);
+												saveDataToFacturaSendTable(viewRec, datosPausar, databaseProperties);
+											}											
 										}
 									}	
 								}
@@ -654,21 +657,18 @@ public class CoreIntegracionService {
 				String establecimiento = cdc.substring(11, 14);
 				String punto = cdc.substring(14, 17);
 				String numero = cdc.substring(17, 24);
-				String carpetaKude = databaseProperties.get("facturasend.carpetaXML");
+				String carpetaXml = databaseProperties.get("facturasend.carpetaXML");
 
-				if (carpetaKude != null) {
-					if (new File(carpetaKude).exists()) {
-						File targetFile = new File(carpetaKude + File.separator + nombreDE + "_" + establecimiento + "-" + punto + "-" + numero + ".xml");
-					    //OutputStream outStream = new FileOutputStream(targetFile);
-					    //outStream.write(xml);
-
-					    //IOUtils.closeSilently(outStream);				
+				if (carpetaXml != null) {
+					if (new File(carpetaXml).exists()) {
+						File targetFile = new File(carpetaXml + File.separator + nombreDE + "_" + establecimiento + "-" + punto + "-" + numero + ".xml");
+					   
 					    FileWriter myWriter = new FileWriter(targetFile);
 					    myWriter.write(xml);
 					    myWriter.close();
 					      
 					} else {
-						System.out.println("Carpeta " + carpetaKude + " no encontrado. Ignorado guardado de archivo");
+						System.out.println("Carpeta " + carpetaXml + " no encontrado. Ignorado guardado de archivo");
 					}
 				} else {
 					System.out.println("Parametro facturasend.carpetaKude no informado. Ignorado guardado de archivo");
