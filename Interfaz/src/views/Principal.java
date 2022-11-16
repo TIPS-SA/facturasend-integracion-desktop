@@ -45,6 +45,7 @@ import javax.swing.table.DefaultTableModel;
 
 import com.google.gson.Gson;
 
+import print.PrintPdf;
 import service.FacturasendService;
 import util.HttpUtil;
 import views.commons.Paginacion;
@@ -620,9 +621,10 @@ public class Principal extends JFrame {
 	                } else {
 	                	JOptionPane.showMessageDialog(null, "El item no posee CDC");
 	                }
-
-					
-				}
+	
+				} else {
+                	JOptionPane.showMessageDialog(null, "Seleccione un registro");
+                }
 			}
 		});
 		
@@ -685,7 +687,9 @@ public class Principal extends JFrame {
 					} else {
 	                	JOptionPane.showMessageDialog(null, "El item no posee CDC");
 	                }
-				}
+				} else {
+                	JOptionPane.showMessageDialog(null, "Seleccione un registro");
+                }
 			}
 		});
 		
@@ -734,10 +738,16 @@ public class Principal extends JFrame {
 	
 									ByteArrayInputStream inStream = new ByteArrayInputStream(out.toByteArray());
 	
-									ShowKUDEDialog showPdf = new ShowKUDEDialog(inStream);
-									showPdf.setVisible(true);
+									//ShowKUDEDialog showPdf = new ShowKUDEDialog(inStream);
+									//showPdf.setVisible(true);
 									
 									//Imprimir en la impresora
+									
+									String printerName = FacturasendService.readDBProperties().get("config.otros.nombre_impresora")+"";
+
+									PrintPdf printPDFFile = new PrintPdf(inStream, "FacturaSend", printerName, "PDF");
+						            printPDFFile.print();
+						            
 								}
 		
 							}
@@ -750,7 +760,9 @@ public class Principal extends JFrame {
 					} else {
 	                	JOptionPane.showMessageDialog(null, "El item no posee CDC");
 	                }
-				}
+				} else {
+                	JOptionPane.showMessageDialog(null, "Seleccione un registro");
+                }
 			}
 		});
 		
@@ -815,7 +827,9 @@ public class Principal extends JFrame {
 					} else {
 	                	JOptionPane.showMessageDialog(null, "El item no posee CDC");
 	                }
-				}
+				} else {
+                	JOptionPane.showMessageDialog(null, "Seleccione un registro");
+                }
 			}
 		});
 		
