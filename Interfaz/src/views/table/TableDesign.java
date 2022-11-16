@@ -39,7 +39,7 @@ public class TableDesign {
 		table.getColumnModel().getColumn(2).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(3).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(4).setCellRenderer(defaultTableCellRenderer);
-		table.getColumnModel().getColumn(5).setCellRenderer(new CurrencyCellRenderer());
+		table.getColumnModel().getColumn(5).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(6).setCellRenderer(new CeldaPersonalizada());
 	}
 	
@@ -50,9 +50,9 @@ public class TableDesign {
 		table.getColumnModel().getColumn(0).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(1).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(2).setCellRenderer(defaultTableCellRenderer);
-		table.getColumnModel().getColumn(3).setCellRenderer(new CurrencyCellRenderer());
-		table.getColumnModel().getColumn(4).setCellRenderer(new CurrencyCellRenderer());
-		table.getColumnModel().getColumn(5).setCellRenderer(new CurrencyCellRenderer());
+		table.getColumnModel().getColumn(3).setCellRenderer(defaultTableCellRenderer);
+		table.getColumnModel().getColumn(4).setCellRenderer(defaultTableCellRenderer);
+		table.getColumnModel().getColumn(5).setCellRenderer(defaultTableCellRenderer);
 	}
 }
 class CurrencyCellRenderer extends DefaultTableCellRenderer {
