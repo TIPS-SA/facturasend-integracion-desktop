@@ -64,12 +64,7 @@ class CurrencyCellRenderer extends DefaultTableCellRenderer {
             boolean isSelected, boolean hasFocus, int row, int column) {
         final Component result = super.getTableCellRendererComponent(table, value,
                 isSelected, hasFocus, row, column);
-        if (value instanceof Number) {
-            setHorizontalAlignment(SwingConstants.RIGHT);
-            //setText(FORMAT.format(value));
-        } else {
-            setText("");
-        }
+        setHorizontalAlignment(SwingConstants.RIGHT);
         return result;
     }
 }
