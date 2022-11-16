@@ -31,12 +31,17 @@ import util.HttpUtil;
  * @author Marcos Jara
  *
  */
-public class CoreServiceIntegracion {
+public class CoreIntegracionService {
 	
 	private static Gson gson = new Gson();
 	private static Gson gsonPP = new GsonBuilder().setPrettyPrinting().create();
-	public static Log log = LogFactory.getLog(CoreServiceIntegracion.class);
+	public static Log log = LogFactory.getLog(CoreIntegracionService.class);
 
+	/**
+	 * Inicia el proceso de Integracion de los documentos electronicos cada cierto tiempo
+	 * 
+	 * @param args
+	 */
 	/*public static void main(String[] args) {
 		Integer autoUpdateIntegracion = Integer.valueOf(FacturasendService.readDBProperties().get("database.autoupdate_millis.integracion")+"");
 		
@@ -125,12 +130,12 @@ public class CoreServiceIntegracion {
 				}
 				
 				//Tambien busca todas las formas de Cobro relacionados a las transacciones
-				List<Map<String, Object>> paymentViewAllMap = CoreServiceIntegracion.formasPagosByTransaccion(tipoDocumento, transaccionIdStringInClause, databaseProperties);
+				List<Map<String, Object>> paymentViewAllMap = CoreIntegracionService.formasPagosByTransaccion(tipoDocumento, transaccionIdStringInClause, databaseProperties);
 				
 				
 				//Generar JSON de documentos electronicos.
 				//List<Map<String, Object>> documentosParaEnvioJsonMap = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentoParaEnvioAllJsonMap, paymentViewAllMap, databaseProperties);
-				Map<String, Object> documentosStructurado = DocumentoElectronicoCore.generarJSONLote(transaccionIdString.split(","), documentoParaEnvioAllJsonMap, paymentViewAllMap, databaseProperties);
+				Map<String, Object> documentosStructurado = CoreDocumentoElectronico.generarJSONLote(transaccionIdString.split(","), documentoParaEnvioAllJsonMap, paymentViewAllMap, databaseProperties);
 				
 				//Obtener un array de documentos a integrar
 				List<Map<String, Object>> documentosParaEnvioJsonMap = (List<Map<String, Object>>)documentosStructurado.get("jsonDEs");
@@ -438,14 +443,15 @@ public class CoreServiceIntegracion {
 					key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
 					Object valor = CoreService.getValueForKey(datosUpdate, value);
 					if (valor != null) {
-						sql += key + "= '" + valor + "', ";
+						sql += key + "= ?, ";
 					} else {
 						if (updateWithNullNotPassedParams) {
-							sql += key + "= NULL, ";
+							sql += key + "= ?, ";
 						}
 					}
 				}
 			}
+			
 			sql = sql.substring(0, sql.length()-2) + " WHERE ";
 			
 			boolean poseeWhere = false;
@@ -462,7 +468,7 @@ public class CoreServiceIntegracion {
 					Object valor = CoreService.getValueForKey(datosUpdate, value);
 					if (valor != null) {
 						poseeWhere = true;
-						sql += key + "= '" + valor + "' AND ";
+						sql += key + "= ? AND ";
 					}
 				}
 			}
@@ -473,7 +479,58 @@ public class CoreServiceIntegracion {
 
 				System.out.print("\n" + sql + " ");
 				PreparedStatement statement = conn.prepareStatement(sql);
-
+				
+				//SET Params Value
+				int cParams = 1;
+				Iterator itr3 = databaseProperties.entrySet().iterator();
+				while (itr3.hasNext()) {
+					Map.Entry e = (Map.Entry)itr3.next();
+					
+					String key = e.getKey()+"";
+					String value = e.getValue()+""; 
+					String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".field.";
+					if ( key.startsWith(prefix)) {
+						key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
+						Object valor = CoreService.getValueForKey(datosUpdate, value);
+						if (valor != null) {
+							statement.setObject(cParams++, valor);
+						} else {
+							if (updateWithNullNotPassedParams) {
+								statement.setObject(cParams++, null);
+							}
+						}
+					}
+				}
+				
+				//WHERE Params Value
+				Iterator itr4 = databaseProperties.entrySet().iterator();
+				while (itr4.hasNext()) {
+					Map.Entry e = (Map.Entry)itr4.next();
+					
+					String key = e.getKey()+"";
+					String value = e.getValue()+""; 
+					String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".where.";
+					if ( key.startsWith(prefix)) {
+						key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
+						Object valor = CoreService.getValueForKey(datosUpdate, value);
+						if (valor != null) {
+							poseeWhere = true;
+							//sql += key + "= '" + valor + "' AND ";
+							statement.setObject(cParams++, valor);
+						}
+					}
+				}
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
 				int result = statement.executeUpdate();
 				System.out.println("result: " + result);
 			} else {

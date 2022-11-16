@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 
-public class DocumentoElectronicoCore {
+public class CoreDocumentoElectronico {
 	
 	private static Gson gson = new Gson();
 
