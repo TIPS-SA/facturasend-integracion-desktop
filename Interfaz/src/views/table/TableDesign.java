@@ -39,7 +39,7 @@ public class TableDesign {
 		table.getColumnModel().getColumn(2).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(3).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(4).setCellRenderer(defaultTableCellRenderer);
-		table.getColumnModel().getColumn(5).setCellRenderer(defaultTableCellRenderer);
+		table.getColumnModel().getColumn(5).setCellRenderer(new CurrencyCellRenderer());
 		table.getColumnModel().getColumn(6).setCellRenderer(new CeldaPersonalizada());
 	}
 	
@@ -50,9 +50,9 @@ public class TableDesign {
 		table.getColumnModel().getColumn(0).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(1).setCellRenderer(defaultTableCellRenderer);
 		table.getColumnModel().getColumn(2).setCellRenderer(defaultTableCellRenderer);
-		table.getColumnModel().getColumn(3).setCellRenderer(defaultTableCellRenderer);
-		table.getColumnModel().getColumn(4).setCellRenderer(defaultTableCellRenderer);
-		table.getColumnModel().getColumn(5).setCellRenderer(defaultTableCellRenderer);
+		table.getColumnModel().getColumn(3).setCellRenderer(new CurrencyCellRenderer());
+		table.getColumnModel().getColumn(4).setCellRenderer(new CurrencyCellRenderer());
+		table.getColumnModel().getColumn(5).setCellRenderer(new CurrencyCellRenderer());
 	}
 }
 class CurrencyCellRenderer extends DefaultTableCellRenderer {
@@ -64,12 +64,7 @@ class CurrencyCellRenderer extends DefaultTableCellRenderer {
             boolean isSelected, boolean hasFocus, int row, int column) {
         final Component result = super.getTableCellRendererComponent(table, value,
                 isSelected, hasFocus, row, column);
-        if (value instanceof Number) {
-            setHorizontalAlignment(SwingConstants.RIGHT);
-            //setText(FORMAT.format(value));
-        } else {
-            setText("");
-        }
+        setHorizontalAlignment(SwingConstants.RIGHT);
         return result;
     }
 }
