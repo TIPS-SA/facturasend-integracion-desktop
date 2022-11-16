@@ -1,15 +1,20 @@
 package core;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.JOptionPane;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -19,6 +24,7 @@ import com.google.gson.GsonBuilder;
 
 import connect.BDConnect;
 import connect.SQLConnection;
+import print.PrintPdf;
 import util.HttpUtil;
 
 /**
@@ -218,9 +224,8 @@ public class CoreIntegracionService {
 									
 								}
 								
-		
-							}
-		
+								setTimeout(() -> imprimirKUDEFacturaSend(respuestaDE.get("cdc")+"", databaseProperties), 10);	//Ejecuta en un thread						
+							}	// end-for 
 							
 						} else {
 							//Si hay errores
@@ -266,6 +271,7 @@ public class CoreIntegracionService {
 											datosGuardar.put("JSON", gson.toJson(viewRec) + "");
 											System.out.println("despues del error");
 											guardarFacturaSendData(viewRec, datosGuardar2, databaseProperties);*/
+											
 										}
 									}	
 								}
@@ -288,8 +294,11 @@ public class CoreIntegracionService {
 						
 						
 						//Aqui ejecutar la consulta de Estado.
-						setTimeout(() -> actualizarEstadoDesdeFacturaSend(tipoDocumento, databaseProperties), 1000);
+						setTimeout(() -> actualizarEstadoDesdeFacturaSend(tipoDocumento, databaseProperties), 1000);	//Ejecuta en un thread
+						
+						
 		
+						//Aqui ejecutar la Impre
 					}
 				} else {
 					System.out.println("No se invoco a la Api de Facturasend por que no existian datos para enviar "  + documentosParaEnvioJsonMap + " para el Tipo de Documento " + tipoDocumento);
@@ -626,6 +635,70 @@ public class CoreIntegracionService {
 		return result;
 	}
 
+	public static Map<String, Object> imprimirKUDEFacturaSend(String cdc, Map<String, String> databaseProperties)  {
+		//Recupera los transaccion_id que se deben integrar
+		Map<String, Object> result = new HashMap<String, Object>();
+		
+		
+		try {
+			if (cdc != null) {
+                cdc = cdc.trim();
+                
+                List<Map<String, Object>> deList = new ArrayList<Map<String,Object>>();
+				Map data = new HashMap();
+				data.put("type", "base64");
+				data.put("cdcList", deList);
+				
+				Map cdcMap = new HashMap();
+				cdcMap.put("cdc", cdc);
+
+				deList.add(cdcMap);
+				
+				Map header = new HashMap();
+				header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
+				String url = databaseProperties.get("facturasend.url")+"";
+				url += "/de/pdf";
+				
+				try {
+					Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(data), header);
+					
+					//probar con un pdf fijo, del folder
+					if (resultadoJson != null) {
+						if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
+
+							ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+							byte[] decoder = Base64.getDecoder().decode(resultadoJson.get("value") + "");
+
+							out.write(decoder);
+
+							ByteArrayInputStream inStream = new ByteArrayInputStream(out.toByteArray());
+
+							String printerName = databaseProperties.get("config.otros.nombre_impresora")+"";
+
+							PrintPdf printPDFFile = new PrintPdf(inStream, "FacturaSend", printerName, "PDF");
+				            printPDFFile.print();
+
+						}
+
+					}
+										
+				} catch (Exception e2) {
+					// TODO: handle exception
+					JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
+					e2.printStackTrace();
+				}
+			} else {
+            	JOptionPane.showMessageDialog(null, "El item no posee CDC");
+            }
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("success", false);
+			result.put("error", e.getMessage());
+		}
+		return result;
+	}
 	
 	public static Integer deleteFacturaSendTableByTransaccionId(Map<String, Object> de, Map<String, String> databaseProperties) throws Exception{
 		Integer result = deleteFacturaSendTableByTransaccionId(de, databaseProperties, "('ERROR', 'ESTADO', 'PAUSADO', 'XML', 'JSON', 'QR', 'CDC', 'TIPO')");
