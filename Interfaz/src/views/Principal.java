@@ -74,6 +74,7 @@ public class Principal extends JFrame {
 	private JButton btnReintegrar;
 	private JButton btnVerXml;
 	private JButton btnVerkude;
+	private JButton btnPrintkude;
 	private JButton btnEnviarEmail;
 	private JScrollPane scrollPaneCenter;
 	private JTable jTableTransaction;
@@ -189,9 +190,11 @@ public class Principal extends JFrame {
 		btnVerXml.setIcon(new ImageIcon(Principal.class.getResource("/resources/txt.png")));
 		
 		
-		btnVerkude = new JButton("verKUDE");
+		btnVerkude = new JButton("Ver KUDE");
 		btnVerkude.setIcon(new ImageIcon(Principal.class.getResource("/resources/pdf.png")));
 		
+		btnPrintkude = new JButton("Print KUDE");
+		btnPrintkude.setIcon(new ImageIcon(Principal.class.getResource("/resources/printer.png")));
 		
 		btnEnviarEmail = new JButton("Enviar Email");
 		btnEnviarEmail.setIcon(new ImageIcon(Principal.class.getResource("/resources/folder_outbox.png")));
@@ -212,6 +215,8 @@ public class Principal extends JFrame {
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnVerkude, GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnPrintkude, GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnEnviarEmail, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 					.addGap(19))
 		);
@@ -226,6 +231,7 @@ public class Principal extends JFrame {
 						.addComponent(btnReintegrar)
 						.addComponent(btnVerXml)
 						.addComponent(btnVerkude)
+						.addComponent(btnPrintkude)
 						.addComponent(btnEnviarEmail))
 					.addGap(14))
 		);
@@ -570,6 +576,56 @@ public class Principal extends JFrame {
 
 	    });
 		
+
+		
+		btnVerXml.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String cdc = "";
+
+				int row = jTableTransaction.getSelectedRow();
+				if (jTableTransaction.getSelectedRow() >= 0) {
+	                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
+	                
+	                cdc = (String) model.getValueAt(row, 7);
+	                if (cdc != null) {
+		                cdc = cdc.trim();
+		                
+						Map header = new HashMap();
+						header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
+						String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
+						url += "/de/xml/" + cdc;
+						
+						try {
+							Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "GET", null, header);
+							
+							if (resultadoJson != null) {
+								if (Boolean.valueOf(resultadoJson.get("success")+"") == true) {
+									
+									//Imlementar el dialog para ver el xml 
+									String xml = resultadoJson.get("value")+"";
+									ShowXMLDialog xmlView = new ShowXMLDialog(xml);
+									xmlView.setVisible(true);
+								} else {
+									//Lucas mostrar error en pantalla
+									System.out.println("error" + resultadoJson.get("error")+"");
+								}
+			
+							}
+						} catch (Exception e2) {
+							//Lucas Mostrar error e npantalla
+							JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
+							e2.printStackTrace();
+						}
+	                } else {
+	                	JOptionPane.showMessageDialog(null, "El item no posee CDC");
+	                }
+
+					
+				}
+			}
+		});
+		
 		btnVerkude.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -582,90 +638,183 @@ public class Principal extends JFrame {
 					DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
 					
 	                cdc = (String) model.getValueAt(row, 7);
-	
-	                List<Map<String, Object>> deList = new ArrayList<Map<String,Object>>();
-					Map data = new HashMap();
-					data.put("type", "base64");
-					data.put("cdcList", deList);
-					
-					Map cdcMap = new HashMap();
-					cdcMap.put("cdc", cdc);
-	
-					deList.add(cdcMap);
-					
-					Map header = new HashMap();
-					header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
-					String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
-					url += "/de/pdf";
-					
-					try {
-						Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(data), header);
+	                if (cdc != null) {
+		                cdc = cdc.trim();
+		                
+		                List<Map<String, Object>> deList = new ArrayList<Map<String,Object>>();
+						Map data = new HashMap();
+						data.put("type", "base64");
+						data.put("cdcList", deList);
 						
-						//probar con un pdf fijo, del folder
-						if (resultadoJson != null) {
-							if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
-
-								ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-								byte[] decoder = Base64.getDecoder().decode(resultadoJson.get("value") + "");
-
-								out.write(decoder);
-
-								ByteArrayInputStream inStream = new ByteArrayInputStream(out.toByteArray());
-
-								ShowKUDEDialog showPdf = new ShowKUDEDialog(inStream);
-								showPdf.setVisible(true);
-							}
+						Map cdcMap = new HashMap();
+						cdcMap.put("cdc", cdc);
+		
+						deList.add(cdcMap);
+						
+						Map header = new HashMap();
+						header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
+						String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
+						url += "/de/pdf";
+						
+						try {
+							Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(data), header);
+							
+							//probar con un pdf fijo, del folder
+							if (resultadoJson != null) {
+								if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
 	
+									ByteArrayOutputStream out = new ByteArrayOutputStream();
+	
+									byte[] decoder = Base64.getDecoder().decode(resultadoJson.get("value") + "");
+	
+									out.write(decoder);
+	
+									ByteArrayInputStream inStream = new ByteArrayInputStream(out.toByteArray());
+	
+									ShowKUDEDialog showPdf = new ShowKUDEDialog(inStream);
+									showPdf.setVisible(true);
+								}
+		
+							}
+												
+						} catch (Exception e2) {
+							// TODO: handle exception
+							JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
+							e2.printStackTrace();
 						}
-											
-					} catch (Exception e2) {
-						// TODO: handle exception
-						JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
-						e2.printStackTrace();
-					}
+					} else {
+	                	JOptionPane.showMessageDialog(null, "El item no posee CDC");
+	                }
 				}
 			}
 		});
 		
-		btnVerXml.addActionListener(new ActionListener() {
+		btnPrintkude.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				//Generar JSON de documentos electronicos.
+
 				String cdc = "";
 
 				int row = jTableTransaction.getSelectedRow();
 				if (jTableTransaction.getSelectedRow() >= 0) {
-	                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
-	                
+					DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
+					
 	                cdc = (String) model.getValueAt(row, 7);
-	                
-					Map header = new HashMap();
-					header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
-					String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
-					url += "/de/xml/" + cdc;
-					
-					try {
-						Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "GET", null, header);
+	                if (cdc != null) {
+		                cdc = cdc.trim();
+		                
+		                List<Map<String, Object>> deList = new ArrayList<Map<String,Object>>();
+						Map data = new HashMap();
+						data.put("type", "base64");
+						data.put("cdcList", deList);
 						
-						if (resultadoJson != null) {
-							if (Boolean.valueOf(resultadoJson.get("success")+"") == true) {
-								
-								//Imlementar el dialog para ver el xml 
-								String xml = resultadoJson.get("value")+"";
-								ShowXMLDialog xmlView = new ShowXMLDialog(xml);
-								xmlView.setVisible(true);
-							} else {
-								//Lucas mostrar error en pantalla
-								System.out.println("error" + resultadoJson.get("error")+"");
-							}
+						Map cdcMap = new HashMap();
+						cdcMap.put("cdc", cdc);
 		
+						deList.add(cdcMap);
+						
+						Map header = new HashMap();
+						header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
+						String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
+						url += "/de/pdf";
+						
+						try {
+							Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(data), header);
+							
+							//probar con un pdf fijo, del folder
+							if (resultadoJson != null) {
+								if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
+	
+									ByteArrayOutputStream out = new ByteArrayOutputStream();
+	
+									byte[] decoder = Base64.getDecoder().decode(resultadoJson.get("value") + "");
+	
+									out.write(decoder);
+	
+									ByteArrayInputStream inStream = new ByteArrayInputStream(out.toByteArray());
+	
+									ShowKUDEDialog showPdf = new ShowKUDEDialog(inStream);
+									showPdf.setVisible(true);
+									
+									//Imprimir en la impresora
+								}
+		
+							}
+												
+						} catch (Exception e2) {
+							// TODO: handle exception
+							JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
+							e2.printStackTrace();
 						}
-					} catch (Exception e2) {
-						//Lucas Mostrar error e npantalla
-						JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
-						e2.printStackTrace();
-					}
+					} else {
+	                	JOptionPane.showMessageDialog(null, "El item no posee CDC");
+	                }
+				}
+			}
+		});
+		
+		btnEnviarEmail.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//Generar JSON de documentos electronicos.
+
+				String cdc = "";
+
+				int row = jTableTransaction.getSelectedRow();
+				if (jTableTransaction.getSelectedRow() >= 0) {
+					DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
 					
+	                cdc = (String) model.getValueAt(row, 7);
+	                if (cdc != null) {
+		                cdc = cdc.trim();
+		                
+		                List<Map<String, Object>> deList = new ArrayList<Map<String,Object>>();
+						Map data = new HashMap();
+						data.put("type", "base64");
+						data.put("cdcList", deList);
+						
+						Map cdcMap = new HashMap();
+						cdcMap.put("cdc", cdc);
+		
+						deList.add(cdcMap);
+						
+						Map header = new HashMap();
+						header.put("Authorization", "Bearer api_key_" + FacturasendService.readDBProperties().get("facturasend.token"));
+						String url = FacturasendService.readDBProperties().get("facturasend.url")+"";
+						url += "/de/pdf";
+						
+						try {
+							Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(data), header);
+							
+							//probar con un pdf fijo, del folder
+							if (resultadoJson != null) {
+								if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
+	
+									ByteArrayOutputStream out = new ByteArrayOutputStream();
+	
+									byte[] decoder = Base64.getDecoder().decode(resultadoJson.get("value") + "");
+	
+									out.write(decoder);
+	
+									ByteArrayInputStream inStream = new ByteArrayInputStream(out.toByteArray());
+	
+									ShowKUDEDialog showPdf = new ShowKUDEDialog(inStream);
+									showPdf.setVisible(true);
+									
+									//Imprimir en la impresora
+								}
+		
+							}
+												
+						} catch (Exception e2) {
+							// TODO: handle exception
+							JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
+							e2.printStackTrace();
+						}
+					} else {
+	                	JOptionPane.showMessageDialog(null, "El item no posee CDC");
+	                }
 				}
 			}
 		});
@@ -678,7 +827,7 @@ public class Principal extends JFrame {
 		            int row = jTableTransaction.getSelectedRow();
 	                DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
 	                BigDecimal transaccionId = (BigDecimal) model.getValueAt(row, 0);
-	                movDetails = new InfoMovimiento(transaccionId, oThis);
+	                movDetails = new InfoMovimiento(transaccionId, tipoDocumento, oThis);
 	                movDetails.setVisible(true);
 				 }
 		    }

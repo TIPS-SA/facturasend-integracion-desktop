@@ -34,7 +34,10 @@ import javax.swing.SpringLayout;
 public class InfoMovimiento extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
+	//---
 	private static BigDecimal transaccionId;
+	private static Integer tipoDocumento;
+	//---
 	private JButton okButton;
 	private JTable jTableTransaccionesItems;
 	private FacturasendService fs;
@@ -69,19 +72,20 @@ public class InfoMovimiento extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public InfoMovimiento(BigDecimal transaccionId, Principal parent) {
+	public InfoMovimiento(BigDecimal transaccionId, Integer tipoDocumento, Principal parent) {
 		this.transaccionId = transaccionId;
-
+		this.tipoDocumento = tipoDocumento;
+		
 		setModal(true);
 		setBounds(100, 100, 800, 550);
 		setMinimumSize(new Dimension(800,410));
 		setTitle("Detalles del Movimiento #"+transaccionId);
-		initialize(transaccionId);
+		initialize(transaccionId, tipoDocumento);
 		events();
 		
 	}
 
-	private void initialize(BigDecimal transaccionId) {
+	private void initialize(BigDecimal transaccionId, Integer tipoDocumento) {
 		kb = KeyboardFocusManager.getCurrentKeyboardFocusManager();
 		fs = new FacturasendService();
 		// TODO Auto-generated method stub
@@ -94,7 +98,7 @@ public class InfoMovimiento extends JDialog {
 		contentPanel.add(scrollPane, BorderLayout.CENTER);
 	
 		jTableTransaccionesItems = new JTable();
-		List<Map<String, Object>> transacconesItem = fs.populateTransactionDetailsTable(jTableTransaccionesItems, transaccionId);
+		List<Map<String, Object>> transacconesItem = fs.populateTransactionDetailsTable(jTableTransaccionesItems, transaccionId, tipoDocumento);
 		
 		scrollPane.setViewportView(jTableTransaccionesItems);
 

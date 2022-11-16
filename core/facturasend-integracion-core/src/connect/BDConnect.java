@@ -149,7 +149,7 @@ public class BDConnect {
 		}
 				
 		bdConnect.setDbfFilePathRead(map.get("database.dbf.parent_folder"));
-		bdConnect.setDbfFilePathWrite(map.get("database.dbf.facturasend_file"));
+		bdConnect.setDbfFilePathWrite(map.get("database.dbf.transaccion_table"));
 
 		return bdConnect;
 	}

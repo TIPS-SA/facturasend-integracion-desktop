@@ -689,7 +689,7 @@ public class Config extends JDialog {
 		}else {
 			propertiesDb.put("database.type", DatabaseType.DBF.value);
 			propertiesDb.put("database.dbf.transacctions_file", txtDbfPayments.getText());
-			propertiesDb.put("database.dbf.facturasend_file", txtDbfFacturasend.getText());
+			propertiesDb.put("database.dbf.transaccion_table", txtDbfFacturasend.getText());
 			propertiesDb.put("database.dbf.parent_folder", txtPathDbfPayments.getText());
 			propertiesDb.put("database.dbf.tabla_integrados",txtTablaDestino.getText());
 		}
@@ -780,7 +780,7 @@ public class Config extends JDialog {
 			System.out.println(propertiesDb.get("database.type"));
 			if ( propertiesDb.get("database.type").equals("dbf")) {
 				isDBF(true);
-				txtDbfFacturasend.setText(propertiesDb.get("database.dbf.facturasend_file"));
+				txtDbfFacturasend.setText(propertiesDb.get("database.dbf.transaccion_table"));
 				txtDbfPayments.setText(propertiesDb.get("database.dbf.transacctions_file"));
 				txtPathDbfPayments.setText(propertiesDb.get("database.dbf.parent_folder"));
 				txtPathDbfFacturasend.setText(propertiesDb.get("database.dbf.parent_folder"));

@@ -47,12 +47,12 @@ public class FacturasendService {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Map<String, Object> loadTransaccionesItem(Integer transaccionId, Integer page, Integer size) throws Exception {
+	public static Map<String, Object> loadTransaccionesItem(Integer transaccionId, Integer tipoDocumento, Integer page, Integer size) throws Exception {
 		
 		//Llamar a la consulta de Datos
 		//ConfigProperties configProperties = new ConfigProperties();
 		
-		Map<String, Object> returnData = CoreService.getTransaccionesItem(transaccionId, page, size, readDBProperties());
+		Map<String, Object> returnData = CoreService.getTransaccionesItem(transaccionId, tipoDocumento, page, size, readDBProperties());
 		
 		System.out.println(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {
@@ -134,12 +134,26 @@ public class FacturasendService {
 			//System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
 				
+				String moneda = (String)CoreService.getValueForKey(rs.get(i), "moneda");
+				DecimalFormat df = new DecimalFormat("###,###,###,###.##");	//Preparado para PYG
+				if (!moneda.equals("PYG")) {
+					df = new DecimalFormat("###,###,###,###.00######");	
+				}
+				
+				Double total = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "total")).doubleValue();
+				
+				System.out.println("A: " + CoreService.getValueForKey(rs.get(i), "total"));
+				System.out.println("B: " + (BigDecimal)CoreService.getValueForKey(rs.get(i), "total"));
+				System.out.println("C: " + ((BigDecimal) CoreService.getValueForKey(rs.get(i), "total")).doubleValue());
+				System.out.println("D: " + df.format(total));
+				
+
 				datos[0] = CoreService.getValueForKey(rs.get(i), "transaccion_id", "tra_id");
 				datos[1] = CoreService.getValueForKey(rs.get(i), "fecha");
 				datos[2] = CoreService.getValueForKey(rs.get(i), "cliente_razon_social", "c_raz_soc");
 				datos[3] = StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "establecimiento", "estable")+"", 3)  + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "punto")+"", 3) + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "numero")+"", 7);
-				datos[4] = CoreService.getValueForKey(rs.get(i), "moneda");
-				datos[5] = CoreService.getValueForKey(rs.get(i), "total") != null ? CoreService.getValueForKey(rs.get(i), "total") : 0;
+				datos[4] = moneda;
+				datos[5] = df.format(total);
 				
 				//String fieldEstado = (String) Core.getValueForKey(rs.get(i), "estado"); 
 				//Integer fieldEstado = (Integer) Core.getValueForKey(rs.get(i), "estado");
@@ -179,7 +193,7 @@ public class FacturasendService {
 		return retorno;
 	}
 		
-	public List<Map<String, Object>> populateTransactionDetailsTable(JTable table, BigDecimal nroMov) {
+	public List<Map<String, Object>> populateTransactionDetailsTable(JTable table, BigDecimal nroMov, Integer tipoDocumento) {
 		Object [] titulos = {"Codigo" , "Descripcion", "Cantidad", "Precio Unitario", "Descuento", "SubTotal"};
 		Object datos[] = {null, null, null, null,null, null};
 		List<Map<String, Object>> rs = new ArrayList<Map<String,Object>>();
@@ -193,24 +207,33 @@ public class FacturasendService {
 		};
 		
 		try {
-			Map<String, Object> result = loadTransaccionesItem(nroMov.intValue(), 0, 999999);
+			Map<String, Object> result = loadTransaccionesItem(nroMov.intValue(), tipoDocumento, 0, 999999);
 			System.out.println("items" + result);
 			rs = (List<Map<String, Object>>)result.get("result");
 			//retorno =  (Integer)result.get("count");
 			System.out.println("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
+				String moneda = (String)CoreService.getValueForKey(rs.get(i), "moneda");
+				DecimalFormat dfCantidad = new DecimalFormat("###,###,###.00######");	//Cantidad
+
+				DecimalFormat df = new DecimalFormat("###,###,###,###.##");	//Preparado para PYG
+				if (!moneda.equals("PYG")) {
+					df = new DecimalFormat("###,###,###,###.00######");	
+				}
+				
+				Double cantidad = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "item_cantidad", "i_cantidad")).doubleValue();
+				Double precioUnitario = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "item_precio_unitario", "i_pre_uni")).doubleValue();
+				Double descuento = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "item_descuento", "i_descue")).doubleValue();
 				
 				datos[0] = CoreService.getValueForKey(rs.get(i), "transaccion_id", "tra_id");
 				datos[1] = CoreService.getValueForKey(rs.get(i), "item_descripcion", "i_descrip");
-				datos[2] = CoreService.getValueForKey(rs.get(i), "item_cantidad", "i_cantidad");
-				datos[3] = CoreService.getValueForKey(rs.get(i), "item_precio_unitario", "i_pre_uni");
-				datos[4] = CoreService.getValueForKey(rs.get(i), "item_descuento", "i_descue");
+				datos[2] = dfCantidad.format(cantidad);
+				datos[3] = df.format(precioUnitario);
+				datos[4] = df.format(descuento);
 				
-				DecimalFormat df = new DecimalFormat("###########.00");
-		        double subtotalNumber = Double.valueOf(datos[2].toString()) * Double.valueOf(datos[3].toString()) - Double.valueOf(datos[4].toString());
-		        String subtotal = df.format(subtotalNumber);
-		        subtotal = subtotal.replace(",", ".");
-				datos[5] = Double.valueOf(subtotal).doubleValue();
+		        double subtotalNumber = cantidad.doubleValue() * precioUnitario.doubleValue() - descuento.doubleValue();
+		        
+				datos[5] = df.format(subtotalNumber);
 				
 				model.addRow(datos);
 			}

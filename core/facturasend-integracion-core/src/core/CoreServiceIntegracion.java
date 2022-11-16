@@ -1038,7 +1038,7 @@ public class CoreServiceIntegracion {
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
 		} else {
 			
-			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			tableName = databaseProperties.get("database.dbf.transaccion_table");
 			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
 
 			sql = "SELECT tra_id \n"
@@ -1147,7 +1147,7 @@ public class CoreServiceIntegracion {
 						+ "transaccion_id, cdc \n";	//Ordena de forma normal, para obtener el ultimo	
 		} else {
 			
-			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			tableName = databaseProperties.get("database.dbf.transaccion_table");
 			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
 
 			sql = "SELECT "
@@ -1272,7 +1272,7 @@ public class CoreServiceIntegracion {
 						+ "ORDER BY numero DESC \n";		
 		} else {
 			
-			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			tableName = databaseProperties.get("database.dbf.transaccion_table");
 			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
 
 			sql = "SELECT * \n"

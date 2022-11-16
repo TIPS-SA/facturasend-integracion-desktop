@@ -64,7 +64,7 @@ public class CoreService {
 			if (databaseProperties.get("database.type").equals("dbf")) {
 				System.out.print("\nReload ");
 				Statement st = conn.createStatement();
-				st.execute("reload '" + databaseProperties.get("database.dbf.parent_folder") + "/" + databaseProperties.get("database.dbf.facturasend_file") + "'");
+				st.execute("reload '" + databaseProperties.get("database.dbf.parent_folder") + "/" + databaseProperties.get("database.dbf.transaccion_table") + "'");
 			}
 			
 			
@@ -111,19 +111,17 @@ public class CoreService {
 		} else {
 			//DBF
 			
-			tableName = databaseProperties.get("database.dbf.facturasend_file");
+			/*tableName = databaseProperties.get("database.dbf.transaccion_table");
 			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
 
 			sql = "SELECT tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
 				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
 				+ "estable, punto, numero, serie, total, "
-				/*+ "cdc, "
-				+ "estado, "
-				+ "error "*/
-				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) AS cdc, "
-				+ "CAST ((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS INTEGER) AS estado, "
-				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ERROR' LIMIT 1) AS error, "
-				+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='PAUSADO' LIMIT 1) AS pausado "
+				
+				+ "(SELECT \"value\" FROM facturasend mid WHERE mid.tra_id = vp.tra_id AND \"name\"='CDC' LIMIT 1) AS cdc, "
+				+ "CAST ((SELECT \"value\" FROM facturasend mid WHERE mid.tra_id = vp.tra_id AND \"name\"='ESTADO' LIMIT 1) AS INTEGER) AS estado, "
+				+ "(SELECT \"value\" FROM facturasend mid WHERE mid.tra_id = vp.tra_id AND \"name\"='ERROR' LIMIT 1) AS error, "
+				+ "(SELECT \"value\" FROM facturasend mid WHERE mid.tra_id = vp.tra_id AND \"name\"='PAUSADO' LIMIT 1) AS pausado "
 				+ "\n"
 				+ "FROM " + tableName + " vp \n"
 				+ "WHERE "
@@ -137,13 +135,53 @@ public class CoreService {
 				+ "GROUP BY tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
 				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
 				+ "estable, punto, numero, serie, total, cdc, estado, error, pausado \n"
+				+ "ORDER BY estable DESC, punto DESC, numero DESC \n";
+			*/
+			
+			
+			boolean obtenerCdcEstadoPausadoPorSubSelect = true;
+			String transactionTableName = databaseProperties.get("database.dbf.transaccion_table");
+			transactionTableName = transactionTableName.substring(0, transactionTableName.indexOf(".dbf"));
+
+			String facturaSendTableName = databaseProperties.get("database.dbf.facturasend_table");
+			facturaSendTableName = facturaSendTableName.substring(0, facturaSendTableName.indexOf(".dbf"));
+			String facturaSendTableKey = databaseProperties.get("database.dbf.facturasend_table.key");
+			String facturaSendTableValue = databaseProperties.get("database.dbf.facturasend_table.value");
+			
+			sql = "SELECT tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
+					+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
+					+ "estable, punto, numero, serie, total, \n";
+			
+			if (obtenerCdcEstadoPausadoPorSubSelect) {
+				sql += "(SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) AS cdc, \n"
+					+ "CAST((SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='ESTADO' LIMIT 1) AS INTEGER) AS estado, \n"
+					+ "(SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='ERROR' LIMIT 1) AS error, \n"
+					+ "(SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='PAUSADO' LIMIT 1) AS pausado \n";
+					
+			} else {
+				sql += "cdc, estado, error, qr ";
+			}
+			
+			sql += "FROM " + transactionTableName + " vp \n"
+				+ "WHERE "
+				+ "( \n"
+				+ "	(estable || '-' || punto || '-' || numero || COALESCE(serie, '')) LIKE '%" + q + "%' \n" 
+				+ "	OR UPPER(COALESCE(c_ruc, '')) LIKE '%" + q.toUpperCase() + "%' \n"
+				+ "	OR UPPER(COALESCE(c_doc_num, '')) LIKE '%" + q.toUpperCase() + "%' \n"
+				+ "	OR UPPER(c_raz_soc) LIKE '%" + q.toUpperCase() + "%' \n"
+				+ ") \n"
+				+ "AND tip_doc = " + tipoDocumento + " \n"
+				+ "GROUP BY tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
+				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
+				+ "estable, punto, numero, serie, total, cdc, estado, error, pausado \n"
 				+ "ORDER BY estable DESC, punto DESC, numero DESC \n";			
+			
 		}
 		
 		return sql;
 	}
 	
-	public static Map<String, Object> getTransaccionesItem(Integer transaccionId, Integer page, Integer size, Map<String, String> databaseProperties) {
+	public static Map<String, Object> getTransaccionesItem(Integer transaccionId, Integer tipoDocumento, Integer page, Integer size, Map<String, String> databaseProperties) {
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
@@ -151,14 +189,8 @@ public class CoreService {
 			
 			Statement statement = conn.createStatement();
 			
-			String sql = getSQLTransaccionesItem(databaseProperties, transaccionId, page, size);
+			String sql = getSQLTransaccionesItem(databaseProperties, transaccionId, tipoDocumento, page, size);
 			
-			//result.put("count", SQLUtil.getCountFromSQL(statement, sql)); 
-
-			//sql = getSQLListDesPaginado(databaseProperties, sql, q, page, size);
-			if (databaseProperties.get("database.type").equals("oracle")) {
-				//sql = getOracleSQLPaginado(sql, page, size);
-			}
 			System.out.print("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
@@ -177,7 +209,7 @@ public class CoreService {
 		return result;
 	}
 			
-	private static String getSQLTransaccionesItem(Map<String, String> databaseProperties, Integer transaccionId, Integer page, Integer size) {
+	private static String getSQLTransaccionesItem(Map<String, String> databaseProperties, Integer transaccionId, Integer tipoDocumento, Integer page, Integer size) {
 		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
 		String sql = "";
 		
@@ -191,21 +223,35 @@ public class CoreService {
 					+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";	
 		} else {
 			
-			tableName = databaseProperties.get("database.dbf.facturasend_file");
-			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+			boolean obtenerCdcEstadoPausadoPorSubSelect = true;
+			String transactionTableName = databaseProperties.get("database.dbf.transaccion_table");
+			transactionTableName = transactionTableName.substring(0, transactionTableName.indexOf(".dbf"));
 
-			sql = "SELECT tra_id, i_descrip, i_cantidad, i_pre_uni, i_descue, \n"
-					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) AS cdc, \n"
-					+ "CAST((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS INTEGER) AS estado, \n"
-					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ERROR' LIMIT 1) AS error, \n"
-					+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='QR' LIMIT 1) AS qr \n"
-
-					+ "FROM " + tableName + " vp \n"
-					+ "WHERE \n"
+			String facturaSendTableName = databaseProperties.get("database.dbf.facturasend_table");
+			facturaSendTableName = facturaSendTableName.substring(0, facturaSendTableName.indexOf(".dbf"));
+			String facturaSendTableKey = databaseProperties.get("database.dbf.facturasend_table.key");
+			String facturaSendTableValue = databaseProperties.get("database.dbf.facturasend_table.value");
+			
+			sql = "SELECT tra_id, \ntip_doc, \ni_descrip, \ni_cantidad, \ni_pre_uni, \ni_descue, \nmoneda, \n";
+			
+			if (obtenerCdcEstadoPausadoPorSubSelect) {
+				sql += "(SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) AS cdc, \n"
+					+ "CAST((SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='ESTADO' LIMIT 1) AS INTEGER) AS estado, \n"
+					+ "(SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='ERROR' LIMIT 1) AS \"error\", \n"
+					+ "(SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='QR' LIMIT 1) AS \"qr\" \n";
 					
-					+ "tra_id = " + transaccionId + " \n"
-					
-					+ "ORDER BY estable DESC, punto DESC, numero DESC \n";
+			} else {
+				sql += "cdc, estado, error, qr \n";
+			}
+			
+			sql += ""
+				+ "FROM " + transactionTableName + " vp \n"
+				+ "WHERE \n"
+				
+				+ "vp.tra_id = " + transaccionId + " \n"
+				+ "AND vp.tip_doc = " + tipoDocumento + " \n"
+				
+				+ "ORDER BY estable DESC, punto DESC, numero DESC \n";
 		}
 				
 		return sql;
@@ -325,13 +371,19 @@ public class CoreService {
 		if (map.get(key1.toUpperCase()) != null) {
 			return map.get(key1.toUpperCase());
 		}
+		if (map.get(key1.toLowerCase()) != null) {
+			return map.get(key1.toLowerCase());
+		}
 		if (key2 != null) {
 			if (map.get(key2) != null) {
 				return map.get(key2);
 			}
 			if (map.get(key2.toUpperCase()) != null) {
 				return map.get(key2.toUpperCase());
-			}			
+			}
+			if (map.get(key2.toLowerCase()) != null) {
+				return map.get(key2.toLowerCase());
+			}	
 		}
 		return null;
 	}
