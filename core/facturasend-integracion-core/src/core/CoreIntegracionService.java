@@ -812,11 +812,18 @@ public class CoreIntegracionService {
 		}
 		
 		String sql = "DELETE FROM " 
-						+ tableToDelete + " WHERE " 
-						+ CoreService.getKeyExists(de, "tipo_documento", "tip_doc") + " = " + CoreService.getValueForKey(de, "tipo_documento", "tip_doc") + " "
-						+ "AND " + transaccionIdForeignKeyField + " = " + CoreService.getValueForKey(de, "transaccion_id", "tra_id") + " "
-						+ "AND TRIM(UPPER(" + tableToUpdateKey + ")) IN " + inNames;
+						+ tableToDelete + " "
+						+ "WHERE 1=1 "; 
 		
+		//Agrega el where del tipo de documento solamente si esta establecido en el config
+		String tipoDocumentoOrTipDoc = CoreService.getKeyExists(de, "tipo_documento", "tip_doc") + "";
+		if (CoreService.findKeyByValueInProperties(databaseProperties, prefix, tipoDocumentoOrTipDoc) != null) {
+			sql += "AND " + tipoDocumentoOrTipDoc + " = " + CoreService.getValueForKey(de, "tipo_documento", "tip_doc") + " ";
+		}
+		
+		sql += "AND " + transaccionIdForeignKeyField + " = " + CoreService.getValueForKey(de, "transaccion_id", "tra_id") + " "
+			+ "AND TRIM(UPPER(" + tableToUpdateKey + ")) IN " + inNames;
+
 		System.out.print("\n" + sql + " ");
 		PreparedStatement statement = conn.prepareStatement(sql);
 
@@ -875,7 +882,12 @@ public class CoreIntegracionService {
 		String tableToUpdate = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table");
 		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
 		String tableToUpdateValue = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.value");
-		
+		if (databaseProperties.get("database.type").equals("oracle")) {
+			tableToUpdateKey = tableToUpdateKey.toUpperCase();
+			tableToUpdateValue = tableToUpdateValue.toUpperCase();
+		}
+		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table.field.";
+
 		String preUpdateSQL = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.pre_update_sql");
 		if (preUpdateSQL != null) {
 			PreparedStatement statement2 = conn.prepareStatement(preUpdateSQL);
@@ -901,7 +913,14 @@ public class CoreIntegracionService {
 			}
 		}
 		
-		String sqlUpdate = "INSERT INTO " + tableToUpdate + " (\"" + CoreService.getKeyExists(viewPrincipal, "tipo_documento", "tip_doc") + "\", ";
+		String sqlUpdate = "INSERT INTO " + tableToUpdate + " (";
+		
+		//Agrega el tipo documento si asi esta establecido en el config
+		String tipoDocumentoOrTipDoc = CoreService.getKeyExists(viewPrincipal, "tipo_documento", "tip_doc") + "";
+		if (CoreService.findKeyByValueInProperties(databaseProperties, prefix, tipoDocumentoOrTipDoc) != null) {
+			//sqlUpdate += "\"" + CoreService.getKeyExists(viewPrincipal, "tipo_documento", "tip_doc") + "\", ";
+			sqlUpdate += "" + CoreService.getKeyExists(viewPrincipal, "tipo_documento", "tip_doc") + ", ";
+		}
 		
 		//Buscar fields adicionales
 		Iterator itr = databaseProperties.entrySet().iterator();
@@ -910,7 +929,8 @@ public class CoreIntegracionService {
 			
 			String key = e.getKey()+""; 
 			if ((key).startsWith("database." + databaseProperties.get("database.type") + ".facturasend_table.field.")) {
-				sqlUpdate += "\"" + key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + "\", ";
+				//sqlUpdate += "\"" + key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + "\", ";
+				sqlUpdate += "" + key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + ", ";
 			}
 		}
 				
@@ -922,7 +942,13 @@ public class CoreIntegracionService {
 		while (itrDato.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
 			Map.Entry eDato = (Map.Entry)itrDato.next();
 
-			sqlUpdate += "(?, ";	//Fijo para tipo de documento.
+			sqlUpdate += "(";	//Fijo para tipo de documento.
+			
+			//Agrega el parametro de tipo de documento, si esta establecido en el config. 
+			if (CoreService.findKeyByValueInProperties(databaseProperties, prefix, tipoDocumentoOrTipDoc) != null) {
+				sqlUpdate += "?, ";
+			}
+			
 			itr = databaseProperties.entrySet().iterator();
 			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
 				Map.Entry e = (Map.Entry)itr.next();
@@ -961,7 +987,12 @@ public class CoreIntegracionService {
 			
 			itr = databaseProperties.entrySet().iterator();
 			int f = 1;
-			statement.setObject(f++, CoreService.getValueForKey(viewPrincipal, "tipo_documento", "tip_doc"));	//Fijo
+			
+			//Agrega el parametro de tipo de documento, si esta establecido en el config. 
+			if (CoreService.findKeyByValueInProperties(databaseProperties, prefix, tipoDocumentoOrTipDoc) != null) {
+				statement.setObject(f++, CoreService.getValueForKey(viewPrincipal, "tipo_documento", "tip_doc"));	//Fijo
+			}
+
 			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
 				Map.Entry e = (Map.Entry)itr.next();
 				
