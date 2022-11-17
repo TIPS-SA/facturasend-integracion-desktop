@@ -20,12 +20,17 @@ public class Paginacion extends JPanel {
     private List<IPaginacionListener> listeners = new ArrayList<IPaginacionListener>();
 
 	private JButton btnFirstPage;
-	private JTextField txtPagina;
 	private JButton btnAnterior;
+	private JTextField txtPagina;
 	private JLabel lblPagina;
 	private JLabel lblCantidadPaginas;
 	private JButton btnSiguiente;
 	private JButton btnLastPage;
+	
+	private JButton btnReload;
+	
+	private JLabel lblRegistrosPorPagina;
+	
 	private int width;
 	private int height;
 
@@ -74,10 +79,11 @@ public class Paginacion extends JPanel {
 		btnLastPage = new JButton("");
 		btnLastPage.setIcon(new ImageIcon(Paginacion.class.getResource("/resources/2rightarrow.png")));
 		
-		JButton btnReload = new JButton("");
+		btnReload = new JButton("");
 		btnReload.setIcon(new ImageIcon(Paginacion.class.getResource("/resources/icons8-update-left-rotation-16.png")));
 		
-		JLabel lblRegistrosPorPagina = new JLabel( null + " al "+null + " de " + null);
+		lblRegistrosPorPagina = new JLabel("");
+		
 		GroupLayout groupLayout = new GroupLayout(this);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
@@ -133,16 +139,19 @@ public class Paginacion extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				if (currentPage > 1) {
 					currentPage --;	
+					setCurrentPage(currentPage);
 				}
 				
-				setCurrentPage(currentPage);
+				
 			}
 		});
 		btnSiguiente.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				currentPage++;
-				setCurrentPage(currentPage);
+				if (currentPage < pages) {
+					currentPage++;
+					setCurrentPage(currentPage);
+				}
 			}
 		});
 		btnLastPage.addActionListener(new ActionListener() {
@@ -150,6 +159,12 @@ public class Paginacion extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				currentPage = pages;
 				setCurrentPage(currentPage);
+			}
+		});
+		btnReload.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				refresh();
 			}
 		});
 	}
@@ -161,6 +176,8 @@ public class Paginacion extends JPanel {
 	public void setCurrentPage(Integer currentPage) {
 		this.currentPage = currentPage;
 		txtPagina.setText(this.currentPage + "");
+		Integer desde = (this.currentPage == 1 ? this.currentPage : (this.currentPage * getRowsPerPage()));
+		lblRegistrosPorPagina.setText( desde + " a " + (desde-1 + getRowsPerPage()) + " de " + getTotal());
 		this.listeners.stream().forEach( l -> {l.goTo(currentPage);} );
 	}
 
@@ -189,6 +206,10 @@ public class Paginacion extends JPanel {
 		this.total = total;
 		this.pages = calculateTotalPages;
 		this.lblCantidadPaginas.setText("de " + pages);
+		
+		Integer desde = (this.currentPage == 1 ? this.currentPage : ( ((this.currentPage-1) * getRowsPerPage())+1) );
+		lblRegistrosPorPagina.setText( desde + " a " + (desde + getRowsPerPage()-1) + " de " + getTotal());
+
 	}
 
 	public void addActionListener(IPaginacionListener paginacionListener) {
