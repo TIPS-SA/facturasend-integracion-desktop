@@ -350,6 +350,35 @@ public class CoreService {
 		return null;
 	}
 	
+	/**
+	 * Retorna la key que no contiene valores nulos, de acuerdo a las 2 keys pasadas como parmetro.
+	 * @param map
+	 * @param key1
+	 * @param key2
+	 * @return
+	 */
+	public static Object getKeyExists(Map<String, Object> map, String key1, String key2) {
+		if (map.get(key1) != null) {
+			return key1.toLowerCase();
+		}
+		if (map.get(key1.toUpperCase()) != null) {
+			return key1.toLowerCase();
+		}
+		if (map.get(key1.toLowerCase()) != null) {
+			return key1.toLowerCase();
+		}
+		if (map.get(key2) != null) {
+			return key2.toLowerCase();
+		}
+		if (map.get(key2.toUpperCase()) != null) {
+			return key2.toLowerCase();
+		}
+		if (map.get(key2.toLowerCase()) != null) {
+			return key2.toLowerCase();
+		}	
+		return null;
+	}
+	
 	public static Object getValueFromMapCaseInsensitive(Map<String, String> map, String keyToFind) {
 		Object valueReturn = null;
 		Iterator itr = map.entrySet().iterator();

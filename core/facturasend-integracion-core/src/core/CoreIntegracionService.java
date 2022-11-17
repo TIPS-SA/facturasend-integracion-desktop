@@ -785,7 +785,7 @@ public class CoreIntegracionService {
 
 	/**
 	 * 
-	 * @param de		Map conteniendo el transaccion_id|tra_id
+	 * @param de		Map conteniendo el transaccion_id|tra_id, tipo_documento|tip_doc
 	 * @param error
 	 * @param databaseProperties
 	 * @return
@@ -795,9 +795,8 @@ public class CoreIntegracionService {
 
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
 		
-		String tableToUpdate = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table");
+		String tableToDelete = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table");
 		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
-		//String tableToUpdateValue = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.value");
 
 		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table.field.";
 		String transaccionIdForeignKeyField = CoreService.findKeyByValueInProperties(databaseProperties, prefix, "transaccion_id");
@@ -806,10 +805,19 @@ public class CoreIntegracionService {
 		}
 		transaccionIdForeignKeyField = transaccionIdForeignKeyField.substring(prefix.length(), transaccionIdForeignKeyField.length());
 		
-		String sql = "DELETE FROM " + tableToUpdate + " WHERE " + transaccionIdForeignKeyField + " = " + CoreService.getValueForKey(de, "transaccion_id", "tra_id") + " "
-				+ " AND TRIM(UPPER(" + tableToUpdateKey + ")) IN " + inNames;
+		if (databaseProperties.get("database.type").equalsIgnoreCase("dbf")) {
+			if (tableToDelete.endsWith(".dbf")) {
+				tableToDelete = tableToDelete.substring(0, tableToDelete.indexOf(".dbf"));	
+			}
+		}
 		
-		System.out.print("\n" + sql);
+		String sql = "DELETE FROM " 
+						+ tableToDelete + " WHERE " 
+						+ CoreService.getKeyExists(de, "tipo_documento", "tip_doc") + " = " + CoreService.getValueForKey(de, "tipo_documento", "tip_doc") + " "
+						+ "AND " + transaccionIdForeignKeyField + " = " + CoreService.getValueForKey(de, "transaccion_id", "tra_id") + " "
+						+ "AND TRIM(UPPER(" + tableToUpdateKey + ")) IN " + inNames;
+		
+		System.out.print("\n" + sql + " ");
 		PreparedStatement statement = conn.prepareStatement(sql);
 
 		result = statement.executeUpdate();
@@ -852,7 +860,7 @@ public class CoreIntegracionService {
 	
 	/**
 	 * 
-	 * @param viewPrincipal		Map conteniendo el transaccion_id|tra_id, como asi tambien los valores para la 
+	 * @param viewPrincipal		Map conteniendo el transaccion_id|tra_id, tipo_documento|tip_doc como asi tambien los valores para la 
 	 * 							actualización de los elementos cuyos campos se definen en el archivo de configuración
 	 * 							en el campo database.type.facturasend_table.field.
 	 * @param error
@@ -887,9 +895,13 @@ public class CoreIntegracionService {
 			
 		}
 		
+		if (databaseProperties.get("database.type").equalsIgnoreCase("dbf")) {
+			if (tableToUpdate.endsWith(".dbf")) {
+				tableToUpdate = tableToUpdate.substring(0, tableToUpdate.indexOf(".dbf"));	
+			}
+		}
 		
-		
-		String sqlUpdate = "INSERT INTO " + tableToUpdate + " (";
+		String sqlUpdate = "INSERT INTO " + tableToUpdate + " (\"" + CoreService.getKeyExists(viewPrincipal, "tipo_documento", "tip_doc") + "\", ";
 		
 		//Buscar fields adicionales
 		Iterator itr = databaseProperties.entrySet().iterator();
@@ -898,19 +910,19 @@ public class CoreIntegracionService {
 			
 			String key = e.getKey()+""; 
 			if ((key).startsWith("database." + databaseProperties.get("database.type") + ".facturasend_table.field.")) {
-				sqlUpdate += key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + ", ";
+				sqlUpdate += "\"" + key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + "\", ";
 			}
 		}
 				
-		sqlUpdate += tableToUpdateKey + ", ";
-		sqlUpdate += tableToUpdateValue + ") VALUES ";
+		sqlUpdate += "\"" + tableToUpdateKey + "\", ";
+		sqlUpdate += "\"" + tableToUpdateValue + "\") VALUES ";
 		
 		//Buscar fields value adicionales
 		Iterator itrDato = datosGuardar.entrySet().iterator();
 		while (itrDato.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
 			Map.Entry eDato = (Map.Entry)itrDato.next();
 
-			sqlUpdate += "( ";
+			sqlUpdate += "(?, ";	//Fijo para tipo de documento.
 			itr = databaseProperties.entrySet().iterator();
 			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
 				Map.Entry e = (Map.Entry)itr.next();
@@ -949,6 +961,7 @@ public class CoreIntegracionService {
 			
 			itr = databaseProperties.entrySet().iterator();
 			int f = 1;
+			statement.setObject(f++, CoreService.getValueForKey(viewPrincipal, "tipo_documento", "tip_doc"));	//Fijo
 			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
 				Map.Entry e = (Map.Entry)itr.next();
 				
@@ -1372,24 +1385,42 @@ public class CoreIntegracionService {
 						+ "transaccion_id, cdc \n";	//Ordena de forma normal, para obtener el ultimo	
 		} else {
 			
-			tableName = databaseProperties.get("database.dbf.transaccion_table");
-			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+			boolean obtenerCdcEstadoPausadoPorSubSelect = true;
+			String transactionTableName = databaseProperties.get("database.dbf.transaccion_table");
+			transactionTableName = transactionTableName.substring(0, transactionTableName.indexOf(".dbf"));
+
+			String facturaSendTableName = databaseProperties.get("database.dbf.facturasend_table");
+			facturaSendTableName = facturaSendTableName.substring(0, facturaSendTableName.indexOf(".dbf"));
+			String facturaSendTableKey = databaseProperties.get("database.dbf.facturasend_table.key");
+			String facturaSendTableValue = databaseProperties.get("database.dbf.facturasend_table.value");
 
 			sql = "SELECT "
 					+ extraFields
-					+ "tra_id, cdc AS \"cdc\" \n"
-					+ "FROM " + tableName + " vp \n"
-					+ "WHERE 1=1 \n"
-					+ "AND tip_doc = " + tipoDocumento + " \n"
+					+ "tra_id, \n";
+			if (obtenerCdcEstadoPausadoPorSubSelect) {
+//				sql += "cdc AS \"cdc\" \n";
+				sql += "(SELECT \"" + facturaSendTableValue + "\" FROM \"" + transactionTableName + "\" mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) AS \"cdc\" \n";
 
-					+ "AND ( \n"
-						+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) IS NOT NULL \n"
-						+ "AND \n"
-						+ "COALESCE(CAST((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS INTEGER), 999) = 0 \n"
-					+ ") \n"
-					+ "GROUP BY "
-					+ extraFields
-					+ "tra_id, cdc AS \"cdc\"";
+			} else {
+				sql += "cdc AS \"cdc\" \n";
+			}
+			
+			sql += "FROM " + transactionTableName + " vp \n"
+				+ "WHERE 1=1 \n"
+				+ "AND tip_doc = " + tipoDocumento + " \n";
+				
+			if (obtenerCdcEstadoPausadoPorSubSelect) {
+				sql += "AND ( \n"
+					+ "(SELECT \"" + facturaSendTableValue + "\" FROM \"" + facturaSendTableName + "\" mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) IS NOT NULL \n"
+					+ "AND \n"
+					+ "COALESCE(CAST((SELECT \"" + facturaSendTableValue + "\" FROM \"" + facturaSendTableName + "\" mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='ESTADO' LIMIT 1) AS INTEGER), 999) = 0 \n"
+				+ ") \n";
+			} else {
+				sql += "AND (cdc IS NOT NULL OR estado = 0) ";
+			}
+			sql += "GROUP BY "
+				+ extraFields
+				+ "tra_id, cdc";
 		}
 		
 		
