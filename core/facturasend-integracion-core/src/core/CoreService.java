@@ -69,7 +69,7 @@ public class CoreService {
 			result.put("result", transaccionesList);
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("Error 1 " + e);
 			result.put("success", false);
 			result.put("error", e.getMessage());
 			
@@ -163,7 +163,7 @@ public class CoreService {
 			result.put("result", listadoTransaccionesItem);
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("Error 2 " + e);
 			result.put("success", false);
 			result.put("error", e.getMessage());
 			
@@ -317,7 +317,7 @@ public class CoreService {
 	public static String getPostgreSQLPaginado(String sql, Integer page, Integer size) {
 		
 		//Paginacion Oracle
-		sql += " LIMIT " + size + " OFFSET " + (page == 1 ? page : (((page-1) * size) + 1)) + " \n";
+		sql += " LIMIT " + size + " OFFSET " + (page == 1 ? (page-1) : ((((page-1) * size) + 1))-1) + " \n";
 		return sql;
 	}
 

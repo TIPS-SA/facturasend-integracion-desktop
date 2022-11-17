@@ -292,7 +292,11 @@ public class CoreIntegracionService {
 							
 							Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
 							
-							String sql = "save '" + databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table") + "' to '" + databaseProperties.get("database.dbf.parent_folder") + "'";
+							String dbfTableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table");
+							if (dbfTableName.endsWith(".dbf")) {
+								dbfTableName = dbfTableName.substring(0, dbfTableName.indexOf(".dbf"));
+							}
+							String sql = "save '" + dbfTableName + "' to '" + databaseProperties.get("database.dbf.parent_folder") + "'";
 							//+ "\\saved' ";
 							System.out.println("\n" + sql + " ");
 							//PreparedStatement statement = conn.prepareStatement(sql);
