@@ -620,9 +620,9 @@ public class Config extends JDialog {
 				}
 				if (cbTipoDb.getSelectedItem()==DatabaseType.DBF.name) {
 					isDBF(true);
-					txtDbfPayments.setText(propertiesDb.get("dbf.facturasend_file"));
-					txtDbfFacturasend.setText(propertiesDb.get("database.dbf.transacctions_file"));
-					txtTablaDestino.setText(propertiesDb.get("database.dbf.tabla_integrados"));
+					txtDbfFacturasend.setText(propertiesDb.get("database.dbf.transaccion_table"));
+					txtDbfPayments.setText(propertiesDb.get("database.dbf.payment_view"));
+					txtTablaDestino.setText(propertiesDb.get("database.dbf.facturasend_table"));
 				}
 			}
 		});
@@ -688,10 +688,10 @@ public class Config extends JDialog {
 			propertiesDb.put("database."+tipo+".driver", cbDriver.getSelectedItem().toString());
 		}else {
 			propertiesDb.put("database.type", DatabaseType.DBF.value);
-			propertiesDb.put("database.dbf.transacctions_file", txtDbfPayments.getText());
+			propertiesDb.put("database.dbf.payment_view", txtDbfPayments.getText());
 			propertiesDb.put("database.dbf.transaccion_table", txtDbfFacturasend.getText());
 			propertiesDb.put("database.dbf.parent_folder", txtPathDbfPayments.getText());
-			propertiesDb.put("database.dbf.tabla_integrados",txtTablaDestino.getText());
+			propertiesDb.put("database.dbf.facturasend_table",txtTablaDestino.getText());
 		}
 		//pestanha facturasend
 		
@@ -781,10 +781,10 @@ public class Config extends JDialog {
 			if ( propertiesDb.get("database.type").equals("dbf")) {
 				isDBF(true);
 				txtDbfFacturasend.setText(propertiesDb.get("database.dbf.transaccion_table"));
-				txtDbfPayments.setText(propertiesDb.get("database.dbf.transacctions_file"));
+				txtDbfPayments.setText(propertiesDb.get("database.dbf.payment_view"));
 				txtPathDbfPayments.setText(propertiesDb.get("database.dbf.parent_folder"));
 				txtPathDbfFacturasend.setText(propertiesDb.get("database.dbf.parent_folder"));
-				txtTablaDestino.setText(propertiesDb.get("database.dbf.tabla_integrados"));
+				txtTablaDestino.setText(propertiesDb.get("database.dbf.facturasend_table"));
 			}else {
 				String tipo = propertiesDb.get("database.type").toString();
 				txtDatabase.setText(propertiesDb.get("database."+tipo+".name"));

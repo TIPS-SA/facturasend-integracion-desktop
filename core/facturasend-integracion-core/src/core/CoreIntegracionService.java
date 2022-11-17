@@ -1539,11 +1539,14 @@ public class CoreIntegracionService {
 				+ "AND transaccion_id IN " + transaccionIdString + " \n"
 				+ "";
 		} else {
+			String dbfPaymentTableName = databaseProperties.get("database.dbf.payment_view");
+			dbfPaymentTableName = dbfPaymentTableName.substring(0, dbfPaymentTableName.indexOf(".dbf"));
+			
 			sql = "SELECT * \n"
-					+ "FROM " + paymentTableName + " \n"
+					+ "FROM " + dbfPaymentTableName + " \n"
 					+ "WHERE 1=1 \n"
 					+ "AND tip_doc = " + tipoDocumento + " \n"
-					+ "AND tra_id IN (" + transaccionIdString + ") \n"
+					+ "AND tra_id IN " + transaccionIdString + " \n"
 					+ "";
 		}
 		return sql;
