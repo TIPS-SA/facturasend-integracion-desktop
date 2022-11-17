@@ -432,7 +432,6 @@ public class Principal extends JFrame {
 		paginacion.addActionListener(new PaginacionListener() {
 			@Override
 			public void goTo(Integer currentPage) {
-				System.out.println("Entra en el go to");
 				paginacion.setTotal(fs.populateTransactionTable(jTableTransaction, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage));
 			}
 		});

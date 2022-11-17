@@ -1234,9 +1234,8 @@ public class CoreIntegracionService {
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
-			System.out.println("Obteniendo conexion..." );
+
 			Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
-			System.out.println("Conexion obtenida..." );
 			
 			Statement statement = conn.createStatement();
 			
@@ -1328,7 +1327,7 @@ public class CoreIntegracionService {
 						+ "COALESCE(CAST((SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='ESTADO' LIMIT 1) AS INTEGER), 999) = 4 \n"
 					+ ") \n";
 			} else {
-				sql += "AND (cdc IS NULL OR estado = 4) ";
+				sql += "AND pausado IS NULL AND (cdc IS NULL OR estado = 4) ";
 			}
 			sql += "GROUP BY tra_id, estable, punto, numero \n"
 					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				
@@ -1484,20 +1483,13 @@ public class CoreIntegracionService {
 	 * @return
 	 */
 	public static Map<String, Object> procesarTransacciones(String transaccionIdString, Map<String, String> databaseProperties)  {
-		
-		Map<String, Object> obtenerTransaccionesMap = obtenerTransaccionesParaEnvioLote(transaccionIdString, databaseProperties);
 
+		Map<String, Object> obtenerTransaccionesMap = obtenerTransaccionesParaEnvioLote(transaccionIdString, databaseProperties);
 		try {
 			
 			if (Boolean.valueOf(obtenerTransaccionesMap.get("success")+"") == true) {
 				List<Map<String, Object>> obtenerTransaccionesListMap = (List<Map<String, Object>>)obtenerTransaccionesMap.get("result");
 
-				
-				
-				//System.out.println("resultado paso 2 " + obtenerTransaccionesListMap);
-				
-				
-				//return returnData;
 			} else {
 				throw new Exception(obtenerTransaccionesMap.get("error")+"");
 			}
@@ -1526,9 +1518,6 @@ public class CoreIntegracionService {
 			Statement statement = conn.createStatement();
 			
 			String sql = obtenerTransaccionesSQLParaEnvioLote(databaseProperties, transaccionIdString);
-			
-			//result.put("count", SQLUtil.getCountFromSQL(statement, sql));
-
 			
 			System.out.print("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
