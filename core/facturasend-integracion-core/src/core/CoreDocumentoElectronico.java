@@ -47,7 +47,6 @@ public class CoreDocumentoElectronico {
 				}).collect(Collectors.toList());
 				
 				//---
-				//System.out.println("parmentViewAllList " + parmentViewAllList);
 				List<Map<String, Object>> parmentViewFiltradoList = parmentViewAllList.stream().filter( map -> {
 					String transaccionIdString = CoreService.getValueForKey(map, "transaccion_id", "tra_id") + "";
 					
@@ -81,20 +80,17 @@ public class CoreDocumentoElectronico {
 	public static Map<String, Object> invocarDocumentoElectronicoDesdeView(List<Map<String, Object>> transaccionMap, List<Map<String, Object>> paymentViewMap, Map<String, String> databaseProperties) throws Exception{
 		Map<String, Object> dataMap = new HashMap<String, Object>();
 
-		System.out.println("Procesando... " + gson.toJson(transaccionMap));
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 		if (transaccionMap != null && transaccionMap.size() > 0) {
-			System.out.println("1");
+			
 			Map<String, Object> transaccionCabecera = transaccionMap.get(0);
-			System.out.println("2");
-
+			
 			Integer transaccionId = Integer.valueOf(CoreService.getValueForKey(transaccionCabecera, "transaccion_id", "tra_id") + "");
 			Integer tipoDocumento = Integer.valueOf(CoreService.getValueForKey(transaccionCabecera, "tipo_documento", "tip_doc") + "");
 
 			dataMap.put("tipoDocumento", tipoDocumento);
 			String cdcGenerado = (String) CoreService.getValueForKey(transaccionCabecera, "cdc");
-			System.out.println("3");
-
+			
 			if (cdcGenerado != null && cdcGenerado.length() == 44) {
 				dataMap.put("cdc", cdcGenerado); //Si ya fue generado con un CDC, entonces envía para utilizar el mismo.
 			}
@@ -198,7 +194,6 @@ public class CoreDocumentoElectronico {
 			}
 			dataMap.put("usuario", dataMapUsuario);
 			//finUsuario
-			System.out.println("55555");
 
 			//Factura
 			if (tipoDocumento == 1) {
@@ -256,11 +251,8 @@ public class CoreDocumentoElectronico {
 			// Items de la compra
 			List<Map<String, Object>> lista = new ArrayList<Map<String, Object>>();
 
-			System.out.println("6666");
-
 			for (int i = 0; i < transaccionMap.size(); i++) {
-				System.out.println("ciclo .. " + i + " size " + transaccionMap.size());
-
+				
 				// Items de la compra
 				Map<String, Object> dataMapProducto = new HashMap<String, Object>();
 				Map<String, Object> transaccionItems = transaccionMap.get(i);
@@ -327,16 +319,11 @@ public class CoreDocumentoElectronico {
 				lista.add(dataMapProducto);
 
 			}
-			System.out.println("termino ... ");
-
+			
 			dataMap.put("items", lista);
 			
-			System.out.println("termino ... 2 ");
-
 			Map<String, Object> condicionMap = recuperarFormasDePagoParaCondicion(tipoDocumento, paymentViewMap, databaseProperties);
 			
-			System.out.println("termino ... 3 ");
-
 			if (condicionMap != null) {
 				dataMap.put("condicion", condicionMap);	
 			} else {
@@ -354,8 +341,6 @@ public class CoreDocumentoElectronico {
 				dataMap.put("condicion", condicion);	
 
 			}
-			
-			System.out.println("termino ... 4 ");
 
 			//DocumentoAsociado
 			Map<String, Object> documentoAsociadoMap = new HashMap<String, Object>();
@@ -395,9 +380,6 @@ public class CoreDocumentoElectronico {
 				dataMap.put("documentoAsociado", documentoAsociadoMap);	
 			}
 			
-			System.out.println("termino ... 5 ");
-
-
 			Map<String, Object> transporteMap = new HashMap<String, Object>();
 			transporteMap.put("tipo", CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip"));
 			transporteMap.put("modalidad", CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod"));
@@ -571,8 +553,6 @@ public class CoreDocumentoElectronico {
 	 */
 	private static Map<String, Object> recuperarFormasDePagoParaCondicion(Integer tipoDocumento, List<Map<String, Object>> paymentViewMap, Map<String, String> databaseProperties) throws Exception {
 		
-		//List<Map<String, Object>> paymentViewMap = Core.formasPagosByTransaccion(tipoDocumento, transaccionId, databaseProperties);
-		System.out.println("Despues de la llamada " + paymentViewMap);
 		if (paymentViewMap.size() <= 0) {
 			return null;
 		}
@@ -680,10 +660,10 @@ public class CoreDocumentoElectronico {
 
 						creditoMap.put("tipo", 2); // Siempre fijo, en "Cuotas"
 						creditoMap.put("cuotas", creditos.size());
-						System.out.println("cantidad de cuotas " + creditos.size());
+
 						creditoMap.put("montoEntrega", sumatoriaMontoEntrega);
 						// infoCuotas
-						System.out.println("creditos " + creditos.size());
+						
 						for (int j = 0; j < creditos.size(); j++) {
 							Map<String, Object> dataMapCobroCredito = new HashMap<String, Object>();
 							Object[] formasCobros = creditos.get(j);

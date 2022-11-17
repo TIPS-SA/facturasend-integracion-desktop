@@ -1249,6 +1249,14 @@ public class CoreIntegracionService {
 						+ "GROUP BY transaccion_id, establecimiento, punto, numero \n"
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
 		} else {
+			boolean obtenerCdcEstadoPausadoPorSubSelect = true;
+			String transactionTableName = databaseProperties.get("database.dbf.transaccion_table");
+			transactionTableName = transactionTableName.substring(0, transactionTableName.indexOf(".dbf"));
+
+			String facturaSendTableName = databaseProperties.get("database.dbf.facturasend_table");
+			facturaSendTableName = facturaSendTableName.substring(0, facturaSendTableName.indexOf(".dbf"));
+			String facturaSendTableKey = databaseProperties.get("database.dbf.facturasend_table.key");
+			String facturaSendTableValue = databaseProperties.get("database.dbf.facturasend_table.value");
 			
 			tableName = databaseProperties.get("database.dbf.transaccion_table");
 			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
@@ -1256,15 +1264,20 @@ public class CoreIntegracionService {
 			sql = "SELECT tra_id \n"
 					+ "FROM " + tableName + " vp \n"
 					+ "WHERE 1=1 \n"
-					+ "AND tip_doc = " + tipoDocumento + " \n"
-					+ "AND pausado IS NULL \n"
+					+ "AND tip_doc = " + tipoDocumento + " \n";
 
-					+ "AND ( \n"
-						+ "(SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='CDC' LIMIT 1) IS NULL \n"
+			if (obtenerCdcEstadoPausadoPorSubSelect) {
+
+				sql += "AND (SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='PAUSADO' LIMIT 1) IS NULL \n"
+						+ "AND ( \n"
+						+ "(SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) IS NULL \n"
 						+ "OR \n"
-						+ "COALESCE(CAST((SELECT moli_value FROM MOLI_invoiceData mid WHERE mid.tra_id = vp.tra_id AND moli_name='ESTADO' LIMIT 1) AS INTEGER), 999) = 4 \n"
-					+ ") \n"
-					+ "GROUP BY tra_id, estable, punto, numero \n"
+						+ "COALESCE(CAST((SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='ESTADO' LIMIT 1) AS INTEGER), 999) = 4 \n"
+					+ ") \n";
+			} else {
+				sql += "AND (cdc IS NULL OR estado = 4) ";
+			}
+			sql += "GROUP BY tra_id, estable, punto, numero \n"
 					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				
 		}
 		

@@ -36,19 +36,13 @@ public class CoreService {
 		System.out.println(databaseProperties);
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
-			System.out.println("obteniendo conexion");
 			Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("vista");
-			System.out.println("conexio obenida");
 			
 			Statement statement = conn.createStatement();
-			System.out.println("conexio obenida 111");
 			
 			String sql = getSQLTransaccionesList(databaseProperties, q, tipoDocumento, page, size);
-			System.out.println("conexio obenida 222");
 			
 			result.put("count", SQLUtil.getCountFromSQL(statement, sql)); 
-
-			System.out.println("conexio obenida 333");
 
 			//sql = getSQLListDesPaginado(databaseProperties, sql, q, page, size);
 			if (databaseProperties.get("database.type").equals("oracle")) {
@@ -59,15 +53,11 @@ public class CoreService {
 				sql = getPostgreSQLPaginado(sql, page, size);
 			}
 			
-			System.out.println("conexio obenida 444");
-
 			if (databaseProperties.get("database.type").equals("dbf")) {
 				System.out.print("\nReload ");
 				Statement st = conn.createStatement();
 				st.execute("reload '" + databaseProperties.get("database.dbf.parent_folder") + "/" + databaseProperties.get("database.dbf.transaccion_table") + "'");
 			}
-			
-			
 			
 			System.out.print("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
@@ -110,34 +100,6 @@ public class CoreService {
 				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";			
 		} else {
 			//DBF
-			
-			/*tableName = databaseProperties.get("database.dbf.transaccion_table");
-			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
-
-			sql = "SELECT tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
-				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
-				+ "estable, punto, numero, serie, total, "
-				
-				+ "(SELECT \"value\" FROM facturasend mid WHERE mid.tra_id = vp.tra_id AND \"name\"='CDC' LIMIT 1) AS cdc, "
-				+ "CAST ((SELECT \"value\" FROM facturasend mid WHERE mid.tra_id = vp.tra_id AND \"name\"='ESTADO' LIMIT 1) AS INTEGER) AS estado, "
-				+ "(SELECT \"value\" FROM facturasend mid WHERE mid.tra_id = vp.tra_id AND \"name\"='ERROR' LIMIT 1) AS error, "
-				+ "(SELECT \"value\" FROM facturasend mid WHERE mid.tra_id = vp.tra_id AND \"name\"='PAUSADO' LIMIT 1) AS pausado "
-				+ "\n"
-				+ "FROM " + tableName + " vp \n"
-				+ "WHERE "
-				+ "( \n"
-				+ "	(estable || '-' || punto || '-' || numero || COALESCE(serie, '')) LIKE '%" + q + "%' \n" 
-				+ "	OR UPPER(COALESCE(c_ruc, '')) LIKE '%" + q.toUpperCase() + "%' \n"
-				+ "	OR UPPER(COALESCE(c_doc_num, '')) LIKE '%" + q.toUpperCase() + "%' \n"
-				+ "	OR UPPER(c_raz_soc) LIKE '%" + q.toUpperCase() + "%' \n"
-				+ ") \n"
-				+ "AND tip_doc = " + tipoDocumento + " \n"
-				+ "GROUP BY tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
-				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
-				+ "estable, punto, numero, serie, total, cdc, estado, error, pausado \n"
-				+ "ORDER BY estable DESC, punto DESC, numero DESC \n";
-			*/
-			
 			
 			boolean obtenerCdcEstadoPausadoPorSubSelect = true;
 			String transactionTableName = databaseProperties.get("database.dbf.transaccion_table");
