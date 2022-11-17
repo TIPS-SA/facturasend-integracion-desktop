@@ -648,6 +648,8 @@ public class Config extends JDialog {
 		btnDbfPayments.setVisible(flag);
 		txtDbfPayments.setVisible(flag);
 		txtDbfFacturasend.setVisible(flag);
+		txtPathDbfFacturasend.setVisible(flag);
+		txtPathDbfPayments.setVisible(flag);
 		txtTablaDestino.setVisible(flag);
 		lblTablaDeDestino.setVisible(flag);
 		btnTest.setVisible(!flag);
@@ -690,7 +692,7 @@ public class Config extends JDialog {
 			propertiesDb.put("database.type", DatabaseType.DBF.value);
 			propertiesDb.put("database.dbf.payment_view", txtDbfPayments.getText());
 			propertiesDb.put("database.dbf.transaccion_table", txtDbfFacturasend.getText());
-			propertiesDb.put("database.dbf.parent_folder", txtPathDbfPayments.getText());
+			propertiesDb.put("database.dbf.parent_folder", txtPathDbfPayments.getText()==null ||txtPathDbfPayments.getText() == "" ? txtPathDbfFacturasend.getText():txtPathDbfPayments.getText());
 			propertiesDb.put("database.dbf.facturasend_table",txtTablaDestino.getText());
 		}
 		//pestanha facturasend
@@ -780,23 +782,21 @@ public class Config extends JDialog {
 			System.out.println(propertiesDb.get("database.type"));
 			if ( propertiesDb.get("database.type").equals("dbf")) {
 				isDBF(true);
-				txtDbfFacturasend.setText(propertiesDb.get("database.dbf.transaccion_table"));
-				txtDbfPayments.setText(propertiesDb.get("database.dbf.payment_view"));
-				txtPathDbfPayments.setText(propertiesDb.get("database.dbf.parent_folder"));
-				txtPathDbfFacturasend.setText(propertiesDb.get("database.dbf.parent_folder"));
-				txtTablaDestino.setText(propertiesDb.get("database.dbf.facturasend_table"));
-			}else {
-				String tipo = propertiesDb.get("database.type").toString();
-				txtDatabase.setText(propertiesDb.get("database."+tipo+".name"));
-				txtSchema.setText(propertiesDb.get("database."+tipo+".schema"));
-				txtUsername.setText(propertiesDb.get("database."+tipo+".username"));
-				txtHost.setText(propertiesDb.get("database."+tipo+".host"));
-				txtPuerto.setText(propertiesDb.get("database."+tipo+".port"));
-				cbDriver.setSelectedItem(propertiesDb.get("database."+tipo+".driver"));
-				pTxtPasswordBd.setText(propertiesDb.get("database."+tipo+".password"));
-					
 			}
-			
+			txtDbfFacturasend.setText(propertiesDb.get("database.dbf.transaccion_table"));
+			txtDbfPayments.setText(propertiesDb.get("database.dbf.payment_view"));
+			txtPathDbfPayments.setText(propertiesDb.get("database.dbf.parent_folder"));
+			txtPathDbfFacturasend.setText(propertiesDb.get("database.dbf.parent_folder"));
+			txtTablaDestino.setText(propertiesDb.get("database.dbf.facturasend_table"));
+			String tipo = propertiesDb.get("database.type").toString();
+			txtDatabase.setText(propertiesDb.get("database."+tipo+".name"));
+			txtSchema.setText(propertiesDb.get("database."+tipo+".schema"));
+			txtUsername.setText(propertiesDb.get("database."+tipo+".username"));
+			txtHost.setText(propertiesDb.get("database."+tipo+".host"));
+			txtPuerto.setText(propertiesDb.get("database."+tipo+".port"));
+			cbDriver.setSelectedItem(propertiesDb.get("database."+tipo+".driver"));
+			pTxtPasswordBd.setText(propertiesDb.get("database."+tipo+".password"));
+					
 			//Pestanha FacturaSend
 			chkIntegracionFacturasend.setSelected((propertiesDb.get("facturasend.integracionSet")).toString().equals("Y")?true:false);
 			chkComunicacionSincrona.setSelected((propertiesDb.get("facturasend.sincrono")).toString().equals("Y")?true:false);

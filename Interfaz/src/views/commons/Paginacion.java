@@ -14,6 +14,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.LayoutStyle.ComponentPlacement;
 
 public class Paginacion extends JPanel {
     private List<IPaginacionListener> listeners = new ArrayList<IPaginacionListener>();
@@ -72,49 +73,51 @@ public class Paginacion extends JPanel {
 		
 		btnLastPage = new JButton("");
 		btnLastPage.setIcon(new ImageIcon(Paginacion.class.getResource("/resources/2rightarrow.png")));
+		
+		JButton btnReload = new JButton("");
+		btnReload.setIcon(new ImageIcon(Paginacion.class.getResource("/resources/icons8-update-left-rotation-16.png")));
+		
+		JLabel lblRegistrosPorPagina = new JLabel( null + " al "+null + " de " + null);
 		GroupLayout groupLayout = new GroupLayout(this);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(9)
-					.addComponent(btnFirstPage, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
-					.addGap(5)
-					.addComponent(btnAnterior, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
-					.addGap(5)
-					.addComponent(lblPagina, GroupLayout.DEFAULT_SIZE, 42, Short.MAX_VALUE)
-					.addGap(5)
-					.addComponent(txtPagina, GroupLayout.DEFAULT_SIZE, 37, Short.MAX_VALUE)
-					.addGap(5)
-					.addComponent(lblCantidadPaginas, GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE)
-					.addGap(5)
-					.addComponent(btnSiguiente, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
-					.addGap(5)
-					.addComponent(btnLastPage, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addGap(10))
+					.addContainerGap()
+					.addComponent(btnFirstPage, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnAnterior, GroupLayout.PREFERRED_SIZE, 29, GroupLayout.PREFERRED_SIZE)
+					.addGap(1)
+					.addComponent(lblPagina, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
+					.addGap(4)
+					.addComponent(txtPagina, GroupLayout.PREFERRED_SIZE, 29, GroupLayout.PREFERRED_SIZE)
+					.addGap(4)
+					.addComponent(lblCantidadPaginas, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE)
+					.addGap(6)
+					.addComponent(btnSiguiente, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnLastPage, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnReload, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+					.addComponent(lblRegistrosPorPagina)
+					.addContainerGap())
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGap(5)
-					.addComponent(btnFirstPage))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(5)
-					.addComponent(btnAnterior))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(9)
-					.addComponent(lblPagina))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(7)
-					.addComponent(txtPagina, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(9)
-					.addComponent(lblCantidadPaginas))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(5)
-					.addComponent(btnSiguiente))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(5)
-					.addComponent(btnLastPage))
+					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
+						.addComponent(lblRegistrosPorPagina, GroupLayout.DEFAULT_SIZE, 26, Short.MAX_VALUE)
+						.addComponent(btnReload, GroupLayout.DEFAULT_SIZE, 26, Short.MAX_VALUE)
+						.addComponent(btnLastPage, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(btnAnterior, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(btnFirstPage, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(btnSiguiente, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+							.addComponent(lblPagina)
+							.addComponent(txtPagina, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(lblCantidadPaginas)))
+					.addGap(1))
 		);
 		setLayout(groupLayout);
 
