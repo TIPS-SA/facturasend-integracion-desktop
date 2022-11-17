@@ -573,7 +573,11 @@ public class CoreIntegracionService {
 		try {
 			//cdcList=> contendrá el campo cdc, y el campo transaccion_id|tra_id, para uso futuro
 			List<Map<String, Object>> cdcList = obtenerCDCsConEstadoGenerado(tipoDocumento, databaseProperties);
-
+			
+			for (Map<String, Object> map : cdcList) {
+				map.put("cdc", (map.get("cdc")+"").trim());
+			}
+			
 			if (cdcList.size() > 0) {	
 				
 				Map<String, Object> data = new HashMap<String, Object>();
@@ -589,44 +593,49 @@ public class CoreIntegracionService {
 				
 				if (resultadoJson != null) {
 					if (Boolean.valueOf(resultadoJson.get("success")+"") == true ) {
-						//Map<String, Object> resultMap = (Map<String, Object>)resultadoJson.get("result");
-						
+
+						//Verificar si resultado de enviados y recibidos son iguales.
 						List<Map<String, Object>> deListConEstados = (List<Map<String, Object>>)resultadoJson.get("deList");
 						
-						if (deListConEstados.size() > 0) {
-							//Actualizar estados en la Base de datos, solo si el estado es != 0
-							for (int j = 0; j < deListConEstados.size(); j++) {
-								Map<String, Object> deConEstado = deListConEstados.get(j);
-							
-								if ( ! (CoreService.getValueForKey(deConEstado, "estado") + "").equals("0")) {
-									
-									//---
-									Object transaccion_id = CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id");
-									Integer estadoActualizar = Double.valueOf(CoreService.getValueForKey(deConEstado, "situacion") + "").intValue();
-									
-									if (estadoActualizar > 0) {
-										//Solo actualizar si el estado es > 0
+						if (cdcList.size() == deListConEstados.size()) {
+
+							if (deListConEstados.size() > 0) {
+								//Actualizar estados en la Base de datos, solo si el estado es != 0
+								for (int j = 0; j < deListConEstados.size(); j++) {
+									Map<String, Object> deConEstado = deListConEstados.get(j);
+								
+									if ( ! (CoreService.getValueForKey(deConEstado, "estado") + "").equals("0")) {
 										
-										//Actualiza la tabla destino de acuerdo a la configuracion
-										Map<String, Object> datosUpdate = new HashMap<String, Object>();
-										datosUpdate.put("ESTADO", estadoActualizar);
-										datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
-										datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id"));
-										
-										updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, false);
 										//---
+										Object transaccion_id = CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id");
+										Integer estadoActualizar = Double.valueOf(CoreService.getValueForKey(deConEstado, "situacion") + "").intValue();
 										
-										//Borrar registros de ESTADO previamente cargados, para evitar duplicidad
-										deleteFacturaSendTableByTransaccionId(cdcList.get(j), databaseProperties, "('ESTADO')");
-				
-										Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
-										datosGuardar1.put("ESTADO", estadoActualizar);
-										saveDataToFacturaSendTable(cdcList.get(j), datosGuardar1, databaseProperties);
-									} else {
-										System.out.println("transaccion_id=" + transaccion_id + " sin variación de estado(0). Ignorado");
+										if (estadoActualizar > 0) {
+											//Solo actualizar si el estado es > 0
+											
+											//Actualiza la tabla destino de acuerdo a la configuracion
+											Map<String, Object> datosUpdate = new HashMap<String, Object>();
+											datosUpdate.put("ESTADO", estadoActualizar);
+											datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
+											datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id"));
+											
+											updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, false);
+											//---
+											
+											//Borrar registros de ESTADO previamente cargados, para evitar duplicidad
+											deleteFacturaSendTableByTransaccionId(cdcList.get(j), databaseProperties, "('ESTADO')");
+					
+											Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
+											datosGuardar1.put("ESTADO", estadoActualizar);
+											saveDataToFacturaSendTable(cdcList.get(j), datosGuardar1, databaseProperties);
+										} else {
+											System.err.println("transaccion_id=" + transaccion_id + " sin variación de estado(0). Ignorado");
+										}
 									}
 								}
 							}
+						} else {
+							System.err.println("Cantidad de CDCs enviados en verificar estado = " + cdcList.size() + ", recibidos = " + deListConEstados.size() + ". Ignorado por diferencia");
 						}
 					} else {
 						throw new Exception(resultadoJson.get("error") + "");
@@ -916,11 +925,11 @@ public class CoreIntegracionService {
 		String sqlUpdate = "INSERT INTO " + tableToUpdate + " (";
 		
 		//Agrega el tipo documento si asi esta establecido en el config
-		String tipoDocumentoOrTipDoc = CoreService.getKeyExists(viewPrincipal, "tipo_documento", "tip_doc") + "";
+		/*String tipoDocumentoOrTipDoc = CoreService.getKeyExists(viewPrincipal, "tipo_documento", "tip_doc") + "";
 		if (CoreService.findKeyByValueInProperties(databaseProperties, prefix, tipoDocumentoOrTipDoc) != null) {
 			//sqlUpdate += "\"" + CoreService.getKeyExists(viewPrincipal, "tipo_documento", "tip_doc") + "\", ";
 			sqlUpdate += "" + CoreService.getKeyExists(viewPrincipal, "tipo_documento", "tip_doc") + ", ";
-		}
+		}*/
 		
 		//Buscar fields adicionales
 		Iterator itr = databaseProperties.entrySet().iterator();
@@ -944,10 +953,10 @@ public class CoreIntegracionService {
 
 			sqlUpdate += "(";	//Fijo para tipo de documento.
 			
-			//Agrega el parametro de tipo de documento, si esta establecido en el config. 
+			/*//Agrega el parametro de tipo de documento, si esta establecido en el config. 
 			if (CoreService.findKeyByValueInProperties(databaseProperties, prefix, tipoDocumentoOrTipDoc) != null) {
 				sqlUpdate += "?, ";
-			}
+			}*/
 			
 			itr = databaseProperties.entrySet().iterator();
 			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
@@ -988,10 +997,10 @@ public class CoreIntegracionService {
 			itr = databaseProperties.entrySet().iterator();
 			int f = 1;
 			
-			//Agrega el parametro de tipo de documento, si esta establecido en el config. 
+			/*//Agrega el parametro de tipo de documento, si esta establecido en el config. 
 			if (CoreService.findKeyByValueInProperties(databaseProperties, prefix, tipoDocumentoOrTipDoc) != null) {
 				statement.setObject(f++, CoreService.getValueForKey(viewPrincipal, "tipo_documento", "tip_doc"));	//Fijo
-			}
+			}*/
 
 			while (itr.hasNext()) {	//Recorre los campos de la tabla a almacenar
 				Map.Entry e = (Map.Entry)itr.next();
@@ -1430,7 +1439,7 @@ public class CoreIntegracionService {
 					+ "tra_id, \n";
 			if (obtenerCdcEstadoPausadoPorSubSelect) {
 //				sql += "cdc AS \"cdc\" \n";
-				sql += "(SELECT \"" + facturaSendTableValue + "\" FROM \"" + transactionTableName + "\" mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) AS \"cdc\" \n";
+				sql += "(SELECT \"" + facturaSendTableValue + "\" FROM \"" + facturaSendTableName + "\" mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) AS \"cdc\" \n";
 
 			} else {
 				sql += "cdc AS \"cdc\" \n";

@@ -25,7 +25,7 @@ public class SQLConnection {
 	private SQLConnection(BDConnect bdConnect) throws Exception{
 		
 		this.bdConnect = bdConnect;
-		System.out.println(bdConnect);
+		//System.out.println(bdConnect);
 	    Properties connectionProps = new Properties();
 	    //connectionProps.put("user", bdConnect.getUsername());
 	    //connectionProps.put("password", bdConnect.getPassword());
@@ -136,7 +136,6 @@ public class SQLConnection {
 				}
 				return connEncontrado;	
 			} else {
-				System.out.println("Obteniendo nueva conexión del pool");
 				Connection newConn = this.basicDataSource.getConnection();
 				connections.put(connName, newConn);
 				return newConn;
