@@ -69,7 +69,7 @@ public class CoreService {
 			result.put("result", transaccionesList);
 			
 		} catch (Exception e) {
-			System.out.println("Error 1 " + e);
+			System.out.println("Error 1 " + e); 
 			result.put("success", false);
 			result.put("error", e.getMessage());
 			
