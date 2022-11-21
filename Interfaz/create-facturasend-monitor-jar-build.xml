@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="Crea el JAR del Monitor de FacturaSend">
+
+	<property name="JAR-NAME" value="facturasend-monitor"/>
+	<property name="VERSION" value="1.0.0"/>
+	<tstamp>
+        <format property="EXPORT-TIME" pattern="yyyyMMdd-HH:mm:ss"/>
+    </tstamp>
+    
+	<manifestclasspath property="CLASSPATH"
+		jarfile="${JAR-NAME}-${VERSION}.jar">
+		<classpath>
+			<fileset dir="${basedir}/libs" excludes="xercesImpl-2.4.0.jar">
+				<include name="*.jar" />
+			</fileset>
+		</classpath>
+	</manifestclasspath>
+		
+	<jar 
+		destfile="C:\Users\marco\git\facturasend-integracion-desktop\Interfaz\target\${JAR-NAME}-${VERSION}.jar"
+		basedir="./bin"
+		excludes="**/test/**, **/config/**">
+
+		<manifest>
+			<attribute name="Built-Date" value="${EXPORT-TIME}" />
+			<attribute name="App-Version" value="${VERSION}" />
+			<attribute name="Class-Path"
+				value="${CLASSPATH} config/ " />
+			<attribute name="Main-Class"
+				value="views.Principal" />
+		</manifest>
+			
+	</jar>
+	
+</project>
