@@ -6,7 +6,7 @@ import java.util.TimerTask;
 
 import core.CoreIntegracionService;
 
-public class Integracion {
+public class Integrador {
 
 	/**
 	 * Launch integración

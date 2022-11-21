@@ -21,13 +21,13 @@ public class ConfigProperties {
 	private FileReader reader = null;
 	private FileWriter writer = null;
 	
-	private File dbFile = new File(System.getProperty("user.dir") + File.separator + "srcConfig/config/config.properties");
+	private File dbFile = new File(System.getProperty("user.dir") + File.separator + "resource/config.properties");
 	//private File fsFile = new File(System.getProperty("user.dir") + File.separator + "srcConfig/config/facturasend.properties");
 	
 	private InputStream dbProperties= null;
-	private InputStream fsProperties= null;
+	//private InputStream fsProperties= null;
 	private OutputStream dbPropertiesSave = null;
-	private OutputStream fsPropertiesSave = null;
+	//private OutputStream fsPropertiesSave = null;
 	
 	
 	public Map readDbProperties() {

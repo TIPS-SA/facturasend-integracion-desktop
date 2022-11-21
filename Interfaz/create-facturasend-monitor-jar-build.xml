@@ -4,22 +4,36 @@
 	<property name="JAR-NAME" value="facturasend-monitor"/>
 	<property name="VERSION" value="1.0.0"/>
 	<tstamp>
-        <format property="EXPORT-TIME" pattern="yyyyMMdd-HH:mm:ss"/>
+        <format property="EXPORT-TIME" pattern="yyyy-MM-dd-HH:mm:ss"/>
     </tstamp>
     
+	<echo>${basedir}</echo>
+	<!-- Jar del CORE -->
+	<jar 
+		basedir="./bin"
+		destfile="C:\Users\marco\git\facturasend-integracion-desktop\Interfaz\target\libs\${JAR-NAME}-core-${VERSION}.jar"
+		excludes="**/test/**, **/config/**">
+	</jar>
+	
+	<copy todir="${basedir}/target/libs/">
+		<fileset dir="${basedir}/../core/facturasend-integracion-core/libs/" excludes="xercesImpl-2.4.0.jar">
+			<include name="*.jar" />
+		</fileset>
+	</copy>
+	
 	<manifestclasspath property="CLASSPATH"
 		jarfile="${JAR-NAME}-${VERSION}.jar">
-		<classpath>
-			<fileset dir="${basedir}/libs" excludes="xercesImpl-2.4.0.jar">
+		<classpath path="${basedir}/target/">
+			<fileset dir="libs/" excludes="xercesImpl-2.4.0.jar">
 				<include name="*.jar" />
 			</fileset>
 		</classpath>
 	</manifestclasspath>
 		
 	<jar 
-		destfile="C:\Users\marco\git\facturasend-integracion-desktop\Interfaz\target\${JAR-NAME}-${VERSION}.jar"
+		destfile="C:\Users\marco\git\facturasend-integracion-desktop\Interfaz\target\${JAR-NAME}-window-${VERSION}.jar"
 		basedir="./bin"
-		excludes="**/test/**, **/config/**">
+		excludes="**/test/**, **/resource/**">
 
 		<manifest>
 			<attribute name="Built-Date" value="${EXPORT-TIME}" />
@@ -31,5 +45,21 @@
 		</manifest>
 			
 	</jar>
-	
+
+	<jar 
+		destfile="C:\Users\marco\git\facturasend-integracion-desktop\Interfaz\target\${JAR-NAME}-integrador-${VERSION}.jar"
+		basedir="./bin"
+		excludes="**/test/**, **/config/**">
+
+		<manifest>
+			<attribute name="Built-Date" value="${EXPORT-TIME}" />
+			<attribute name="App-Version" value="${VERSION}" />
+			<attribute name="Class-Path"
+				value="${CLASSPATH} config/ " />
+			<attribute name="Main-Class"
+				value="service.Integrador" />
+		</manifest>
+			
+	</jar>
+
 </project>
