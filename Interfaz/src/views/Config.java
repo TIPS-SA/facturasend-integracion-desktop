@@ -3,16 +3,17 @@ package views;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.KeyEventPostProcessor;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -25,22 +26,22 @@ import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import enums.DatabaseType;
 import service.ConfigProperties;
 
-import java.awt.GridLayout;
-import java.awt.KeyEventPostProcessor;
-import java.awt.KeyboardFocusManager;
-
 public class Config extends JDialog {
 
+	public static Log log = LogFactory.getLog(Config.class);
+	
 	private final JPanel contentPanel = new JPanel();
 	private ConfigProperties cp = new ConfigProperties();
 	private Map<String, String> propertiesDb = new HashMap<String, String>();
@@ -113,7 +114,7 @@ public class Config extends JDialog {
 			dialog.setVisible(true);
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e);
-			System.out.println(e);
+			log.info(e);
 		}
 	}*/
 
@@ -587,7 +588,7 @@ public class Config extends JDialog {
 		
 		cbTipoDb.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.out.println(cbTipoDb.getSelectedItem());
+				log.info(cbTipoDb.getSelectedItem());
 				if (cbTipoDb.getSelectedItem()==DatabaseType.POSTGRES.name) {
 					isDBF(false);
 					txtDatabase.setText((propertiesDb.get("database.postgres.name").equals("") || propertiesDb.get("database.postgres.name") == null) || !propertiesDb.containsKey("database.postgres.name") ?DatabaseType.POSTGRES.defaultDatabase:propertiesDb.get("database.postgres.name"));
@@ -779,7 +780,7 @@ public class Config extends JDialog {
 		propertiesDb = cp.readDbProperties();
 		if(!propertiesDb.isEmpty()) {
 			cbTipoDb.setSelectedItem(getDataBaseName());
-			System.out.println(propertiesDb.get("database.type"));
+			log.info(propertiesDb.get("database.type"));
 			if ( propertiesDb.get("database.type").equals("dbf")) {
 				isDBF(true);
 			}

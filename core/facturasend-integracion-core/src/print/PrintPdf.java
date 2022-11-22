@@ -132,7 +132,7 @@ public class PrintPdf{
 	    			parte2Enc += parValue[0] + "=&";
 	    		}
 			}
-	    	//System.out.println("*** " + parte2Enc);
+	    	//log.info("*** " + parte2Enc);
 	    	String encodedURL = parte1 + parte2Enc;
 	    	log.info("Encoded " + encodedURL);
 	    	
@@ -232,7 +232,7 @@ public class PrintPdf{
 		} catch (IOException e) {
 			log.error(e);
 			log.error("Marcos 222");
-			//System.out.println(getStringFromInputStream(is));
+			//log.info(getStringFromInputStream(is));
 			JOptionPane.showMessageDialog(null, e.getMessage());
 		}
 	//}
@@ -260,7 +260,7 @@ public class PrintPdf{
 	    InputStream stream = new ByteArrayInputStream(inputStream.getBytes());
         Doc simpleDoc = new SimpleDoc(stream, flavor, null);
 
-        System.out.println("Buscar nombre de Impresora para imrimir txt.... " + printerName);
+        log.info("Buscar nombre de Impresora para imrimir txt.... " + printerName);
         PrintService printService = findPrintService(java.net.URLDecoder.decode(printerName, "UTF-8"));
         
         if (printService == null)
@@ -294,7 +294,7 @@ public class PrintPdf{
     }
     
     private static PrintService findPrintService(String printerName) {
-    	System.out.println("Buscando nombres de impresoras..........................xxxxxxxxxxxxxx ");
+    	log.info("Buscando nombres de impresoras..........................xxxxxxxxxxxxxx ");
         PrintService[] printServices = PrintServiceLookup.lookupPrintServices(null, null);
         for (PrintService printService : printServices) {
         	log.info("** printService " + printService);
@@ -389,7 +389,7 @@ public class PrintPdf{
 			
 			//br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(latin1), "UTF-8"));
 			while ((line = br.readLine()) != null) {
-				//System.out.println("Impresion temprana=> " + line+ "\n");
+				//log.info("Impresion temprana=> " + line+ "\n");
 				sb.append(line+ "\n");
 			}
 

@@ -4,9 +4,14 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import core.CoreIntegracionService;
 
 public class Integrador {
+
+	public static Log log = LogFactory.getLog(Integrador.class);
 
 	/**
 	 * Launch integración
@@ -27,7 +32,7 @@ public class Integrador {
 			    }
 			}, new Date(), autoUpdateTableView); //Cada N millis segundos						
 		} else {
-			System.out.println("No se inicio la integración, establezca 'database.autoupdate_millis.integracion' con un valor > 0 (1000=1seg)");
+			log.info("No se inicio la integración, establezca 'database.autoupdate_millis.integracion' con un valor > 0 (1000=1seg)");
 		}
 	}
 }

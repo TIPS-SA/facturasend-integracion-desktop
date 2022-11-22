@@ -36,13 +36,13 @@
 	<jar 
 		destfile="${basedir}/${JAR-NAME}-window-${VERSION}.jar"
 		basedir="../bin"
-		excludes="**/test/**, **/resource/**">
+		excludes="**/test/**, **/resource/**, **/log4j.properties">
 
 		<manifest>
 			<attribute name="Built-Date" value="${EXPORT-TIME}" />
 			<attribute name="App-Version" value="${VERSION}" />
 			<attribute name="Class-Path"
-				value="${CLASSPATH} config/ " />
+				value="${CLASSPATH} resource/log4j.properties resource/" />
 			<attribute name="Main-Class"
 				value="views.Principal" />
 		</manifest>
@@ -52,13 +52,13 @@
 	<jar 
 		destfile="${basedir}/${JAR-NAME}-integrador-${VERSION}.jar"
 		basedir="../bin"
-		excludes="**/test/**, **/config/**">
+		excludes="**/test/**, **/resource/**, **/log4j.properties">
 
 		<manifest>
 			<attribute name="Built-Date" value="${EXPORT-TIME}" />
 			<attribute name="App-Version" value="${VERSION}" />
 			<attribute name="Class-Path"
-				value="${CLASSPATH} config/ " />
+				value="${CLASSPATH} resource/log4j.properties resource/" />
 			<attribute name="Main-Class"
 				value="service.Integrador" />
 		</manifest>

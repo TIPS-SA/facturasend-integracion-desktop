@@ -43,6 +43,9 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.table.DefaultTableModel;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.google.gson.Gson;
 
 import print.PrintPdf;
@@ -52,6 +55,8 @@ import views.commons.Paginacion;
 import views.commons.PaginacionListener;
 
 public class Principal extends JFrame {
+
+	public static Log log = LogFactory.getLog(Principal.class);
 
 	private static Gson gson = new Gson();
 
@@ -520,8 +525,8 @@ public class Principal extends JFrame {
 		                Integer transaccionId = Integer.valueOf(model.getValueAt(row, 0) + "");
 		                String descripcionEstado = model.getValueAt(row, 7) + "";
 		                
-		                System.out.println("model 6 " + model.getValueAt(row, 6));
-		                System.out.println("model 7 " + model.getValueAt(row, 7));
+		                log.info("model 6 " + model.getValueAt(row, 6));
+		                log.info("model 7 " + model.getValueAt(row, 7));
 		                
 		                if (descripcionEstado != null && descripcionEstado.startsWith("Aprobado")) {
 							JOptionPane.showMessageDialog(null, "La transacción ya está Aprobada");
@@ -538,7 +543,7 @@ public class Principal extends JFrame {
 					}
 				} catch (Exception e2) {
 					JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
-					System.out.println("Mostrar error en pantalla, " + e2);
+					log.info("Mostrar error en pantalla, " + e2);
 				}
 			}
 		});
@@ -552,7 +557,7 @@ public class Principal extends JFrame {
 					paginacion.refresh();
 				} catch (Exception e2) {
 					JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
-					System.out.println("Mostrar error en pantalla, " + e2);
+					log.info("Mostrar error en pantalla, " + e2);
 				}
 				
 			}
@@ -608,7 +613,7 @@ public class Principal extends JFrame {
 									xmlView.setVisible(true);
 								} else {
 									//Lucas mostrar error en pantalla
-									System.out.println("error" + resultadoJson.get("error")+"");
+									log.info("error" + resultadoJson.get("error")+"");
 								}
 			
 							}

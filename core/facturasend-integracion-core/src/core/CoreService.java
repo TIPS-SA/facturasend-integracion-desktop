@@ -33,7 +33,7 @@ public class CoreService {
 	public static Log log = LogFactory.getLog(CoreService.class);
 	
 	public static Map<String, Object> getTransaccionesList(String q, Integer tipoDocumento, Integer page, Integer size, Map<String, String> databaseProperties) {
-		System.out.println(databaseProperties);
+		log.info(databaseProperties);
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
 			Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("vista");
@@ -54,22 +54,22 @@ public class CoreService {
 			}
 			
 			if (databaseProperties.get("database.type").equals("dbf")) {
-				System.out.print("\nReload ");
+				log.info("\nReload ");
 				Statement st = conn.createStatement();
 				st.execute("reload '" + databaseProperties.get("database.dbf.parent_folder") + "/" + databaseProperties.get("database.dbf.transaccion_table") + "'");
 			}
 			
-			System.out.print("\n" + sql + " ");
+			log.info("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> transaccionesList = SQLUtil.convertResultSetToList(rs);
 			
-			System.out.println("transaccionesList: " + transaccionesList + " ");
+			log.info("transaccionesList: " + transaccionesList + " ");
 			result.put("success", true);
 			result.put("result", transaccionesList);
 			
 		} catch (Exception e) {
-			System.out.println("Error 1 " + e); 
+			log.info("Error 1 " + e); 
 			result.put("success", false);
 			result.put("error", e.getMessage());
 			
@@ -153,17 +153,17 @@ public class CoreService {
 			
 			String sql = getSQLTransaccionesItem(databaseProperties, transaccionId, tipoDocumento, page, size);
 			
-			System.out.print("\n" + sql + " ");
+			log.info("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> listadoTransaccionesItem = SQLUtil.convertResultSetToList(rs);
-			System.out.println("listadoTransaccionesItem: " + listadoTransaccionesItem + " ");
+			log.info("listadoTransaccionesItem: " + listadoTransaccionesItem + " ");
 			
 			result.put("success", true);
 			result.put("result", listadoTransaccionesItem);
 			
 		} catch (Exception e) {
-			System.out.println("Error 2 " + e);
+			log.info("Error 2 " + e);
 			result.put("success", false);
 			result.put("error", e.getMessage());
 			
@@ -241,20 +241,20 @@ public class CoreService {
 	 * 
 	 	public static List<Map<String, Object>> formasPagosByTransaccion(Integer tipoDocumento, Integer transaccionId, Map<String, String> databaseProperties) throws Exception{
 		
-		System.out.println("Obteniendo conexion");
+		log.info("Obteniendo conexion");
 		List<Map<String, Object>> result = new ArrayList<Map<String,Object>>();
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection();
 		
-		System.out.println("conexion obtenida." );
+		log.info("conexion obtenida." );
 		
 		Statement statement = conn.createStatement();
 		
 		String sql = formasPagosSQLByTransaccion(databaseProperties, tipoDocumento, transaccionId);
-		System.out.print("\n" + sql + " ");
+		log.info("\n" + sql + " ");
 		ResultSet rs = statement.executeQuery(sql);
 		
 		result = SQLUtil.convertResultSetToList(rs);
-		System.out.println("result: " + result);
+		log.info("result: " + result);
 		return result;
 	}
 			

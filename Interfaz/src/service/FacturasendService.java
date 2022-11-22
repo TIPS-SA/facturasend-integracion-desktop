@@ -9,11 +9,15 @@ import java.util.Map;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-import core.CoreService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import core.CoreIntegracionService;
+import core.CoreService;
 import views.table.TableDesign;
 
 public class FacturasendService {
+	public static Log log = LogFactory.getLog(FacturasendService.class);
 
 	/**
 	 * Busca en el proyecto CORE los datos de la Vista
@@ -30,7 +34,7 @@ public class FacturasendService {
 		
 		Map<String, Object> returnData = CoreService.getTransaccionesList(q, tipo, page, size, readDBProperties());
 		
-		//System.out.println(returnData);
+		//log.info(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {
 			return returnData;
 		} else {
@@ -54,7 +58,7 @@ public class FacturasendService {
 		
 		Map<String, Object> returnData = CoreService.getTransaccionesItem(transaccionId, tipoDocumento, page, size, readDBProperties());
 		
-		System.out.println(returnData);
+		log.info(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {
 			return returnData;
 		} else {
@@ -106,7 +110,7 @@ public class FacturasendService {
 		Map<String, Object> returnData6 = CoreIntegracionService.iniciarIntegracion(6, readDBProperties());
 		Map<String, Object> returnData7 = CoreIntegracionService.iniciarIntegracion(7, readDBProperties());
 		
-		/*System.out.println(returnData);
+		/*log.info(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {
 			return returnData;
 		} else {
@@ -131,7 +135,7 @@ public class FacturasendService {
 			Map<String, Object> result = loadDocumentosElectronicos(q, tipoDocumento, page, size);
 			List<Map<String, Object>> rs = (List<Map<String, Object>>)result.get("result");
 			retorno =  (Integer)result.get("count");
-			//System.out.println("rs"  + rs);
+			//log.info("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
 				
 				String moneda = (String)CoreService.getValueForKey(rs.get(i), "moneda");

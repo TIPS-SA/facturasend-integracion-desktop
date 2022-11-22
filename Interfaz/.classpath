@@ -10,6 +10,8 @@
 	<classpathentry kind="lib" path="libs/icepdf-core.jar"/>
 	<classpathentry kind="lib" path="libs/icepdf-viewer-4.3.3.jar"/>
 	<classpathentry kind="lib" path="libs/icepdf-viewer.jar"/>
+	<classpathentry kind="lib" path="libs/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="libs/log4j-1.2.17.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/facturasend-integracion-core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

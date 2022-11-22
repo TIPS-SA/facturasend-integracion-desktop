@@ -9,11 +9,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.google.gson.Gson;
+
+import util.HttpUtil;
 
 public class CoreDocumentoElectronico {
 	
 	private static Gson gson = new Gson();
+	public static Log log = LogFactory.getLog(CoreDocumentoElectronico.class);
 
 	/**
 	 * Retorna un Map con 2 listas independientes, pero con el mismo indice, para su uso posterior

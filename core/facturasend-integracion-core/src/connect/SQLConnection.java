@@ -10,8 +10,13 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import util.HttpUtil;
 
 public class SQLConnection {
+	public static Log log = LogFactory.getLog(SQLConnection.class);
 	
 	private static SQLConnection sqlConnection;
     private BasicDataSource basicDataSource = null;
@@ -25,7 +30,7 @@ public class SQLConnection {
 	private SQLConnection(BDConnect bdConnect) throws Exception{
 		
 		this.bdConnect = bdConnect;
-		//System.out.println(bdConnect);
+		//log.info(bdConnect);
 	    Properties connectionProps = new Properties();
 	    //connectionProps.put("user", bdConnect.getUsername());
 	    //connectionProps.put("password", bdConnect.getPassword());
@@ -65,8 +70,8 @@ public class SQLConnection {
 	                	bdConnect.getUsername(), bdConnect.getPassword());
 	        */
 	    } else if (bdConnect.getTipo().equals("postgres")) {
-	    	//System.out.println("-->" + System.getProperty("user.dir") + File.separator);
-	    	System.out.println(SQLConnection.class.getResource(""));
+	    	//log.info("-->" + System.getProperty("user.dir") + File.separator);
+	    	log.info(SQLConnection.class.getResource(""));
 	    	/*
 	    	File file  = new File("c:\\myjar.jar");
 
@@ -77,7 +82,7 @@ public class SQLConnection {
 	    	Class cls = cl.loadClass("com.mypackage.myclass");
 	    	*/
 	    	
-	    	System.out.println("entro en postgres");
+	    	log.info("entro en postgres");
 	    	/*Class.forName("org.postgresql.Driver");  
 	        conn = DriverManager.getConnection(
 	                   "jdbc:postgresql://" +
@@ -132,7 +137,7 @@ public class SQLConnection {
 			
 			if (connEncontrado != null) {
 				if (connEncontrado.isClosed()) {
-					System.out.println("Conexion estaba cerrada");
+					log.info("Conexion estaba cerrada");
 				}
 				return connEncontrado;	
 			} else {

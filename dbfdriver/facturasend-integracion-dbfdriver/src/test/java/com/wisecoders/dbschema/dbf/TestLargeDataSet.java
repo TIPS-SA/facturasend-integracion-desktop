@@ -18,9 +18,9 @@ public class TestLargeDataSet {
                 ResultSet rs = st.getResultSet();
                 while (rs.next()) {
                     for (int i = 0; i < rs.getMetaData().getColumnCount(); i++) {
-                        //System.out.print(rs.getString(i + 1) + ",");
+                        //log.info(rs.getString(i + 1) + ",");
                     }
-                    //System.out.println();
+                    //log.info();
                 }
             }
             st.execute("save dbf to out/testExport");

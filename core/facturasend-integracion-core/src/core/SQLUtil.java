@@ -10,7 +10,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class SQLUtil {
+	public static Log log = LogFactory.getLog(CoreDocumentoElectronico.class);
 
 	public static Map<String, String> convertResultSetToMapString(ResultSet rs) throws SQLException {
 	    ResultSetMetaData md = rs.getMetaData();
@@ -66,7 +70,7 @@ public class SQLUtil {
 	public static List<Map<String, Object>> executeAndConvertToListMap(Connection conn, String sql) throws SQLException {
 		Statement statement = conn.createStatement();
 
-		System.out.println(sql);
+		log.info(sql);
 		ResultSet results = statement.executeQuery(sql);
 
 		List<Map<String, Object>> resultados = SQLUtil.convertResultSetToList(results);
@@ -101,7 +105,7 @@ public class SQLUtil {
 		Integer total = 0;
 		try {
 			String sqlCount = "SELECT COUNT(*) FROM (" + sql + ")";
-			System.out.println(sqlCount);
+			log.info(sqlCount);
 			ResultSet rs = statement.executeQuery(sqlCount);
 			
 			rs.next();

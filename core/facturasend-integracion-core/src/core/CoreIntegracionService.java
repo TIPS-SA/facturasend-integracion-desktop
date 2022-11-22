@@ -64,7 +64,7 @@ public class CoreIntegracionService {
 			    		iniciarIntegracion();	
 					} catch (Exception e2) {
 						JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
-						System.out.println("Mostrar error en pantalla, " + e2);
+						log.info("Mostrar error en pantalla, " + e2);
 					};
 			    }
 			}, new Date(), autoUpdateIntegracion); //Cada N millis segundos						
@@ -91,7 +91,7 @@ public class CoreIntegracionService {
 		iniciarIntegracion(6, databaseProperties);
 		iniciarIntegracion(7, databaseProperties);
 		
-		System.out.println("Lote de integración concluido...!");
+		log.info("Lote de integración concluido...!");
 		return null; //Seria bueno que aqui se retornen los resultados success y result
 	}
 		
@@ -117,7 +117,7 @@ public class CoreIntegracionService {
 				}
 				transaccionIdString += "";
 				
-				//System.out.println(transaccionIdString);
+				//log.info(transaccionIdString);
 				
 			} else {
 				throw new Exception(obtener50registrosNoIntegradosMap.get("error")+"");
@@ -164,7 +164,7 @@ public class CoreIntegracionService {
 						url += "/lote/create?xml=true&qr=true";
 					}
 					
-					System.out.println("Total de Documentos Electronicos enviados: " + documentosParaEnvioJsonMap.size());
+					log.info("Total de Documentos Electronicos enviados: " + documentosParaEnvioJsonMap.size());
 					Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(documentosParaEnvioJsonMap), header);
 					
 					List<Map<String, Object>> deList = null;
@@ -178,7 +178,7 @@ public class CoreIntegracionService {
 							Map<String, Object> result = (Map<String, Object>)resultadoJson.get("result");
 							
 							deList = (List<Map<String, Object>>)result.get("deList");
-							System.out.println("Total de Documentos Electronicos recibidos: " + deList.size());
+							log.info("Total de Documentos Electronicos recibidos: " + deList.size());
 							
 							if (documentosParaEnvioJsonMap.size() != deList.size()) {
 								throw new Exception("Error, Cantidad de Documentos enviados difiere de los recibidos ");
@@ -298,11 +298,11 @@ public class CoreIntegracionService {
 							}
 							String sql = "save '" + dbfTableName + "' to '" + databaseProperties.get("database.dbf.parent_folder") + "'";
 							//+ "\\saved' ";
-							System.out.println("\n" + sql + " ");
+							log.info("\n" + sql + " ");
 							//PreparedStatement statement = conn.prepareStatement(sql);
 							Statement statement = conn.createStatement();
 							boolean ejecutado = statement.execute(sql);
-							System.out.println("Ejecutado: " + ejecutado);
+							log.info("Ejecutado: " + ejecutado);
 						}
 						
 						
@@ -314,10 +314,10 @@ public class CoreIntegracionService {
 						//Aqui ejecutar la Impre
 					}
 				} else {
-					System.out.println("No se invoco a la Api de Facturasend por que no existian datos para enviar "  + documentosParaEnvioJsonMap + " para el Tipo de Documento " + tipoDocumento);
+					log.info("No se invoco a la Api de Facturasend por que no existian datos para enviar "  + documentosParaEnvioJsonMap + " para el Tipo de Documento " + tipoDocumento);
 				}
 			} else {
-				System.out.println("No se encontraron transaccion_id(s) (-1) al reperar registros " + tipoDocumento);
+				log.info("No se encontraron transaccion_id(s) (-1) al reperar registros " + tipoDocumento);
 			}
 			//
 		} catch (Exception e) {
@@ -325,7 +325,7 @@ public class CoreIntegracionService {
 			
 		}
 		//Cambiar éste resultado, por el resultado del lote
-		System.out.println("fin de integracion tipo documento " + tipoDocumento);
+		log.info("fin de integracion tipo documento " + tipoDocumento);
 		return obtener50registrosNoIntegradosMap;
 	}
 	
@@ -390,9 +390,9 @@ public class CoreIntegracionService {
 			sql = sql.substring(0, sql.length()-4) + "";
 			
 			if (poseeWhere) {
-				//System.out.println("Comando a ejecutar para actualizar la BD " + sql);
+				//log.info("Comando a ejecutar para actualizar la BD " + sql);
 
-				System.out.print("\n" + sql + " ");
+				log.info("\n" + sql + " ");
 				PreparedStatement statement = conn.prepareStatement(sql);
 
 				ResultSet rs = statement.executeQuery();
@@ -413,7 +413,7 @@ public class CoreIntegracionService {
 				}
 				
 			} else {
-				System.out.println("No se ejecutó el SELECT por que el WHERE no pudo ser resuelto " + sql);
+				log.info("No se ejecutó el SELECT por que el WHERE no pudo ser resuelto " + sql);
 			}
 		}
 		return preSQLListMap;
@@ -498,9 +498,9 @@ public class CoreIntegracionService {
 			sql = sql.substring(0, sql.length()-4) + "";
 			
 			if (poseeWhere) {
-				//System.out.println("Comando a ejecutar para actualizar la BD " + sql);
+				//log.info("Comando a ejecutar para actualizar la BD " + sql);
 
-				System.out.print("\n" + sql + " ");
+				log.info("\n" + sql + " ");
 				PreparedStatement statement = conn.prepareStatement(sql);
 				
 				//SET Params Value
@@ -516,12 +516,12 @@ public class CoreIntegracionService {
 						key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
 						Object valor = CoreService.getValueForKey(datosUpdate, value);
 						if (valor != null) {
-							System.out.println("Params(" + cParams + "," + valor +")");
+							log.info("Params(" + cParams + "," + valor +")");
 							statement.setObject(cParams++, valor);
 							
 						} else {
 							if (updateWithNullNotPassedParams) {
-								System.out.println("Params(" + cParams + "," + valor +")");
+								log.info("Params(" + cParams + "," + valor +")");
 								statement.setObject(cParams++, null);
 							}
 						}
@@ -541,7 +541,7 @@ public class CoreIntegracionService {
 						Object valor = CoreService.getValueForKey(datosUpdate, value);
 						if (valor != null) {
 							poseeWhere = true;
-							System.out.println("Params(" + cParams + "," + valor +")");
+							log.info("Params(" + cParams + "," + valor +")");
 							//sql += key + "= '" + valor + "' AND ";
 							statement.setObject(cParams++, valor);
 						}
@@ -559,9 +559,9 @@ public class CoreIntegracionService {
 				
 				
 				int result = statement.executeUpdate();
-				System.out.println("result: " + result);
+				log.info("result: " + result);
 			} else {
-				System.out.println("No se ejecutó el UPDATE por que el WHERE no pudo ser resuelto " + sql);
+				log.info("No se ejecutó el UPDATE por que el WHERE no pudo ser resuelto " + sql);
 			}
 
 
@@ -592,7 +592,7 @@ public class CoreIntegracionService {
 				String url = databaseProperties.get("facturasend.url");
 				url += "/de/estado";
 				
-				System.out.println("Verificar estados de : " + data.size() + " De(s)");
+				log.info("Verificar estados de : " + data.size() + " De(s)");
 				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(data), header);
 				
 				if (resultadoJson != null) {
@@ -681,10 +681,10 @@ public class CoreIntegracionService {
 					    myWriter.close();
 					      
 					} else {
-						System.out.println("Carpeta " + carpetaXml + " no encontrado. Ignorado guardado de archivo");
+						log.info("Carpeta " + carpetaXml + " no encontrado. Ignorado guardado de archivo");
 					}
 				} else {
-					System.out.println("Parametro facturasend.carpetaKude no informado. Ignorado guardado de archivo");
+					log.info("Parametro facturasend.carpetaKude no informado. Ignorado guardado de archivo");
 				}
 			    
 			} else {
@@ -743,10 +743,10 @@ public class CoreIntegracionService {
 
 								    IOUtils.closeSilently(outStream);									
 								} else {
-									System.out.println("Carpeta " + carpetaKude + " no encontrado. Ignorado guardado de archivo");
+									log.info("Carpeta " + carpetaKude + " no encontrado. Ignorado guardado de archivo");
 								}
 							} else {
-								System.out.println("Parametro facturasend.carpetaKude no informado. Ignorado guardado de archivo");
+								log.info("Parametro facturasend.carpetaKude no informado. Ignorado guardado de archivo");
 							}
 						    
 
@@ -837,11 +837,11 @@ public class CoreIntegracionService {
 		sql += "AND " + transaccionIdForeignKeyField + " = " + CoreService.getValueForKey(de, "transaccion_id", "tra_id") + " "
 			+ "AND TRIM(UPPER(" + tableToUpdateKey + ")) IN " + inNames;
 
-		System.out.print("\n" + sql + " ");
+		log.info("\n" + sql + " ");
 		PreparedStatement statement = conn.prepareStatement(sql);
 
 		result = statement.executeUpdate();
-		System.out.println("result: " + result);
+		log.info("result: " + result);
 
 		return result;
 	}
@@ -869,11 +869,11 @@ public class CoreIntegracionService {
 			// Borrar tabla, opcional
 			if (false) {
 				String sql = "DROP TABLE " + tableToCreate + " ";
-				System.out.println("\n" + sql + " ");
+				log.info("\n" + sql + " ");
 				statement = conn.prepareStatement(sql);
 				int dropTableResult = statement.executeUpdate();
 				
-				System.out.print("rows: " + dropTableResult + " ");				
+				log.info("rows: " + dropTableResult + " ");				
 			}
 		}
 	}
@@ -1030,20 +1030,20 @@ public class CoreIntegracionService {
 			statement.setClob(f++, clob );
 		}
 	
-		System.out.print("\n" + sqlUpdate + " ");
+		log.info("\n" + sqlUpdate + " ");
 		
 		result = statement.executeUpdate();
-		System.out.println("result: " + result + "");
+		log.info("result: " + result + "");
 		
 		String posUpdateSQL = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.pos_update_sql");
 		if (posUpdateSQL != null) {
-			System.out.print("\n" + posUpdateSQL + " ");
+			log.info("\n" + posUpdateSQL + " ");
 			PreparedStatement statement2 = conn.prepareStatement(posUpdateSQL);
 			//ResultSet rs = statement2.executeQuery();
 			Integer resultExecuteUpdate = statement2.executeUpdate();
 			
 			//Map<String, Object> posUpdateSQLMap = SQLUtil.convertResultSetToMap(rs);
-			System.out.println("resultExecuteUpdate:" + resultExecuteUpdate);
+			log.info("resultExecuteUpdate:" + resultExecuteUpdate);
 		}
 		
 		return result;
@@ -1177,11 +1177,11 @@ public class CoreIntegracionService {
 		PreparedStatement statement = conn.prepareStatement(sqlConsulta);
 		statement.setInt(1, transaccionId);
 		
-		System.out.print("\n" + sqlConsulta + " ");
+		log.info("\n" + sqlConsulta + " ");
 		ResultSet rs = statement.executeQuery();
 		
 		Map<String, Object> situacionPausadoActualMap = SQLUtil.convertResultSetToMap(rs);
-		System.out.println("listadoDes:" + situacionPausadoActualMap);
+		log.info("listadoDes:" + situacionPausadoActualMap);
 		
 		if ( situacionPausadoActualMap != null && Integer.valueOf(CoreService.getValueForKey(situacionPausadoActualMap, tableToUpdateValue) +"") == 1 ) {
 			//Ya existe el registro de PAUSADO y esta PAUSADO
@@ -1192,13 +1192,13 @@ public class CoreIntegracionService {
 							+ transaccionIdForeignKeyField + " = ? " 
 							+ "AND TRIM(UPPER(" + tableToUpdateKey + ")) = 'PAUSADO' "; 
 			
-			System.out.print("\n" + sqlDelete + " ");
+			log.info("\n" + sqlDelete + " ");
 
 			PreparedStatement statementDelete = conn.prepareStatement(sqlDelete);
 			statementDelete.setInt(1, transaccionId);
 			
 			int resultDelete = statementDelete.executeUpdate();
-			System.out.print("resultDelete: " + resultDelete);
+			log.info("resultDelete: " + resultDelete);
 			
 		} else {
 			//Consultar el objeto completo del Servidor, por el transaccion_id
@@ -1261,12 +1261,12 @@ public class CoreIntegracionService {
 				sql = CoreService.getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
 			}
 
-			System.out.print("\n" + sql + " ");
+			log.info("\n" + sql + " ");
 
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> listadoDes = SQLUtil.convertResultSetToList(rs);
-			System.out.println("listadoDes:" + listadoDes);
+			log.info("listadoDes:" + listadoDes);
 			
 			result.put("success", true);
 			result.put("result", listadoDes);
@@ -1369,12 +1369,12 @@ public class CoreIntegracionService {
 		
 		String sql = obtenerCDCsConEstadoGeneradoSQL(databaseProperties, tipoDocumento);
 
-		System.out.print("\n" + sql + " ");
+		log.info("\n" + sql + " ");
 
 		ResultSet rs = statement.executeQuery(sql);
 		
 		listadoDes = SQLUtil.convertResultSetToList(rs);
-		System.out.println("listadoDes:" + listadoDes);
+		log.info("listadoDes:" + listadoDes);
 		
 		return listadoDes;
 		
@@ -1523,12 +1523,12 @@ public class CoreIntegracionService {
 			
 			String sql = obtenerTransaccionesSQLParaEnvioLote(databaseProperties, transaccionIdString);
 			
-			System.out.print("\n" + sql + " ");
+			log.info("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> transacionesParaEnvioLote = SQLUtil.convertResultSetToList(rs);
 			
-			System.out.println("transacionesParaEnvioLote: " + transacionesParaEnvioLote);
+			log.info("transacionesParaEnvioLote: " + transacionesParaEnvioLote);
 			
 			result.put("success", true);
 			result.put("result", transacionesParaEnvioLote);
@@ -1583,11 +1583,11 @@ public class CoreIntegracionService {
 		Statement statement = conn.createStatement();
 		
 		String sql = formasPagosSQLByTransaccion(databaseProperties, tipoDocumento, transaccionIdString);
-		System.out.print("\n" + sql + " ");
+		log.info("\n" + sql + " ");
 		ResultSet rs = statement.executeQuery(sql);
 		
 		result = SQLUtil.convertResultSetToList(rs);
-		System.out.println("result: " + result);
+		log.info("result: " + result);
 		return result;
 	}
 			
