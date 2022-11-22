@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project name="Crea el JAR del Monitor de FacturaSend">
+<project basedir="./target" name="Crea el JAR del Monitor de FacturaSend">
 
+	
 	<property name="JAR-NAME" value="facturasend-monitor"/>
 	<property name="VERSION" value="1.0.0"/>
 	<tstamp>
@@ -10,29 +11,31 @@
 	<echo>${basedir}</echo>
 	<!-- Jar del CORE -->
 	<jar 
-		basedir="./bin"
-		destfile="C:\Users\marco\git\facturasend-integracion-desktop\Interfaz\target\libs\${JAR-NAME}-core-${VERSION}.jar"
+		basedir="../../core/facturasend-integracion-core/bin"
+		destfile="${basedir}\libs\${JAR-NAME}-core-${VERSION}.jar"
 		excludes="**/test/**, **/config/**">
 	</jar>
 	
-	<copy todir="${basedir}/target/libs/">
-		<fileset dir="${basedir}/../core/facturasend-integracion-core/libs/" excludes="xercesImpl-2.4.0.jar">
+	<copy todir="${basedir}/libs/">
+		<fileset dir="${basedir}/../../core/facturasend-integracion-core/libs/" excludes="xercesImpl-2.4.0.jar">
 			<include name="*.jar" />
 		</fileset>
 	</copy>
 	
+	<path id="dep.runtime">
+	    <fileset dir="${basedir}/libs/" >
+	        <include name="*.jar" />
+	    </fileset>
+	</path>
+	
 	<manifestclasspath property="CLASSPATH"
 		jarfile="${JAR-NAME}-${VERSION}.jar">
-		<classpath path="${basedir}/target/">
-			<fileset dir="libs/" excludes="xercesImpl-2.4.0.jar">
-				<include name="*.jar" />
-			</fileset>
-		</classpath>
+		<classpath refid="dep.runtime" />
 	</manifestclasspath>
 		
 	<jar 
-		destfile="C:\Users\marco\git\facturasend-integracion-desktop\Interfaz\target\${JAR-NAME}-window-${VERSION}.jar"
-		basedir="./bin"
+		destfile="${basedir}/${JAR-NAME}-window-${VERSION}.jar"
+		basedir="../bin"
 		excludes="**/test/**, **/resource/**">
 
 		<manifest>
@@ -47,8 +50,8 @@
 	</jar>
 
 	<jar 
-		destfile="C:\Users\marco\git\facturasend-integracion-desktop\Interfaz\target\${JAR-NAME}-integrador-${VERSION}.jar"
-		basedir="./bin"
+		destfile="${basedir}/${JAR-NAME}-integrador-${VERSION}.jar"
+		basedir="../bin"
 		excludes="**/test/**, **/config/**">
 
 		<manifest>
