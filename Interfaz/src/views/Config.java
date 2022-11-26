@@ -209,9 +209,11 @@ public class Config extends JDialog {
 		txtDbfPayments.setVisible(false);
 		
 		lblTablaDeDestino = new JLabel("Tabla de Destino");
+		lblTablaDeDestino.setVisible(false);
 		
 		txtTablaDestino = new JTextField();
 		txtTablaDestino.setColumns(10);
+		txtTablaDestino.setVisible(false);
 		
 		txtPathDbfPayments = new JTextField();
 		txtPathDbfPayments.setEditable(false);
