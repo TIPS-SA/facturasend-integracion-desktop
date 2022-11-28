@@ -651,8 +651,6 @@ public class Config extends JDialog {
 		btnDbfPayments.setVisible(flag);
 		txtDbfPayments.setVisible(flag);
 		txtDbfFacturasend.setVisible(flag);
-		txtPathDbfFacturasend.setVisible(flag);
-		txtPathDbfPayments.setVisible(flag);
 		txtTablaDestino.setVisible(flag);
 		lblTablaDeDestino.setVisible(flag);
 		btnTest.setVisible(!flag);

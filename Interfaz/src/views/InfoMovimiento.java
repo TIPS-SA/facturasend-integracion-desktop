@@ -13,6 +13,7 @@ import javax.swing.border.EmptyBorder;
 
 import core.CoreService;
 import service.FacturasendService;
+import views.eventosDe.Cancelacion;
 
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -30,6 +31,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JTextField;
 import javax.swing.JTextArea;
 import javax.swing.SpringLayout;
+import java.awt.GridLayout;
 
 public class InfoMovimiento extends JDialog {
 
@@ -55,6 +57,7 @@ public class InfoMovimiento extends JDialog {
 	private JLabel lblCantidadItemsTotal;
 	
 	private Principal parent;
+	private JButton btnCancelacion;
 	/**
 	 * Launch the application.
 	 */
@@ -238,14 +241,33 @@ public class InfoMovimiento extends JDialog {
 		//}
 		//{
 			JPanel buttonPane = new JPanel();
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
-				okButton = new JButton("OK");
+				okButton = new JButton("Cerrar");
 				okButton.setActionCommand("OK");
-				buttonPane.add(okButton);
 				getRootPane().setDefaultButton(okButton);
 			}
+			
+			btnCancelacion = new JButton("Cancelacion/Anulacion");
+			GroupLayout gl_buttonPane = new GroupLayout(buttonPane);
+			gl_buttonPane.setHorizontalGroup(
+				gl_buttonPane.createParallelGroup(Alignment.LEADING)
+					.addGroup(gl_buttonPane.createSequentialGroup()
+						.addContainerGap()
+						.addComponent(okButton)
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addComponent(btnCancelacion)
+						.addContainerGap(542, Short.MAX_VALUE))
+			);
+			gl_buttonPane.setVerticalGroup(
+				gl_buttonPane.createParallelGroup(Alignment.LEADING)
+					.addGroup(gl_buttonPane.createSequentialGroup()
+						.addGroup(gl_buttonPane.createParallelGroup(Alignment.BASELINE)
+							.addComponent(btnCancelacion)
+							.addComponent(okButton))
+						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+			);
+			buttonPane.setLayout(gl_buttonPane);
 		//}
 	}
 	
@@ -264,6 +286,13 @@ public class InfoMovimiento extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				//parent.paginacion.refresh();
 				dispose();
+			}
+		});
+		btnCancelacion.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				Cancelacion cancelacionDialog = new Cancelacion();
+				cancelacionDialog.setVisible(true);
 			}
 		});
 	}

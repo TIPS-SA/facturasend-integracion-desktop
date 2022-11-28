@@ -53,6 +53,7 @@ import service.FacturasendService;
 import util.HttpUtil;
 import views.commons.Paginacion;
 import views.commons.PaginacionListener;
+import views.eventosDe.Inutilizacion;
 
 public class Principal extends JFrame {
 
@@ -109,6 +110,7 @@ public class Principal extends JFrame {
 	private JCheckBoxMenuItem chkMenuCdc;
 	
 	Principal oThis = this;
+	private JButton btnInutilizacion;
 
 	/**
 	 * Launch the application.
@@ -168,7 +170,7 @@ public class Principal extends JFrame {
 		
 		frmFacturaSend = new JFrame();
 		frmFacturaSend.setTitle("Factura Send - Integration Tool");
-		frmFacturaSend.setBounds(0, 0, 1024, 680);
+		frmFacturaSend.setBounds(0, 0, 1124, 680);
 		frmFacturaSend.setMinimumSize(new Dimension(1024,680));
 		frmFacturaSend.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -204,27 +206,32 @@ public class Principal extends JFrame {
 		
 		btnEnviarEmail = new JButton("Enviar Email");
 		btnEnviarEmail.setIcon(new ImageIcon(Principal.class.getResource("/resources/folder_outbox.png")));
+		
+		btnInutilizacion = new JButton("Inutilizacion");
+
 		GroupLayout gl_paneSouth = new GroupLayout(paneSouth);
 		gl_paneSouth.setHorizontalGroup(
 			gl_paneSouth.createParallelGroup(Alignment.TRAILING)
 				.addGroup(gl_paneSouth.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(btnLogs, GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
+					.addGap(6)
+					.addComponent(btnLogs, GroupLayout.DEFAULT_SIZE, 82, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnCondiguracion, GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE)
+					.addComponent(btnCondiguracion, GroupLayout.DEFAULT_SIZE, 139, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnPausarEnviar, GroupLayout.DEFAULT_SIZE, 139, Short.MAX_VALUE)
+					.addComponent(btnPausarEnviar, GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnReintegrar, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
+					.addComponent(btnReintegrar, GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnVerXml, GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
+					.addComponent(btnVerXml, GroupLayout.DEFAULT_SIZE, 103, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnVerkude, GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE)
+					.addComponent(btnVerkude, GroupLayout.DEFAULT_SIZE, 110, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnPrintkude, GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE)
+					.addComponent(btnPrintkude, GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnEnviarEmail, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addGap(19))
+					.addComponent(btnEnviarEmail, GroupLayout.DEFAULT_SIZE, 129, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnInutilizacion, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+					.addGap(7))
 		);
 		gl_paneSouth.setVerticalGroup(
 			gl_paneSouth.createParallelGroup(Alignment.LEADING)
@@ -238,7 +245,8 @@ public class Principal extends JFrame {
 						.addComponent(btnVerXml)
 						.addComponent(btnVerkude)
 						.addComponent(btnPrintkude)
-						.addComponent(btnEnviarEmail))
+						.addComponent(btnEnviarEmail)
+						.addComponent(btnInutilizacion))
 					.addGap(14))
 		);
 		paneSouth.setLayout(gl_paneSouth);
@@ -907,6 +915,12 @@ public class Principal extends JFrame {
 				tipoDocumento = 7;
 				getPaginacion().setCurrentPage(1);
 				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));
+			}
+		});
+		btnInutilizacion.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Inutilizacion inutilizacionDialog = new Inutilizacion();
+				inutilizacionDialog.setVisible(true);
 			}
 		});
 	}
