@@ -307,7 +307,7 @@ public class CoreIntegracionService {
 						
 						
 						//Aqui ejecutar la consulta de Estado.
-						setTimeout(() -> actualizarEstadoDesdeFacturaSend(tipoDocumento, databaseProperties), 1000);	//Ejecuta en un thread
+						setTimeout(() -> actualizarEstadoDesdeFacturaSend(tipoDocumento, databaseProperties), 1500);	//Ejecuta en un thread
 						
 						
 		
@@ -568,7 +568,11 @@ public class CoreIntegracionService {
 		}				
 	}
 
-	
+	/*
+	 * Obtiene el Estado de los documentos desde FacturaSend
+	 * 
+	 * Se intentaran obtener los estados de los DEs cuyos estado actual = 0-Generado
+	 */
 	public static Map<String, Object> actualizarEstadoDesdeFacturaSend(Integer tipoDocumento, Map<String, String> databaseProperties)  {
 		//Recupera los transaccion_id que se deben integrar
 		Map<String, Object> result = new HashMap<String, Object>();
@@ -613,7 +617,7 @@ public class CoreIntegracionService {
 										//---
 										Object transaccion_id = CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id");
 										Integer estadoActualizar = Double.valueOf(CoreService.getValueForKey(deConEstado, "situacion") + "").intValue();
-										
+										String respuestaMensaje = CoreService.getValueForKey(deConEstado, "respuesta_mensaje") + "";
 										if (estadoActualizar > 0) {
 											//Solo actualizar si el estado es > 0
 											
@@ -632,6 +636,20 @@ public class CoreIntegracionService {
 											Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
 											datosGuardar1.put("ESTADO", estadoActualizar);
 											saveDataToFacturaSendTable(cdcList.get(j), datosGuardar1, databaseProperties);
+											
+											if (estadoActualizar == 4) {
+												System.out.println("actualizar aqui la descripcion del estado" + respuestaMensaje);
+												
+												Map<String, Object> datosRechazoUpdate = new HashMap<String, Object>();
+												datosRechazoUpdate.put("ERROR", estadoActualizar);
+																								
+												updateFacturaSendDataInTableTransacciones(datosRechazoUpdate, databaseProperties, false);
+												
+												Map<String, Object> datosRechazo = new HashMap<String, Object>();
+												datosRechazo.put("ERROR", respuestaMensaje);
+												saveDataToFacturaSendTable(cdcList.get(j), datosRechazo, databaseProperties);
+												
+											}
 										} else {
 											System.err.println("transaccion_id=" + transaccion_id + " sin variación de estado(0). Ignorado");
 										}
@@ -657,6 +675,9 @@ public class CoreIntegracionService {
 		return result;
 	}
 	
+	/*
+	 * Guarda el Archivo XML en la Carpeta indicada en el config.properties
+	 */
 	public static Map<String, Object> imprimirXMLFacturaSend(String cdc, String xml, Integer tipoDocumento, Map<String, String> databaseProperties)  {
 		//Recupera los transaccion_id que se deben integrar
 		Map<String, Object> result = new HashMap<String, Object>();
@@ -699,6 +720,13 @@ public class CoreIntegracionService {
 		return result;
 	}
 
+	/*
+	 * Guarda el Archivo PDF en la Carpeta indicada en el config.properties
+	 * 
+	 * y tambien lanza el PDF directamente a la impresora, caso asi este 
+	 * configurado en config.properties
+	 *  
+	 */
 	public static Map<String, Object> imprimirKUDEFacturaSend(String cdc, Integer tipoDocumento, Map<String, String> databaseProperties)  {
 		//Recupera los transaccion_id que se deben integrar
 		Map<String, Object> result = new HashMap<String, Object>();
