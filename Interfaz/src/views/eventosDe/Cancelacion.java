@@ -6,14 +6,19 @@ import java.awt.FlowLayout;
 import java.awt.KeyEventPostProcessor;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+
+import service.FacturasendService;
+
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JTextArea;
@@ -27,16 +32,19 @@ public class Cancelacion extends JDialog {
 	private KeyboardFocusManager kb;
 	private JLabel lblCdc;
 	private JLabel lblMotivo;
-	private JTextArea txtAreaMotivo;
-	private JButton btnAnular;
-	private JButton btnCancelar;
+	private JButton btnCancelacion;
+	private JButton btnCerrar;
+	private JTextField txtMotivo;
+	private static String cdc;
+	private static Integer tipoDocumento;
+	private static Integer transaccionId;
 
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
 		try {
-			Cancelacion dialog = new Cancelacion();
+			Cancelacion dialog = new Cancelacion(cdc, tipoDocumento, transaccionId);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
@@ -47,9 +55,13 @@ public class Cancelacion extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public Cancelacion() {
+	public Cancelacion(String cdc, Integer tipoDocumento, Integer transaccionId) {
+		this.cdc = cdc;
+		this.tipoDocumento = tipoDocumento;
+		this.transaccionId = transaccionId;
+		setTitle("Evento de Cancelacion");
 		setModal(true);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 450, 238);
 		init();
 		events();
 	}
@@ -63,19 +75,23 @@ public class Cancelacion extends JDialog {
 		lblCdc = new JLabel("CDC:");
 		
 		txtCdc = new JTextField();
+		txtCdc.setEditable(false);
+		//asignar valor del cdc
+		txtCdc.setText(cdc);
 		txtCdc.setColumns(10);
 		
 		lblMotivo = new JLabel("Motivo:");
 		
-		txtAreaMotivo = new JTextArea();
+		txtMotivo = new JTextField();
+		txtMotivo.setColumns(10);
 		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
 		gl_contentPanel.setHorizontalGroup(
 			gl_contentPanel.createParallelGroup(Alignment.TRAILING)
 				.addGroup(gl_contentPanel.createSequentialGroup()
 					.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
 						.addGroup(Alignment.LEADING, gl_contentPanel.createSequentialGroup()
-							.addContainerGap()
-							.addComponent(txtAreaMotivo, GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE))
+							.addGap(41)
+							.addComponent(txtMotivo, GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE))
 						.addGroup(Alignment.LEADING, gl_contentPanel.createSequentialGroup()
 							.addComponent(lblCdc)
 							.addPreferredGap(ComponentPlacement.RELATED)
@@ -93,17 +109,18 @@ public class Cancelacion extends JDialog {
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addComponent(lblMotivo)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(txtAreaMotivo, GroupLayout.PREFERRED_SIZE, 122, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(33, Short.MAX_VALUE))
+					.addComponent(txtMotivo, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(90, Short.MAX_VALUE))
 		);
 		contentPanel.setLayout(gl_contentPanel);
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
-		btnAnular = new JButton("Anular");
-		buttonPane.add(btnAnular);
-		btnCancelar = new JButton("Cancelar");
-		buttonPane.add(btnCancelar);
+		btnCancelacion = new JButton("Cancelacion");
+		
+		buttonPane.add(btnCancelacion);
+		btnCerrar = new JButton("Cerrar");
+		buttonPane.add(btnCerrar);
 	}
 	private void events() {
 		kb.addKeyEventPostProcessor(new KeyEventPostProcessor(){
@@ -115,9 +132,20 @@ public class Cancelacion extends JDialog {
                 return true;
             }
 		});
-		btnCancelar.addActionListener(new ActionListener() {
+		btnCerrar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dispose();
+			}
+		});
+		btnCancelacion.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Map<String, Object> result = FacturasendService.ejecutarEventoCancelacion(tipoDocumento, transaccionId, txtCdc.getText(), txtMotivo.getText());
+				
+				if (Boolean.valueOf(result.get("succes")+"") == true) {
+					JOptionPane.showMessageDialog(null, "Cancelacion Existosa");
+				}else {
+					JOptionPane.showMessageDialog(null, "Hubo Errores en la cancelacion: \n"+result.get("error") + "");
+				}
 			}
 		});
 	}

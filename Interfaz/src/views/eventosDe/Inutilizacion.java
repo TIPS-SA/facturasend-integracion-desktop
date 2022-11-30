@@ -10,6 +10,9 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+
+import core.CoreService;
+
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JLabel;
@@ -33,6 +36,7 @@ public class Inutilizacion extends JDialog {
 	private JTextField txtSerie;
 	private JComboBox cbTipoDocumento;
 	private KeyboardFocusManager kb;
+	private JTextField txtMotivo;
 
 	/**
 	 * Launch the application.
@@ -51,8 +55,9 @@ public class Inutilizacion extends JDialog {
 	 * Create the dialog.
 	 */
 	public Inutilizacion() {
+		setTitle("Evento de Inutilizacion");
 		setModal(true);
-		setBounds(100, 100, 434, 412);
+		setBounds(100, 100, 434, 366);
 		init();
 		events();
 	}
@@ -77,14 +82,12 @@ public class Inutilizacion extends JDialog {
 		
 		JLabel lblMotivo = new JLabel("Motivo:");
 		
-		JTextArea txtAreaMotivo = new JTextArea();
-		
 		cbTipoDocumento = new JComboBox();
-		cbTipoDocumento.addItem("Factura");
-		cbTipoDocumento.addItem("Nota de Credito");
-		cbTipoDocumento.addItem("Nota de Debito");
-		cbTipoDocumento.addItem("Nota de Remision");
-		cbTipoDocumento.addItem("Comprobante de Retencion");
+		cbTipoDocumento.addItem("Factura Electronica");
+		cbTipoDocumento.addItem("Auto Factura Electronica");
+		cbTipoDocumento.addItem("Nota Credito");
+		cbTipoDocumento.addItem("Nota Debito");
+		cbTipoDocumento.addItem("Nota Remision");
 		
 		txtEstablecimiento = new JTextField();
 		txtEstablecimiento.setColumns(10);
@@ -100,6 +103,9 @@ public class Inutilizacion extends JDialog {
 		
 		txtSerie = new JTextField();
 		txtSerie.setColumns(10);
+		
+		txtMotivo = new JTextField();
+		txtMotivo.setColumns(10);
 		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
 		gl_contentPanel.setHorizontalGroup(
 			gl_contentPanel.createParallelGroup(Alignment.LEADING)
@@ -115,13 +121,13 @@ public class Inutilizacion extends JDialog {
 						.addComponent(lblSerie))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-						.addComponent(txtAreaMotivo, GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
-						.addComponent(cbTipoDocumento, 0, 394, Short.MAX_VALUE)
-						.addComponent(txtEstablecimiento, GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
-						.addComponent(txtPunto, GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
-						.addComponent(txtNumeracionDesde, GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
-						.addComponent(txtNumeracionHasta, GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
-						.addComponent(txtSerie, GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE))
+						.addComponent(txtMotivo, GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE)
+						.addComponent(cbTipoDocumento, 0, 265, Short.MAX_VALUE)
+						.addComponent(txtEstablecimiento, GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE)
+						.addComponent(txtPunto, GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE)
+						.addComponent(txtNumeracionDesde, GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE)
+						.addComponent(txtNumeracionHasta, GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE)
+						.addComponent(txtSerie, GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE))
 					.addContainerGap())
 		);
 		gl_contentPanel.setVerticalGroup(
@@ -154,14 +160,15 @@ public class Inutilizacion extends JDialog {
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblMotivo)
-						.addComponent(txtAreaMotivo, GroupLayout.PREFERRED_SIZE, 108, GroupLayout.PREFERRED_SIZE))
-					.addContainerGap(103, Short.MAX_VALUE))
+						.addComponent(txtMotivo, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE))
+					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 		);
 		contentPanel.setLayout(gl_contentPanel);
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		btnInutilizar = new JButton("Inutilizar");
+		
 		buttonPane.add(btnInutilizar);
 		btnCancelar = new JButton("Cancelar");
 
@@ -181,6 +188,11 @@ public class Inutilizacion extends JDialog {
 		btnCancelar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dispose();
+			}
+		});
+		btnInutilizar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				CoreService.getTipoDocumentoNro(cbTipoDocumento.get)
 			}
 		});
 	}

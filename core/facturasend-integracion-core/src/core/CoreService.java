@@ -472,4 +472,26 @@ public class CoreService {
 		}
 		return returnValue;
 	}
+	
+	public static int getTipoDocumentoNro(String documento) {
+		int returnValue = 0;
+		switch (documento) {
+		case "Factura Electronica":
+			returnValue= 1;
+			break;
+		case "Auto Factura Electronica":
+			returnValue= 4;
+			break;
+		case "Nota Credito":
+			returnValue= 5;
+			break;
+		case "Nota Debito":
+			returnValue= 6;
+			break;
+		case "Nota Remision":
+			returnValue= 7;
+			break;
+		}
+		return returnValue;
+	}
 }

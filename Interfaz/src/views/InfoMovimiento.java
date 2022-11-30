@@ -40,7 +40,7 @@ public class InfoMovimiento extends JDialog {
 	private static BigDecimal transaccionId;
 	private static Integer tipoDocumento;
 	//---
-	private JButton okButton;
+	private JButton btnCerrar;
 	private JTable jTableTransaccionesItems;
 	private FacturasendService fs;
 	private JPanel infoCdcPane;
@@ -243,18 +243,18 @@ public class InfoMovimiento extends JDialog {
 			JPanel buttonPane = new JPanel();
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
-				okButton = new JButton("Cerrar");
-				okButton.setActionCommand("OK");
-				getRootPane().setDefaultButton(okButton);
+				btnCerrar = new JButton("Cerrar");
+				btnCerrar.setActionCommand("OK");
+				getRootPane().setDefaultButton(btnCerrar);
 			}
 			
-			btnCancelacion = new JButton("Cancelacion/Anulacion");
+			btnCancelacion = new JButton("Evento de Cancelacion");
 			GroupLayout gl_buttonPane = new GroupLayout(buttonPane);
 			gl_buttonPane.setHorizontalGroup(
 				gl_buttonPane.createParallelGroup(Alignment.LEADING)
 					.addGroup(gl_buttonPane.createSequentialGroup()
 						.addContainerGap()
-						.addComponent(okButton)
+						.addComponent(btnCerrar)
 						.addPreferredGap(ComponentPlacement.RELATED)
 						.addComponent(btnCancelacion)
 						.addContainerGap(542, Short.MAX_VALUE))
@@ -264,7 +264,7 @@ public class InfoMovimiento extends JDialog {
 					.addGroup(gl_buttonPane.createSequentialGroup()
 						.addGroup(gl_buttonPane.createParallelGroup(Alignment.BASELINE)
 							.addComponent(btnCancelacion)
-							.addComponent(okButton))
+							.addComponent(btnCerrar))
 						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 			);
 			buttonPane.setLayout(gl_buttonPane);
@@ -282,7 +282,7 @@ public class InfoMovimiento extends JDialog {
             }
 		});
 		// TODO Auto-generated method stub
-		okButton.addActionListener(new ActionListener() {
+		btnCerrar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				//parent.paginacion.refresh();
 				dispose();
@@ -291,8 +291,13 @@ public class InfoMovimiento extends JDialog {
 		btnCancelacion.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				Cancelacion cancelacionDialog = new Cancelacion();
-				cancelacionDialog.setVisible(true);
+				if(txtEstado.getText().equals("2")||txtEstado.getText().equals("3")) {
+					Cancelacion cancelacionDialog = new Cancelacion(txtCdc.getText());
+					cancelacionDialog.setVisible(true);
+				}else {
+					JOptionPane.showMessageDialog(null, "Solo se puede cancelar un DE con Estado Aprobado (2 o 3)");
+				}
+				
 			}
 		});
 	}

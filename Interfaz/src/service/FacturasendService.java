@@ -246,7 +246,13 @@ public class FacturasendService {
 		return rs;
 	}
 	
+	public static Map<String, Object> ejecutarEventoCancelacion (Integer tipoDocumento, Integer transaccionId, String cdc, String motivo) {
+		return CoreIntegracionService.eventoCancelacion(tipoDocumento, transaccionId, cdc, motivo, readDBProperties());
+	}
 	
+	public static void ejecutarEventoInutilizacion (Map<String, String> body) {
+		CoreIntegracionService.eventoInutilizacion(body, readDBProperties());
+	}
 	
 	static ConfigProperties configProperties;
 	public static Map readDBProperties() {

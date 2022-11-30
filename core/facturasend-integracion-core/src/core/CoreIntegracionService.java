@@ -1655,6 +1655,142 @@ public class CoreIntegracionService {
 		}
 		return sql;
 	}
+	
+	public static Map<String, Object> eventoCancelacion(Integer tipoDocumento, Integer transaccionId, String cdc, String motivo, Map<String, String> databaseProperties) {
+		Map<String, String> body  = new HashMap<String, String>();
+		try {
+			body.put("cdc", cdc);
+			body.put("motivo", motivo);			
+			Map header = new HashMap();
+			header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
+			String url = databaseProperties.get("facturasend.url");
+			url += "/evento/cancelacion";
+			
+			try {
+				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(body), header);
+				if (resultadoJson != null) {
+					if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
+						
+						System.out.println("----" + resultadoJson);
+						/* "success": true,
+						    "result": {
+						        "ns2:rRetEnviEventoDe": {
+						            "$": {
+						                "xmlns:ns2": "http://ekuatia.set.gov.py/sifen/xsd"
+						            },
+						            "ns2:dFecProc": "2022-11-30T16:29:54-03:00",
+						            "ns2:gResProcEVe": {
+						                "ns2:dEstRes": "Aprobado",
+						                "ns2:dProtAut": "836317",
+						                "ns2:id": "1",
+						                "ns2:gResProc": {
+						                    "ns2:dCodRes": "0600",
+						                    "ns2:dMsgRes": "Evento registrado correctamente"
+						                }
+						            }
+						        },
+						        "id": 2
+						    }
+						}*/
+
+						Map<String, Object> resultadoJsonMap = (Map<String, Object>)resultadoJson.get("result");
+						if  (resultadoJsonMap.get("ns2:rRetEnviEventoDe") != null) {
+							Map<String, Object> rRetEnviEventoDe = (Map<String, Object>)resultadoJsonMap.get("ns2:rRetEnviEventoDe");
+							
+							if  (rRetEnviEventoDe.get("ns2:gResProcEVe") != null) {
+								Map<String, Object> gResProcEVe = (Map<String, Object>)rRetEnviEventoDe.get("ns2:gResProcEVe");
+								
+								if  (gResProcEVe.get("ns2:dEstRes") != null) {
+									String dEstRes = (String)gResProcEVe.get("ns2:dEstRes");
+									
+									if  (dEstRes.equalsIgnoreCase("Aprobado")) {
+										
+										
+										//Actualiza la tabla destino de acuerdo a la configuracion
+										Map<String, Object> datosUpdateCancelado = new HashMap<String, Object>();
+										datosUpdateCancelado.put("ESTADO", 99);
+										datosUpdateCancelado.put("TIPO_DOCUMENTO", tipoDocumento);
+										datosUpdateCancelado.put("TRANSACCION_ID", transaccionId);
+										
+										updateFacturaSendDataInTableTransacciones(datosUpdateCancelado, databaseProperties, true);
+										//---
+										
+										//Borrar registros previamente cargados, para evitar duplicidad
+										//deleteFacturaSendTableByTransaccionId(viewRec, databaseProperties);
+
+										
+										Map<String, Object> viewRec = new HashMap<String, Object>();
+										viewRec.put("TIPO_DOCUMENTO", tipoDocumento);
+										viewRec.put("TRANSACCION_ID", transaccionId);
+										
+										//Borrar registros previamente cargados, para evitar duplicidad
+										deleteFacturaSendTableByTransaccionId(de, databaseProperties, "('ESTADO')");
+
+										Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
+										datosGuardar1.put("ESTADO", 99);
+										saveDataToFacturaSendTable(viewRec, datosGuardar1, databaseProperties);
+										
+									} else {
+										System.out.println("Ocurrio alun error 2");
+									}	
+									
+								} else {
+									System.out.println("Ocurrio alun error 2");
+								}
+							} else {
+								System.out.println("Ocurrio alun error 2");
+							}
+							
+						} else {
+							System.out.println("Ocurrio alun error 1");
+						} 
+					}
+
+				}
+			}catch(Exception e2) {
+				e2.printStackTrace();
+			}
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+	}
+	
+	public static void eventoInutilizacion(Map<String, String> body, Map<String, String> databaseProperties) {
+		try {
+			eventoDeInutilizacionDesdeFacturasend(body, databaseProperties);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void eventoDeInutilizacionDesdeFacturasend (Map<String, String> body, Map<String, String> databaseProperties) {
+		try {			
+			Map header = new HashMap();
+			header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
+			String url = databaseProperties.get("facturasend.url");
+			url += "/evento/inutilizacion";
+			
+			try {
+				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(body), header);
+				if (resultadoJson != null) {
+					if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
+						//TODO: actualizar el valor en la base de datos para que se refleje el cambio
+						
+						JOptionPane.showMessageDialog(null, "Inutilizacion Exitosa");
+					}
+
+				}
+			}catch(Exception e2) {
+				e2.printStackTrace();
+			}
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+	}
 
 	public static void setTimeout(Runnable runnable, int delay){
 	    new Thread(() -> {
