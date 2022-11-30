@@ -91,6 +91,14 @@ public class CoreIntegracionService {
 		iniciarIntegracion(6, databaseProperties);
 		iniciarIntegracion(7, databaseProperties);
 		
+		//Actualizacion de Estados de DE con Estado 0
+		setTimeout(() -> actualizarEstadoDesdeFacturaSend(1, databaseProperties), 1000);	//Ejecuta en un thread
+		setTimeout(() -> actualizarEstadoDesdeFacturaSend(4, databaseProperties), 1000);	//Ejecuta en un thread
+		setTimeout(() -> actualizarEstadoDesdeFacturaSend(5, databaseProperties), 1000);	//Ejecuta en un thread
+		setTimeout(() -> actualizarEstadoDesdeFacturaSend(6, databaseProperties), 1000);	//Ejecuta en un thread
+		setTimeout(() -> actualizarEstadoDesdeFacturaSend(7, databaseProperties), 1000);	//Ejecuta en un thread
+
+		
 		log.info("Lote de integración concluido...!");
 		return null; //Seria bueno que aqui se retornen los resultados success y result
 	}
@@ -118,7 +126,6 @@ public class CoreIntegracionService {
 				transaccionIdString += "";
 				
 				//log.info(transaccionIdString);
-				
 			} else {
 				throw new Exception(obtener50registrosNoIntegradosMap.get("error")+"");
 			}
@@ -606,7 +613,6 @@ public class CoreIntegracionService {
 						List<Map<String, Object>> deListConEstados = (List<Map<String, Object>>)resultadoJson.get("deList");
 						
 						if (cdcList.size() == deListConEstados.size()) {
-
 							if (deListConEstados.size() > 0) {
 								//Actualizar estados en la Base de datos, solo si el estado es != 0
 								for (int j = 0; j < deListConEstados.size(); j++) {
@@ -614,6 +620,7 @@ public class CoreIntegracionService {
 								
 									if ( ! (CoreService.getValueForKey(deConEstado, "estado") + "").equals("0")) {
 										
+										System.out.println("-----------------------------" + deConEstado);
 										//---
 										Object transaccion_id = CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id");
 										Integer estadoActualizar = Double.valueOf(CoreService.getValueForKey(deConEstado, "situacion") + "").intValue();
@@ -637,11 +644,16 @@ public class CoreIntegracionService {
 											datosGuardar1.put("ESTADO", estadoActualizar);
 											saveDataToFacturaSendTable(cdcList.get(j), datosGuardar1, databaseProperties);
 											
+											System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + estadoActualizar);
+											System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + respuestaMensaje);
+											
 											if (estadoActualizar == 4) {
-												System.out.println("actualizar aqui la descripcion del estado" + respuestaMensaje);
+												System.out.println("XYSY actualizar aqui la descripcion del estado" + respuestaMensaje);
 												
 												Map<String, Object> datosRechazoUpdate = new HashMap<String, Object>();
-												datosRechazoUpdate.put("ERROR", estadoActualizar);
+												datosRechazoUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
+												datosRechazoUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id"));
+												datosRechazoUpdate.put("ERROR", respuestaMensaje);
 																								
 												updateFacturaSendDataInTableTransacciones(datosRechazoUpdate, databaseProperties, false);
 												

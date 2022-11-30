@@ -219,7 +219,7 @@ public class FacturasendService {
 				Double precioUnitario = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "item_precio_unitario", "i_pre_uni")).doubleValue();
 				Double descuento = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "item_descuento", "i_descue")).doubleValue();
 				
-				datos[0] = CoreService.getValueForKey(rs.get(i), "transaccion_id", "tra_id");
+				datos[0] = CoreService.getValueForKey(rs.get(i), "item_codigo","i_codigo");
 				datos[1] = CoreService.getValueForKey(rs.get(i), "item_descripcion", "i_descrip");
 				datos[2] = dfCantidad.format(cantidad);
 				datos[3] = df.format(precioUnitario);
