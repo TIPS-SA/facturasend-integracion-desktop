@@ -1,0 +1,33 @@
+--------------------------------------------------------------------------------
+FacturaSend Monitor
+
+Sistema integrador de datos de Facturación Electrónica.
+Este monitor envía a FacturaSend los datos a partir de la lectura de unas vistas 
+que contiene información a Facturar
+
+Autor: Tips S.A. - Tecnología y Servicios
+2022
+--------------------------------------------------------------------------------
+
+
+facturasend-monitor-window-{version}.jar
+--------------------------------
+El monitor abre una ventana y muestra los datos de la vista y su estado, integrado
+o no con la Facturación Electrónica. 
+
+Desde esta ventana, también se puede descargar el XML y el KUDE y ver si cualquier
+documento tiene algún error.
+
+Ejecutar este programa con el comando:
+java -jar facturasend-monitor-window-{version}.jar
+
+
+facturasend-monitor-integrador-{version}.jar
+--------------------------------------------
+Este jar realiza la integracion de los datos cada 1 segundo, lee la vista integra e
+imprime, si está habilitado la opción.
+
+Ejecutar este programa con el comando:
+java -jar facturasend-monitor-integracion-{version}.jar
+
+
