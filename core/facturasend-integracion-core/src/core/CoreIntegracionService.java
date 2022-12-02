@@ -163,6 +163,13 @@ public class CoreIntegracionService {
 				
 				if (documentosParaEnvioJsonMap.size() > 0) {
 					
+					//Antes de envar los docuementos, limpia cualquier error previo que haya tenido dicha transaccion
+					for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
+						Map<String, Object> viewRec = documentosParaEnvioFiltradoList.get(i).get(0);	//Toma el primer registro.
+
+						setearErrorInDocument(viewRec, null, databaseProperties);	
+					}
+					
 					Map header = new HashMap();
 					header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
 					String url = databaseProperties.get("facturasend.url");
@@ -249,15 +256,19 @@ public class CoreIntegracionService {
 		
 								
 							for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
+								
 								Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
-								Map<String, Object> viewRec = documentoParaEnvioAllJsonMap.get(i);
-									
-								setearErrorInDocument(viewRec, errorGenerico, databaseProperties);
+								Map<String, Object> viewRec = documentosParaEnvioFiltradoList.get(i).get(0);
 									
 								if (resultadoJson.get("errores") != null) {
 									for (int j = 0; j < errores.size(); j++) {
-										if (i == j) {
+										
+										//if (i == j) {
 											String error = (String)errores.get(j).get("error");
+											Integer index = ((Double)errores.get(j).get("index")).intValue();
+											
+										if (i == index.intValue()) {
+
 											if (databaseProperties.get("database.type").equals("dbf")) {
 												if (error.length() > 254) {
 													error = error.substring(0, 254);	
@@ -267,6 +278,8 @@ public class CoreIntegracionService {
 											setearErrorInDocument(viewRec, error, databaseProperties);									
 										}
 									}	
+								} else {
+									setearErrorInDocument(viewRec, errorGenerico, databaseProperties);	
 								}
 								
 							}
@@ -326,7 +339,9 @@ public class CoreIntegracionService {
 		Map<String, Object> datosUpdate = new HashMap<String, Object>();
 		datosUpdate.put("ERROR", error);
 		if (pauseIfError != null && pauseIfError.equalsIgnoreCase("Y")){
-			datosUpdate.put("PAUSADO", 1);	//Si dio Error debe pausar.
+			if (error != null) {
+				datosUpdate.put("PAUSADO", 1);	//Si dio Error (que no es null) debe pausar.	
+			}
 		}
 		datosUpdate.put("TIPO_DOCUMENTO", ((BigDecimal)CoreService.getValueForKey(viewRec, "tipo_documento", "tip_doc")).intValue());
 		datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(viewRec, "transaccion_id", "tra_id"));
@@ -344,7 +359,9 @@ public class CoreIntegracionService {
 		if (pauseIfError != null && pauseIfError.equalsIgnoreCase("Y")) {
 			//Si dio Error debe pausar.
 			Map<String, Object> datosPausar = new HashMap<String, Object>();
-			datosPausar.put("PAUSADO", 1);
+			if (error != null) {
+				datosPausar.put("PAUSADO", 1);	//Si dio error (que no es null) debe pausar				
+			}
 			saveDataToFacturaSendTable(viewRec, datosPausar, databaseProperties);
 		}
 	}
@@ -1046,9 +1063,12 @@ public class CoreIntegracionService {
 		
 		
 		//Agregar los parametros.
-		
+		boolean swTieneValores = false;
+
 		itrDato = datosGuardar.entrySet().iterator();
 		while (itrDato.hasNext()) {	//Recorre los datos que se tienen que guardar, cdc, numero, estado, error, etc
+			swTieneValores = true;
+
 			Map.Entry eDato = (Map.Entry)itrDato.next();
 			
 			itr = databaseProperties.entrySet().iterator();
@@ -1083,21 +1103,24 @@ public class CoreIntegracionService {
 			statement.setClob(f++, clob );
 		}
 	
-		log.info("\n" + sqlUpdate + " ");
-		
-		result = statement.executeUpdate();
-		log.info("result: " + result + "");
-		
-		String posUpdateSQL = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.pos_update_sql");
-		if (posUpdateSQL != null) {
-			log.info("\n" + posUpdateSQL + " ");
-			PreparedStatement statement2 = conn.prepareStatement(posUpdateSQL);
-			//ResultSet rs = statement2.executeQuery();
-			Integer resultExecuteUpdate = statement2.executeUpdate();
+		if (swTieneValores) {
+			log.info("\n" + sqlUpdate + " ");
 			
-			//Map<String, Object> posUpdateSQLMap = SQLUtil.convertResultSetToMap(rs);
-			log.info("resultExecuteUpdate:" + resultExecuteUpdate);
+			result = statement.executeUpdate();
+			log.info("result: " + result + "");
+			
+			String posUpdateSQL = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.pos_update_sql");
+			if (posUpdateSQL != null) {
+				log.info("\n" + posUpdateSQL + " ");
+				PreparedStatement statement2 = conn.prepareStatement(posUpdateSQL);
+				//ResultSet rs = statement2.executeQuery();
+				Integer resultExecuteUpdate = statement2.executeUpdate();
+				
+				//Map<String, Object> posUpdateSQLMap = SQLUtil.convertResultSetToMap(rs);
+				log.info("resultExecuteUpdate:" + resultExecuteUpdate);
+			}
 		}
+
 		
 		return result;
 	}
@@ -1830,6 +1853,34 @@ public class CoreIntegracionService {
 		}
 		return resultadoJson;
 	}
+	
+	
+	public static Map<String, Object> ObtenerJsonDelXml (String cdc,Map<String, String> databaseProperties){
+		Map<String, Object> resultadoJson = new HashMap<String, Object>();
+		try {
+			Map header = new HashMap();
+			header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
+			String url = databaseProperties.get("facturasend.url");
+			url += "/de/xml/"+cdc+"?json=true";
+			try {
+				resultadoJson = HttpUtil.invocarRest(url, "POST", null, header);
+				if (resultadoJson != null) {
+					return resultadoJson;
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	
+	
 
 	public static void setTimeout(Runnable runnable, int delay){
 	    new Thread(() -> {

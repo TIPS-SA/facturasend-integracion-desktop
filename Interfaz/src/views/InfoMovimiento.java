@@ -1,6 +1,7 @@
 package views;
 
 import java.awt.BorderLayout;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.KeyEventPostProcessor;
@@ -89,6 +90,8 @@ public class InfoMovimiento extends JDialog {
 	}
 
 	private void initialize(BigDecimal transaccionId, Integer tipoDocumento) {
+		
+		
 		kb = KeyboardFocusManager.getCurrentKeyboardFocusManager();
 		fs = new FacturasendService();
 		// TODO Auto-generated method stub
@@ -101,7 +104,7 @@ public class InfoMovimiento extends JDialog {
 		contentPanel.add(scrollPane, BorderLayout.CENTER);
 	
 		jTableTransaccionesItems = new JTable();
-		List<Map<String, Object>> transacconesItem = fs.populateTransactionDetailsTable(jTableTransaccionesItems, transaccionId, tipoDocumento);
+		
 		
 		scrollPane.setViewportView(jTableTransaccionesItems);
 
@@ -128,12 +131,12 @@ public class InfoMovimiento extends JDialog {
 		txtEstadoDescripcion.setEditable(false);
 		txtEstadoDescripcion.setColumns(10);
 
-		lblCodigoQr = new JLabel("Codigo QR");
+		lblCodigoQr = new JLabel("Codigo QR:");
 		
 		txtAError = new JTextArea();
 		txtAError.setLineWrap(true);
 		txtAError.setEditable(false);
-		
+		List<Map<String, Object>> transacconesItem = fs.populateTransactionDetailsTable(jTableTransaccionesItems, transaccionId, tipoDocumento);
 		//Asignar valores
 		if (transacconesItem.size() > 0) {
 			String cdc = (String)CoreService.getValueForKey(transacconesItem.get(0), "CDC");
@@ -164,6 +167,15 @@ public class InfoMovimiento extends JDialog {
 				txtAError.setText( error.trim());
 			}
 		}
+		
+		//Map<String, Object> resultadoXml = FacturasendService.ejecutarObtenerJsonDelXml((String)CoreService.getValueForKey(transacconesItem.get(0), "CDC"));
+		//if (resultadoXml != null) {
+			
+		//}
+			
+			JLabel lblQrEnlace = new JLabel("<a href=''>Ver en la Set</a>");
+			lblQrEnlace.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			
 			
 
 			GroupLayout gl_infoCdcPane = new GroupLayout(infoCdcPane);
@@ -189,7 +201,9 @@ public class InfoMovimiento extends JDialog {
 								.addComponent(txtAError, 0, 0, Short.MAX_VALUE)))
 						.addGap(32)
 						.addComponent(lblCodigoQr)
-						.addContainerGap(234, Short.MAX_VALUE))
+						.addGap(18)
+						.addComponent(lblQrEnlace)
+						.addContainerGap(153, Short.MAX_VALUE))
 			);
 			gl_infoCdcPane.setVerticalGroup(
 				gl_infoCdcPane.createParallelGroup(Alignment.LEADING)
@@ -198,7 +212,8 @@ public class InfoMovimiento extends JDialog {
 						.addGroup(gl_infoCdcPane.createParallelGroup(Alignment.BASELINE)
 							.addComponent(lblCdc)
 							.addComponent(txtCdc, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addComponent(lblCodigoQr))
+							.addComponent(lblCodigoQr)
+							.addComponent(lblQrEnlace))
 						.addPreferredGap(ComponentPlacement.RELATED)
 						.addGroup(gl_infoCdcPane.createParallelGroup(Alignment.BASELINE)
 							.addComponent(lblEstado)

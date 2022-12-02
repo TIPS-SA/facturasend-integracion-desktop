@@ -148,7 +148,15 @@ public class FacturasendService {
 				
 				datos[0] = CoreService.getValueForKey(rs.get(i), "transaccion_id", "tra_id");
 				datos[1] = CoreService.getValueForKey(rs.get(i), "fecha");
-				datos[2] = CoreService.getValueForKey(rs.get(i), "cliente_razon_social", "c_raz_soc");
+				String infoDoc = "";
+				if (CoreService.getValueForKey(rs.get(i), "cliente_ruc", "c_ruc") != null) {
+					infoDoc = (String)CoreService.getValueForKey(rs.get(i), "cliente_ruc", "c_ruc");
+				}
+				if (CoreService.getValueForKey(rs.get(i), "cliente_documento_numero", "c_doc_num") != null) {
+					infoDoc = (String)CoreService.getValueForKey(rs.get(i), "cliente_documento_numero", "c_doc_num");
+				}
+				
+				datos[2] = infoDoc + "-" + CoreService.getValueForKey(rs.get(i), "cliente_razon_social", "c_raz_soc");
 				datos[3] = StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "establecimiento", "estable")+"", 3)  + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "punto")+"", 3) + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "numero")+"", 7);
 				datos[4] = moneda;
 				datos[5] = df.format(total);
@@ -252,6 +260,10 @@ public class FacturasendService {
 	
 	public static Map<String, Object> ejecutarEventoInutilizacion (Map<String, Object> body) {
 		return CoreIntegracionService.eventoInutilizacion(body, readDBProperties());
+	}
+	
+	public static Map<String, Object> ejecutarObtenerJsonDelXml (String cdc){
+		return CoreIntegracionService.ObtenerJsonDelXml(cdc, readDBProperties());
 	}
 	
 	static ConfigProperties configProperties;
