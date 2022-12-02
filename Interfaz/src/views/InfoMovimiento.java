@@ -292,7 +292,7 @@ public class InfoMovimiento extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				if(txtEstado.getText().equals("2")||txtEstado.getText().equals("3")) {
-					Cancelacion cancelacionDialog = new Cancelacion(txtCdc.getText());
+					Cancelacion cancelacionDialog = new Cancelacion(txtCdc.getText(),tipoDocumento , transaccionId);
 					cancelacionDialog.setVisible(true);
 				}else {
 					JOptionPane.showMessageDialog(null, "Solo se puede cancelar un DE con Estado Aprobado (2 o 3)");

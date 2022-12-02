@@ -6,6 +6,7 @@ import java.awt.FlowLayout;
 import java.awt.KeyEventPostProcessor;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
+import java.math.BigDecimal;
 import java.util.Map;
 
 import javax.swing.JButton;
@@ -37,7 +38,7 @@ public class Cancelacion extends JDialog {
 	private JTextField txtMotivo;
 	private static String cdc;
 	private static Integer tipoDocumento;
-	private static Integer transaccionId;
+	private static BigDecimal transaccionId;
 
 	/**
 	 * Launch the application.
@@ -55,7 +56,7 @@ public class Cancelacion extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public Cancelacion(String cdc, Integer tipoDocumento, Integer transaccionId) {
+	public Cancelacion(String cdc, Integer tipoDocumento, BigDecimal transaccionId) {
 		this.cdc = cdc;
 		this.tipoDocumento = tipoDocumento;
 		this.transaccionId = transaccionId;
@@ -141,9 +142,33 @@ public class Cancelacion extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				Map<String, Object> result = FacturasendService.ejecutarEventoCancelacion(tipoDocumento, transaccionId, txtCdc.getText(), txtMotivo.getText());
 				
-				if (Boolean.valueOf(result.get("succes")+"") == true) {
-					JOptionPane.showMessageDialog(null, "Cancelacion Existosa");
+				if (Boolean.valueOf(result.get("success") + "") == true) {
+					Map<String, Object> resultadoJsonMap = (Map<String, Object>)result.get("result");
+					if  (resultadoJsonMap.get("ns2:rRetEnviEventoDe") != null) {
+						Map<String, Object> rRetEnviEventoDe = (Map<String, Object>)resultadoJsonMap.get("ns2:rRetEnviEventoDe");
+						
+						if  (rRetEnviEventoDe.get("ns2:gResProcEVe") != null) {
+							Map<String, Object> gResProcEVe = (Map<String, Object>)rRetEnviEventoDe.get("ns2:gResProcEVe");
+							
+							if  (gResProcEVe.get("ns2:dEstRes") != null) {
+								String dEstRes = (String)gResProcEVe.get("ns2:dEstRes");
+								Map<String, Object>  gResProc = (Map<String, Object>)gResProcEVe.get("ns2:gResProc");
+								if  (dEstRes.equalsIgnoreCase("Aprobado")) {
+									JOptionPane.showMessageDialog(null, "Cancelacion Exitosa\nEstado: "+dEstRes+"\nCodigo: "+ ((String) gResProc.get("ns2:dCodRes"))+"\nMensaje:  "+((String) gResProc.get("ns2:dMsgRes")));
+								}else {
+									JOptionPane.showMessageDialog(null, "Se rechazo la Cancelacion\nEstado: "+dEstRes+"\nCodigo de rechazo: "+ ((String) gResProc.get("ns2:dCodRes"))+"\nMensaje:  "+((String) gResProc.get("ns2:dMsgRes")));
+								}
+							}else {
+								JOptionPane.showMessageDialog(null, "Error en la cancelacion 3");
+							}
+						}else {
+							JOptionPane.showMessageDialog(null, "Error en la cancelacion 2");
+						}
+					}else {
+						JOptionPane.showMessageDialog(null, "Error en la cancelacion 1");
+					}
 				}else {
+					
 					JOptionPane.showMessageDialog(null, "Hubo Errores en la cancelacion: \n"+result.get("error") + "");
 				}
 			}

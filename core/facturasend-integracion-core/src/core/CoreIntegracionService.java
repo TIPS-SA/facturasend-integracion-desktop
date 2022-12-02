@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -1656,8 +1657,9 @@ public class CoreIntegracionService {
 		return sql;
 	}
 	
-	public static Map<String, Object> eventoCancelacion(Integer tipoDocumento, Integer transaccionId, String cdc, String motivo, Map<String, String> databaseProperties) {
+	public static Map<String, Object> eventoCancelacion(Integer tipoDocumento, BigDecimal transaccionId, String cdc, String motivo, Map<String, String> databaseProperties) {
 		Map<String, String> body  = new HashMap<String, String>();
+		Map<String, Object> resultadoJson = new HashMap<String, Object>();
 		try {
 			body.put("cdc", cdc);
 			body.put("motivo", motivo);			
@@ -1667,7 +1669,7 @@ public class CoreIntegracionService {
 			url += "/evento/cancelacion";
 			
 			try {
-				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(body), header);
+				resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(body), header);
 				if (resultadoJson != null) {
 					if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
 						
@@ -1712,30 +1714,35 @@ public class CoreIntegracionService {
 										datosUpdateCancelado.put("TIPO_DOCUMENTO", tipoDocumento);
 										datosUpdateCancelado.put("TRANSACCION_ID", transaccionId);
 										
-										updateFacturaSendDataInTableTransacciones(datosUpdateCancelado, databaseProperties, true);
+										updateFacturaSendDataInTableTransacciones(datosUpdateCancelado, databaseProperties, false);
 										//---
 										
 										//Borrar registros previamente cargados, para evitar duplicidad
 										//deleteFacturaSendTableByTransaccionId(viewRec, databaseProperties);
 
 										
-										Map<String, Object> viewRec = new HashMap<String, Object>();
+										//COMENTADO POR MIENTRAS PARA EL COMPIERER 
+										//Habilitar pra probar con DBF
+								/*		Map<String, Object> viewRec = new HashMap<String, Object>();
 										viewRec.put("TIPO_DOCUMENTO", tipoDocumento);
 										viewRec.put("TRANSACCION_ID", transaccionId);
+										viewRec.put("AD_CLIENT_ID", transaccionId);
 										
 										//Borrar registros previamente cargados, para evitar duplicidad
-										deleteFacturaSendTableByTransaccionId(de, databaseProperties, "('ESTADO')");
+										deleteFacturaSendTableByTransaccionId(viewRec, databaseProperties, "('ESTADO')");
 
 										Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
 										datosGuardar1.put("ESTADO", 99);
 										saveDataToFacturaSendTable(viewRec, datosGuardar1, databaseProperties);
+										*/
+										
 										
 									} else {
-										System.out.println("Ocurrio alun error 2");
+										System.out.println("Ocurrio alun error 4");
 									}	
 									
 								} else {
-									System.out.println("Ocurrio alun error 2");
+									System.out.println("Ocurrio alun error 3");
 								}
 							} else {
 								System.out.println("Ocurrio alun error 2");
@@ -1755,30 +1762,49 @@ public class CoreIntegracionService {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
+		return resultadoJson;
 	}
 	
-	public static void eventoInutilizacion(Map<String, String> body, Map<String, String> databaseProperties) {
-		try {
-			eventoDeInutilizacionDesdeFacturasend(body, databaseProperties);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public static void eventoDeInutilizacionDesdeFacturasend (Map<String, String> body, Map<String, String> databaseProperties) {
-		try {			
+	public static Map<String, Object> eventoInutilizacion(Map<String, Object> body, Map<String, String> databaseProperties) {
+		Map<String, Object> resultadoJson = new HashMap<String, Object>();
+		try {		
 			Map header = new HashMap();
 			header.put("Authorization", "Bearer api_key_" + databaseProperties.get("facturasend.token"));
 			String url = databaseProperties.get("facturasend.url");
 			url += "/evento/inutilizacion";
 			
 			try {
-				Map<String, Object> resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(body), header);
+				resultadoJson = HttpUtil.invocarRest(url, "POST", gson.toJson(body), header);
 				if (resultadoJson != null) {
 					if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
-						//TODO: actualizar el valor en la base de datos para que se refleje el cambio
 						
-						JOptionPane.showMessageDialog(null, "Inutilizacion Exitosa");
+						System.out.println("----" + resultadoJson);
+						Map<String, Object> resultadoJsonMap = (Map<String, Object>)resultadoJson.get("result");
+						if  (resultadoJsonMap.get("ns2:rRetEnviEventoDe") != null) {
+							Map<String, Object> rRetEnviEventoDe = (Map<String, Object>)resultadoJsonMap.get("ns2:rRetEnviEventoDe");
+							
+							if  (rRetEnviEventoDe.get("ns2:gResProcEVe") != null) {
+								Map<String, Object> gResProcEVe = (Map<String, Object>)rRetEnviEventoDe.get("ns2:gResProcEVe");
+								
+								if  (gResProcEVe.get("ns2:dEstRes") != null) {
+									String dEstRes = (String)gResProcEVe.get("ns2:dEstRes");
+									
+									if  (dEstRes.equalsIgnoreCase("Aprobado")) {
+										System.out.println("Esta aprobado y todo se inutilizo correctamentes");
+									} else {
+										System.out.println("Ocurrio alun error 4");
+									}	
+									
+								} else {
+									System.out.println("Ocurrio alun error 3");
+								}
+							} else {
+								System.out.println("Ocurrio alun error 2");
+							}
+							
+						} else {
+							System.out.println("Ocurrio alun error 1");
+						} 
 					}
 
 				}
@@ -1790,6 +1816,7 @@ public class CoreIntegracionService {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
+		return resultadoJson;
 	}
 
 	public static void setTimeout(Runnable runnable, int delay){

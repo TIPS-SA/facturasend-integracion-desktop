@@ -137,7 +137,7 @@ public class FacturasendService {
 			retorno =  (Integer)result.get("count");
 			//log.info("rs"  + rs);
 			for (int i = 0; i < rs.size(); i++) {
-				
+				System.out.println(rs.get(i));
 				String moneda = (String)CoreService.getValueForKey(rs.get(i), "moneda");
 				DecimalFormat df = new DecimalFormat("###,###,###,##0.##");	//Preparado para PYG
 				if (!moneda.equals("PYG")) {
@@ -246,12 +246,12 @@ public class FacturasendService {
 		return rs;
 	}
 	
-	public static Map<String, Object> ejecutarEventoCancelacion (Integer tipoDocumento, Integer transaccionId, String cdc, String motivo) {
+	public static Map<String, Object> ejecutarEventoCancelacion (Integer tipoDocumento, BigDecimal transaccionId, String cdc, String motivo) {
 		return CoreIntegracionService.eventoCancelacion(tipoDocumento, transaccionId, cdc, motivo, readDBProperties());
 	}
 	
-	public static void ejecutarEventoInutilizacion (Map<String, String> body) {
-		CoreIntegracionService.eventoInutilizacion(body, readDBProperties());
+	public static Map<String, Object> ejecutarEventoInutilizacion (Map<String, Object> body) {
+		return CoreIntegracionService.eventoInutilizacion(body, readDBProperties());
 	}
 	
 	static ConfigProperties configProperties;

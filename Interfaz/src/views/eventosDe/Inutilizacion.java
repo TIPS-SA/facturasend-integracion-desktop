@@ -5,6 +5,8 @@ import java.awt.FlowLayout;
 import java.awt.KeyEventPostProcessor;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -12,10 +14,12 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import core.CoreService;
+import service.FacturasendService;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JTextArea;
 import javax.swing.JComboBox;
@@ -192,7 +196,46 @@ public class Inutilizacion extends JDialog {
 		});
 		btnInutilizar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				CoreService.getTipoDocumentoNro(cbTipoDocumento.get)
+				int tipoDocumento = CoreService.getTipoDocumentoNro(cbTipoDocumento.getSelectedItem().toString());
+				Map<String, Object> body = new HashMap<String, Object>();
+				body.put("tipoDocumento", tipoDocumento);
+				body.put("establecimiento", txtEstablecimiento.getText());
+				body.put("punto", txtPunto.getText());
+				body.put("desde", txtNumeracionDesde.getText());
+				body.put("hasta", txtNumeracionHasta.getText());
+				body.put("serie", txtSerie.getText());
+				body.put("motivo", txtMotivo.getText());
+				
+				Map<String, Object> result = FacturasendService.ejecutarEventoInutilizacion(body);
+				if (Boolean.valueOf(result.get("success").toString())==true) {
+					if(result.get("result") != null) {
+						Map<String, Object> respuesta = (Map<String, Object>)result.get("result");
+						if(respuesta.get("ns2:rRetEnviEventoDe")!=null) {
+							Map<String, Object> rRetEnviEventoDe = (Map<String, Object>)respuesta.get("ns2:rRetEnviEventoDe");
+							if ( rRetEnviEventoDe.get("ns2:gResProcEVe")!=null) {
+								Map<String, Object> gResProcEVe = (Map<String, Object>)rRetEnviEventoDe.get("ns2:gResProcEVe");
+								Map<String, Object>  gResProc = (Map<String, Object>)gResProcEVe.get("ns2:gResProc");
+								if (((String) gResProcEVe.get("ns2:dEstRes")).equalsIgnoreCase("Aprobado")) {
+									JOptionPane.showMessageDialog(null, "Inutilizacion Existosa\nEstado: "+((String) gResProcEVe.get("ns2:dEstRes"))+"\nCodigo: "+ ((String) gResProc.get("ns2:dCodRes"))+"\nMensaje:  "+((String) gResProc.get("ns2:dMsgRes")));
+								}else {
+									JOptionPane.showMessageDialog(null, "Se rechazo la inutilizacion\nEstado: "+((String) gResProcEVe.get("ns2:dEstRes"))+"\nCodigo de rechazo: "+ ((String) gResProc.get("ns2:dCodRes"))+"\nMensaje:  "+((String) gResProc.get("ns2:dMsgRes")));
+								}
+							}else {
+								JOptionPane.showMessageDialog(null, "Hubo Errores en la inutilizacion 3");
+							}
+							
+						}else {
+							JOptionPane.showMessageDialog(null, "Hubo Errores en la inutilizacion 2");
+						}
+						
+					}else {
+						JOptionPane.showMessageDialog(null, "Hubo Errores en la inutilizacion 1");
+					}
+					
+				}else {
+					JOptionPane.showMessageDialog(null, "Hubo Errores en la inutilizacion: \n"+result.get("error") + "");
+				}
+				dispose();
 			}
 		});
 	}

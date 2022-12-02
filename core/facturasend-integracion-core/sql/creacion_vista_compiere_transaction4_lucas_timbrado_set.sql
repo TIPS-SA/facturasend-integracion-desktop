@@ -108,10 +108,10 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
 	--
 	-- Totales y Otros
 	--
-	ci.GRANDTOTAL 												AS total,
+	ci.totallines 												AS total,
 	ci.moli_cdc 												AS cdc,	
-	TO_NUMBER(ci.moli_fsEstado)									AS estado,
-	ci.moli_fsPausado 											AS pausado,
+	TO_NUMBER(ci.moli_fsstatus)									AS estado,
+	ci.moli_fspaused 											AS pausado,
 	ci.moli_fsError 											AS error,
 	--
 	-- Items
@@ -398,8 +398,8 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
 	--
 	ci.GRANDTOTAL 												AS total,
 	ci.moli_cdc 												AS cdc,	
-	TO_NUMBER(ci.moli_fsEstado)									AS estado,
-	ci.moli_fsPausado 											AS pausado,
+	TO_NUMBER(ci.moli_fsstatus)									AS estado,
+	ci.moli_fsPaused											AS pausado,
 	ci.moli_fsError 											AS error,
 	--
 	-- Items
@@ -753,8 +753,9 @@ CREATE OR REPLACE VIEW RV_C_Paymentterm_FacturaSend AS
 	ci.C_INVOICE_ID AS transaccion_id,
 	2 AS tipo,			-- Siempre a Credito
 	1 AS credito_tipo,	-- Siempre a plazo
-	1 AS tipo_documento,	-- 1=Ventas, 5=Nota de credito, ver para hacer por el documento type
-	cp.NAME AS credito_plazo
+	1 AS tipo_documento,	-- 1=Ventas, 5=Nota de credito, ver para hacer por el documento TYPE
+	SUBSTR(cp.NAME,1,15) AS credito_plazo
+--	cp.NAME AS credito_plazo
 	FROM C_INVOICE ci
 	--, C_ORDER co
 	, C_PAYMENTTERM cp 
@@ -971,16 +972,16 @@ UPDATE C_INVOICE ci
 SET 
 	ci.MOLI_CDC = NULL,
 	ci.moli_fsError = NULL, 
-	ci.moli_fsestado = NULL,
-	ci.moli_fspausado = NULL
+	ci.moli_fsstatus = NULL,
+	ci.moli_fspaused = NULL
 WHERE 
 	ci.AD_ORG_ID = 1000005
 	AND ci.DOCACTION = 'CL'
 	AND ci.DOCSTATUS = 'CO'
 	--Condiciones Temporales
 	AND MOLI_PREIMPNO IS NOT NULL
-	AND moli_fsestado != 2 
-	AND moli_fsestado !=3
+	AND moli_fsstatus != 2 
+	AND moli_fsstatus !=3
 --	AND LENGTH (MOLI_PREIMPNO) = 15
 --	AND MOLI_PREIMPNO LIKE '002-003-%';
 --	AND cd.NAME LIKE 'AR Invoice%';
@@ -994,7 +995,7 @@ WHERE AD_ORG_ID = 1000005;
 
 
 SELECT cdc, 
-moli_fsestado,
+moli_fsstatus,
 estado FROM RV_C_Invoice_FacturaSend WHERE cdc IS NULL 
 
 --UPDATE C_INVOICE SET moli_fsestado = '0' WHERE moli_fsestado = 'null'
@@ -1043,18 +1044,27 @@ INSERT INTO MOLI_invoiceData ("moli_invoicedata_id", "ad_org_id", "c_invoice_id"
 
 --lucas
 
-CREATE SEQUENCE TIMBRADO_PRUEBA_SEQ
-INCREMENT BY 1
-START WITH 32001
-MAXVALUE 60000;
-
-DROP SEQUENCE TIMBRADO_PRUEBA_SEQ
-
 SELECT * FROM C_INVOICE ci WHERE ROWNUM <5
 
 ALTER TABLE C_INVOICE ADD MOLI_NUMERACION_PRUEBA number(10) DEFAULT 'nextval.TIMBRADO_PRUEBA_SEQ' NOT NULL
 
 SELECT TIMBRADO_PRUEBA_SEQ.currval FROM dual 
+
+
+DECLARE 
+integer c;
+BEGIN 
+	c:= 32001;
+	WHILE (c <= 35000) LOOP 
+		UPDATE C_INVOICE SET MOLI_NUMERACION_PRUEBA = TIMBRADO_PRUEBA_SEQ.currval 
+		WHERE ci.AD_ORG_ID = 1000005
+		AND ci.DOCSTATUS = 'CO'
+		AND MOLI_NUMERACION_PRUEBA IS NULL
+		AND ROWNUM < 2;
+		c:=c+1;
+		SELECT TIMBRADO_PRUEBA_SEQ.nextval FROM dual
+	END LOOP;
+END
 
 
 UPDATE C_INVOICE ci SET MOLI_NUMERACION_PRUEBA = TIMBRADO_PRUEBA_SEQ.nextval 
@@ -1065,8 +1075,5 @@ AND MOLI_NUMERACION_PRUEBA IS NULL
 SELECT count(*) FROM C_INVOICE ci WHERE ci.AD_ORG_ID = 1000005
 AND ci.DOCSTATUS = 'CO'
 AND MOLI_NUMERACION_PRUEBA IS NULL
-
-
-
 
 
