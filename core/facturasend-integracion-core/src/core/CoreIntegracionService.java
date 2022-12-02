@@ -242,18 +242,19 @@ public class CoreIntegracionService {
 							}	// end-for 
 							
 						} else {
-							//Si hay errores
+							//Si success=false,  hay errores
 							//log.debug(arg0);
-							if (resultadoJson.get("errores") != null) {
-								List<Map<String, Object>> errores = (List<Map<String, Object>>)resultadoJson.get("errores");
+							String errorGenerico = (String)resultadoJson.get("error");
+							List<Map<String, Object>> errores = (List<Map<String, Object>>)resultadoJson.get("errores");
 		
-								String pauseIfError = databaseProperties.get("database." + databaseProperties.get("database.type") + ".pause_if_error");
 								
-								for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
-									Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
-									Map<String, Object> viewRec = documentoParaEnvioAllJsonMap.get(i);
+							for (int i = 0; i < documentosParaEnvioJsonMap.size(); i++) {
+								Map<String, Object> jsonDeGenerado = documentosParaEnvioJsonMap.get(i);
+								Map<String, Object> viewRec = documentoParaEnvioAllJsonMap.get(i);
 									
+								setearErrorInDocument(viewRec, errorGenerico, databaseProperties);
 									
+								if (resultadoJson.get("errores") != null) {
 									for (int j = 0; j < errores.size(); j++) {
 										if (i == j) {
 											String error = (String)errores.get(j).get("error");
@@ -263,32 +264,7 @@ public class CoreIntegracionService {
 												}
 											}
 											
-											//---
-											//Actualiza la tabla destino de acuerdo a la configuracion
-											Map<String, Object> datosUpdate = new HashMap<String, Object>();
-											datosUpdate.put("ERROR", error);
-											if (pauseIfError != null && pauseIfError.equalsIgnoreCase("Y")){
-												datosUpdate.put("PAUSADO", 1);	//Si dio Error debe pausar.
-											}
-											datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
-											datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(viewRec, "transaccion_id", "tra_id"));
-											
-											updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, true);
-											//---
-											
-											//Borrar registros previamente cargados, para evitar duplicidad
-											deleteFacturaSendTableByTransaccionId(viewRec, databaseProperties);
-		
-											Map<String, Object> datosGuardar = new HashMap<String, Object>();
-											datosGuardar.put("ERROR", error);
-											saveDataToFacturaSendTable(viewRec, datosGuardar, databaseProperties);
-											
-											if (pauseIfError != null && pauseIfError.equalsIgnoreCase("Y")){
-												//Si dio Error debe pausar.
-												Map<String, Object> datosPausar = new HashMap<String, Object>();
-												datosPausar.put("PAUSADO", 1);
-												saveDataToFacturaSendTable(viewRec, datosPausar, databaseProperties);
-											}											
+											setearErrorInDocument(viewRec, error, databaseProperties);									
 										}
 									}	
 								}
@@ -335,6 +311,42 @@ public class CoreIntegracionService {
 		//Cambiar éste resultado, por el resultado del lote
 		log.info("fin de integracion tipo documento " + tipoDocumento);
 		return obtener50registrosNoIntegradosMap;
+	}
+
+	/*
+	 * Setea el error en el registro de transaccion, luego de que este haya sido integrado a facturasend
+	 * y FS haya devuelto error 
+	 * 
+	 */
+	private static void setearErrorInDocument(Map<String, Object> viewRec, String error,
+			Map<String, String> databaseProperties) throws Exception {
+		String pauseIfError = databaseProperties.get("database." + databaseProperties.get("database.type") + ".pause_if_error");
+		//---
+		//Actualiza la tabla destino de acuerdo a la configuracion
+		Map<String, Object> datosUpdate = new HashMap<String, Object>();
+		datosUpdate.put("ERROR", error);
+		if (pauseIfError != null && pauseIfError.equalsIgnoreCase("Y")){
+			datosUpdate.put("PAUSADO", 1);	//Si dio Error debe pausar.
+		}
+		datosUpdate.put("TIPO_DOCUMENTO", ((BigDecimal)CoreService.getValueForKey(viewRec, "tipo_documento", "tip_doc")).intValue());
+		datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(viewRec, "transaccion_id", "tra_id"));
+		
+		updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, true);
+		//---
+		
+		//Borrar registros previamente cargados, para evitar duplicidad
+		deleteFacturaSendTableByTransaccionId(viewRec, databaseProperties);
+
+		Map<String, Object> datosGuardar = new HashMap<String, Object>();
+		datosGuardar.put("ERROR", error);
+		saveDataToFacturaSendTable(viewRec, datosGuardar, databaseProperties);
+		
+		if (pauseIfError != null && pauseIfError.equalsIgnoreCase("Y")) {
+			//Si dio Error debe pausar.
+			Map<String, Object> datosPausar = new HashMap<String, Object>();
+			datosPausar.put("PAUSADO", 1);
+			saveDataToFacturaSendTable(viewRec, datosPausar, databaseProperties);
+		}
 	}
 	
 	/**
