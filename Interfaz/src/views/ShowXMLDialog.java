@@ -1,6 +1,7 @@
 package views;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.KeyEventPostProcessor;
 import java.awt.KeyboardFocusManager;
@@ -90,6 +91,7 @@ public class ShowXMLDialog extends JDialog {
 				
 				xmlTextPane = new XmlTextPane();
 				xmlTextPane.setEditable(false);
+				xmlTextPane.setBackground(new Color(238, 238, 238));
 				xmlTextPane.setText(toPrettyString(xml,2));
 				
 				scrollPane.setViewportView(xmlTextPane);

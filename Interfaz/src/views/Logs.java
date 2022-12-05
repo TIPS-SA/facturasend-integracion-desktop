@@ -10,11 +10,19 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+
+import service.ConfigProperties;
+
 import javax.swing.BoxLayout;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.awt.event.ActionEvent;
 
 public class Logs extends JDialog {
@@ -23,6 +31,7 @@ public class Logs extends JDialog {
 	private JButton okButton;
 	private JTextArea txtAreaLogs;
 	private KeyboardFocusManager kb;
+	private ConfigProperties cp = new ConfigProperties();
 
 	/**
 	 * Launch the application.
@@ -45,7 +54,7 @@ public class Logs extends JDialog {
 	 */
 	public Logs() {
 		setModal(true);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 650, 500);
 		initialize();
 		events();
 	}
@@ -69,6 +78,9 @@ public class Logs extends JDialog {
 			getContentPane().add(contentPane, BorderLayout.CENTER);
 			{
 				txtAreaLogs = new JTextArea();
+				txtAreaLogs.setEditable(false);
+				txtAreaLogs.setLineWrap(true);
+				txtAreaLogs.setText(cp.readLogProperties());
 				contentPane.setViewportView(txtAreaLogs);
 			}
 		}

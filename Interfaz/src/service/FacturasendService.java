@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 
 import core.CoreIntegracionService;
 import core.CoreService;
+import util.StringUtil;
 import views.table.TableDesign;
 
 public class FacturasendService {

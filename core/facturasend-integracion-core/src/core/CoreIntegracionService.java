@@ -32,6 +32,7 @@ import connect.BDConnect;
 import connect.SQLConnection;
 import print.PrintPdf;
 import util.HttpUtil;
+import util.StringUtil;
 
 /**
  * Clase que se encarga de iniciar la integracion de los datos con FacturaSend
@@ -86,18 +87,18 @@ public class CoreIntegracionService {
 		//En el archivo de propiedades debe haber un key que defina si se va ejecutar infinito.
 		//o cada vez que se invoca
 		
-		iniciarIntegracion(1, databaseProperties);
-		iniciarIntegracion(4, databaseProperties);
+//		iniciarIntegracion(1, databaseProperties);
+		//iniciarIntegracion(4, databaseProperties);
 		iniciarIntegracion(5, databaseProperties);
-		iniciarIntegracion(6, databaseProperties);
-		iniciarIntegracion(7, databaseProperties);
+		//iniciarIntegracion(6, databaseProperties);
+		//iniciarIntegracion(7, databaseProperties);
 		
 		//Actualizacion de Estados de DE con Estado 0
-		setTimeout(() -> actualizarEstadoDesdeFacturaSend(1, databaseProperties), 1000);	//Ejecuta en un thread
-		setTimeout(() -> actualizarEstadoDesdeFacturaSend(4, databaseProperties), 1000);	//Ejecuta en un thread
+//		setTimeout(() -> actualizarEstadoDesdeFacturaSend(1, databaseProperties), 1000);	//Ejecuta en un thread
+		//setTimeout(() -> actualizarEstadoDesdeFacturaSend(4, databaseProperties), 1000);	//Ejecuta en un thread
 		setTimeout(() -> actualizarEstadoDesdeFacturaSend(5, databaseProperties), 1000);	//Ejecuta en un thread
-		setTimeout(() -> actualizarEstadoDesdeFacturaSend(6, databaseProperties), 1000);	//Ejecuta en un thread
-		setTimeout(() -> actualizarEstadoDesdeFacturaSend(7, databaseProperties), 1000);	//Ejecuta en un thread
+	//	setTimeout(() -> actualizarEstadoDesdeFacturaSend(6, databaseProperties), 1000);	//Ejecuta en un thread
+//		setTimeout(() -> actualizarEstadoDesdeFacturaSend(7, databaseProperties), 1000);	//Ejecuta en un thread
 
 		
 		log.info("Lote de integración concluido...!");
@@ -482,7 +483,9 @@ public class CoreIntegracionService {
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
 
 		Integer tipoDocumento = (Integer)CoreService.getValueForKey(datosUpdate, "tipo_documento", "tip_doc");
-		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
+		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : 
+						tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : 
+						tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "" : "";
 		
 		
 		if (databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE) != null) {
@@ -499,7 +502,7 @@ public class CoreIntegracionService {
 				String value = e.getValue()+""; 
 				String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".field.";
 				if ( key.startsWith(prefix)) {
-					key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
+					key = key.substring(prefix.length(), key.length());	//Extrae el nombre del campo
 					Object valor = CoreService.getValueForKey(datosUpdate, value);
 					if (valor != null) {
 						sql += key + "= ?, ";
@@ -515,6 +518,7 @@ public class CoreIntegracionService {
 			sql = sql.substring(0, sql.length()-2) + " WHERE ";
 			
 			boolean poseeWhere = false;
+			
 			//Realiza el WHERE
 			Iterator itr2 = databaseProperties.entrySet().iterator();
 			while (itr2.hasNext()) {
@@ -537,6 +541,12 @@ public class CoreIntegracionService {
 			if (poseeWhere) {
 				//log.info("Comando a ejecutar para actualizar la BD " + sql);
 
+				String prefixSize = "database." + databaseProperties.get("database.type") + ".transaction_table_update.statusPaused.fieldSize";
+				Integer statusPauedSize = 0;
+				if (databaseProperties.get(prefixSize) != null){
+					statusPauedSize = Integer.valueOf(databaseProperties.get(prefixSize) + "");
+				}
+
 				log.info("\n" + sql + " ");
 				PreparedStatement statement = conn.prepareStatement(sql);
 				
@@ -549,11 +559,16 @@ public class CoreIntegracionService {
 					String key = e.getKey()+"";
 					String value = e.getValue()+""; 
 					String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".field.";
+					
 					if ( key.startsWith(prefix)) {
 						key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
 						Object valor = CoreService.getValueForKey(datosUpdate, value);
 						if (valor != null) {
 							log.info("Params(" + cParams + "," + valor +")");
+							
+							if ((valor+"").length() < statusPauedSize) {
+								valor = StringUtil.padLeftZeros(valor+"", statusPauedSize);
+							}
 							statement.setObject(cParams++, valor);
 							
 						} else {
@@ -1863,7 +1878,7 @@ public class CoreIntegracionService {
 			String url = databaseProperties.get("facturasend.url");
 			url += "/de/xml/"+cdc+"?json=true";
 			try {
-				resultadoJson = HttpUtil.invocarRest(url, "POST", null, header);
+				resultadoJson = HttpUtil.invocarRest(url, "GET", null, header);
 				if (resultadoJson != null) {
 					return resultadoJson;
 				}

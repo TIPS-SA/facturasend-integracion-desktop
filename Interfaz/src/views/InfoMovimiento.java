@@ -2,6 +2,7 @@ package views;
 
 import java.awt.BorderLayout;
 import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.KeyEventPostProcessor;
@@ -19,6 +20,7 @@ import views.eventosDe.Cancelacion;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.awt.event.ActionEvent;
@@ -33,6 +35,8 @@ import javax.swing.JTextField;
 import javax.swing.JTextArea;
 import javax.swing.SpringLayout;
 import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class InfoMovimiento extends JDialog {
 
@@ -40,6 +44,7 @@ public class InfoMovimiento extends JDialog {
 	//---
 	private static BigDecimal transaccionId;
 	private static Integer tipoDocumento;
+	private String qrUrl="";
 	//---
 	private JButton btnCerrar;
 	private JTable jTableTransaccionesItems;
@@ -59,6 +64,7 @@ public class InfoMovimiento extends JDialog {
 	
 	private Principal parent;
 	private JButton btnCancelacion;
+	private JLabel lblQrEnlace;
 	/**
 	 * Launch the application.
 	 */
@@ -166,14 +172,29 @@ public class InfoMovimiento extends JDialog {
 			if (error != null) {
 				txtAError.setText( error.trim());
 			}
+			
+			
+			Map<String, Object> resultadoXml = FacturasendService.ejecutarObtenerJsonDelXml((String)CoreService.getValueForKey(transacconesItem.get(0), "CDC"));
+			if (resultadoXml != null) {
+				Map<String, Object> rde = (Map<String, Object>)resultadoXml.get("rDE");
+				if(rde != null) {
+					Map<String, Object> gCamFuFD = (Map<String, Object>)rde.get("gCamFuFD");
+					if (gCamFuFD != null) {
+						String dCarQR = (String)gCamFuFD.get("dCarQR");
+						if (!dCarQR.equals("") || dCarQR != null) {
+							qrUrl = dCarQR;
+						}
+					}
+				}
+			}
 		}
 		
-		//Map<String, Object> resultadoXml = FacturasendService.ejecutarObtenerJsonDelXml((String)CoreService.getValueForKey(transacconesItem.get(0), "CDC"));
 		//if (resultadoXml != null) {
 			
 		//}
 			
-			JLabel lblQrEnlace = new JLabel("<a href=''>Ver en la Set</a>");
+			lblQrEnlace = new JLabel("<html><a href='"+qrUrl+"'>Ver en la Set</a></html>");
+			
 			lblQrEnlace.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			
 			
@@ -202,8 +223,8 @@ public class InfoMovimiento extends JDialog {
 						.addGap(32)
 						.addComponent(lblCodigoQr)
 						.addGap(18)
-						.addComponent(lblQrEnlace)
-						.addContainerGap(153, Short.MAX_VALUE))
+						.addComponent(lblQrEnlace, GroupLayout.PREFERRED_SIZE, 89, GroupLayout.PREFERRED_SIZE)
+						.addContainerGap(124, Short.MAX_VALUE))
 			);
 			gl_infoCdcPane.setVerticalGroup(
 				gl_infoCdcPane.createParallelGroup(Alignment.LEADING)
@@ -313,6 +334,21 @@ public class InfoMovimiento extends JDialog {
 					JOptionPane.showMessageDialog(null, "Solo se puede cancelar un DE con Estado Aprobado (2 o 3)");
 				}
 				
+			}
+		});
+		lblQrEnlace.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				try {
+					if (qrUrl != "" && qrUrl != null) {
+						Desktop.getDesktop().browse(new URI(qrUrl));
+					}else {
+						JOptionPane.showMessageDialog(null, "El registro no posee un codigo qr");
+					}
+				} catch (Exception e2) {
+					// TODO: handle exception
+					e2.printStackTrace();
+				}
 			}
 		});
 	}

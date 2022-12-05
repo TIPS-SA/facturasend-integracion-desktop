@@ -5,7 +5,7 @@
 --DROP VIEW RV_C_Invoice_FacturaSend
 
 CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS 
-
+-- FACTURA
 	SELECT
 	ci.C_INVOICE_ID 											AS transaccion_id,
 	1 															AS tipo_documento,
@@ -291,7 +291,7 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
 		*/
 		
 	--
-	--
+	--NOTA CREDITO
 	--
 	UNION ALL	
 	
@@ -299,9 +299,12 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
 	SELECT
 	ci.C_INVOICE_ID 											AS transaccion_id,
 	5 															AS tipo_documento,
-	SUBSTR(ci.MOLI_PREIMPNO, 1, 3) 								AS establecimiento,
+	/*SUBSTR(ci.MOLI_PREIMPNO, 1, 3) 								AS establecimiento,
 	SUBSTR(ci.MOLI_PREIMPNO, 5, 3) 								AS punto,
-	SUBSTR(ci.MOLI_PREIMPNO, 9, 7) 								AS numero,
+	SUBSTR(ci.MOLI_PREIMPNO, 9, 7) 								AS numero,*/
+	translate ('001' using nchar_cs)							AS establecimiento,
+	translate ('003' using nchar_cs)							AS punto,
+	TRANSLATE(CAST(ci.MOLI_NUMERACION_PRUEBA AS VARCHAR(7)) USING nchar_cs)					AS numero,
 	NULL 														AS serie,
 	NULL 														AS descripcion,
 	ci.description 												AS observacion,
@@ -582,14 +585,330 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
 	--
 	--
 		
-	
-			
-				
+		
+		
+		
+		
+		
+	UNION ALL 
+    --NOTA DE REMISION
+            
+    SELECT
+    ci.C_INVOICE_ID                                             AS transaccion_id,
+    7                                                           AS tipo_documento,
+    SUBSTR(ci.MOLI_PREIMPNO, 1, 3)                              AS establecimiento,
+    SUBSTR(ci.MOLI_PREIMPNO, 5, 3)                              AS punto,
+    SUBSTR(ci.MOLI_PREIMPNO, 9, 7)                              AS numero,
+    NULL                                                        AS serie,
+    NULL                                                        AS descripcion,
+    ci.description                                              AS observacion,
+    --ci.DATEINVOICED                                             AS fecha,
+    CAST(TRANSLATE('2022-11-29T00:00:00' USING nchar_cs) AS VARCHAR(19)) AS fecha,
+    1                                                           AS tipo_emision,    -- 1=Normal
+    1                                                           AS tipo_transicion, -- 1=Venta de mercadería (Por defecto).
+    1                                                           AS tipo_impuesto,   -- 1=IVA. 2=ISC. 3=Renta. 4=Ninguno. 5=IVA - Renta.
+    cc2.ISO_CODE                                                AS moneda,
+    1                                                           AS tipo_cambio,     -- 1- GLOBAL 2- Item 
+
+    round(currencyrate(ci.c_currency_id,'344', ci.DATEINVOICED, ci.C_CONVERSIONTYPE_ID, ci.AD_CLIENT_ID, ci.AD_ORG_ID), 0) 
+                                                                AS cambio,          --Valor de la Cotizacion
+    --
+    -- Datos de Cliente
+    --
+    CASE WHEN (cb.TAXID IS NULL OR cb.TAXID = '') THEN
+        'false' 
+    ELSE 
+        'true' 
+    END                                                         AS cliente_contribuyente,
+    
+    CAST(cb.TAXID AS VARCHAR(20))                               AS cliente_ruc,
+    cb.NAME                                                     AS cliente_razon_social,
+    cb.NAME                                                     AS cliente_nombre_fantasia,
+    NULL                                                        AS cliente_tipo_operacion, --1= B2B, 2= B2C, 3= B2G, 4= B2F
+
+    cbl.NAME                                                    AS cliente_direccion,
+    '0'
+--  ADDRESS2 
+    
+                                                                AS cliente_numero_casa,
+    --AS cliente_departamento,
+    --AS cliente_distrito,
+    --NULL AS cliente_ciudad,
+    3383                                                        AS cliente_ciudad,
+    
+    'PRY'
+    --(SELECT cc.MOLI_ALP3COUNTRYCODE FROM C_COUNTRY cc WHERE cc.C_COUNTRY_ID = (SELECT  first_value(cl.C_COUNTRY_ID )over (partition BY cl.C_COUNTRY_ID ORDER BY cl.CREATED DESC) FROM C_LOCATION cl WHERE cl.C_LOCATION_ID = cbl.C_LOCATION_ID ) ) 
+                                                                AS cliente_pais,
+    CASE WHEN (cb.MOLI_BPARTNERTYPE IS NULL AND cb.MOLI_BPARTNERTYPE = 'F') THEN
+        1 
+    ELSE 
+        2 
+    END                                                         AS cliente_tipo_contribuyente,
+    cb.MOLI_TYPEDOCUMENT                                        AS cliente_documento_tipo,
+    
+    CAST(cb.MOLI_PHOTOID AS VARCHAR2(20))                       AS cliente_documento_numero,
+
+    /*CASE WHEN cb.TAXID IS NULL OR cb.TAXID = '' THEN
+        NULL 
+    ELSE
+        
+    END AS cliente_tipo_contribuyente,*/
+    --AS cliente_documento_tipo,
+    cbl.PHONE                                                   AS cliente_telefono,
+    COALESCE(cbl.PHONE2,n'')                                     AS cliente_celular,
+    --COALESCE((SELECT EMAIL FROM AD_USER au WHERE au.C_BPARTNER_ID = cb.C_BPARTNER_ID ORDER BY au.UPDATED DESC LIMIT 1), '') 
+    NULL                                                        AS cliente_email,
+    cb.VALUE                                                    AS cliente_codigo,
+    --usuario_documento_tipo,
+    --
+    -- Datos de Usuario
+    --
+    1                                                           AS usuario_documento_tipo,  --1= Cédula paraguaya, 2= Pasaporte, 3= Cédula extranjera, 4= Carnet de residencia
+    cbu.moli_photoid                                            AS usuario_documento_numero,
+    cbu.name                                                    AS usuario_nombre,
+    u.title                                                     AS usuario_cargo,
+    --
+    -- Datos de la Factura
+    --
+    1                                                           AS factura_presencia, -- 1= Operación presencial, 2= Operación electrónica, 3= Operación telemarketing, 4= Venta a domicilio, 5= Operación bancaria
+    NULL                                                        AS factura_fecha_envio,
+    'false'                                                     AS factura_ticket,
+    --
+    -- Datos de la Nota de Credito
+    --
+    NULL                                                        AS nota_credito_motivo, 
+    --
+    -- Datos de la Nota de Remision
+    --
+    1                                                           AS nota_remision_motivo,
+    NULL                                                        AS nota_remision_tipo_responsable,
+    mi.MOLI_DISTANCIA                                           AS nota_remision_kms,
+    ci.DATEINVOICED                                             AS nota_remision_fecha_factura,
+    NULL                                                        AS nota_remision_costo_flete,
+
+    --
+    -- Totales y Otros
+    --
+    ci.GRANDTOTAL                                               AS total,
+    ci.moli_cdc                                                 AS cdc, 
+    TO_NUMBER(ci.moli_fsstatus)                                 AS estado,
+    ci.moli_fsPaused                                            AS pausado,
+    ci.moli_fsError                                             AS error,
+    --
+    -- Items
+    --
+    mp.VALUE                                                    AS item_codigo,
+    mp.NAME                                                     AS item_descripcion,
+    NULL                                                        AS item_observacion,
+    77                                                          AS item_unidad_medida,
+    cil.QTYENTERED                                              AS item_cantidad,
+    cil.PRICELIST                                               AS item_precio_unitario,
+    -- AS item_cambio,
+    (cil.PRICELIST - cil.PRICEENTERED)                          AS item_descuento,
+    
+    CASE WHEN cil.PRICELIST = (cil.PRICELIST - cil.PRICEENTERED) THEN 
+        -- Cuando el precio unitario y descuento son iguales
+        3
+    ELSE 
+        CASE WHEN ct.RATE = 5 OR ct.RATE = 10 THEN  
+            1
+        WHEN ct.RATE = 0 THEN 
+            3
+        ELSE 
+            4   
+        END
+    END                                                         AS item_iva_tipo,
+    
+    CASE WHEN cil.PRICELIST = (cil.PRICELIST - cil.PRICEENTERED) THEN 
+        -- Cuando el precio unitario y descuento son iguales
+        0
+    ELSE 
+        CASE WHEN ct.RATE = 5 OR ct.RATE = 10 THEN
+            100
+        WHEN ct.RATE = 0 THEN 
+            0
+        ELSE 
+            ct.RATE * 10
+        END
+    END                                                         AS item_iva_base,
+    
+    CASE WHEN cil.PRICELIST = (cil.PRICELIST - cil.PRICEENTERED) THEN 
+        -- Cuando el precio unitario y descuento son iguales
+        0
+    ELSE 
+        CASE WHEN ct.RATE = 0 THEN
+            0
+        WHEN ct.RATE = 5 THEN 
+            5
+        ELSE 
+            10
+        END
+    END                                                         AS item_iva,
+    NULL                                                        AS item_lote,
+    NULL                                                        AS item_vencimiento,
+    NULL                                                        AS item_numero_serie,
+    NULL                                                        AS item_numero_pedido,
+    NULL                                                        AS item_numero_seguimiento,
+    
+    --
+    -- Datos de Documento Asociado
+    --
+
+    CASE WHEN mi.MOLI_CDC IS NULL THEN
+        2
+    ELSE 
+        1
+    END                                                         AS doc_aso_formato,
+    ci.MOLI_CDC                                                 AS doc_aso_cdc,
+    1                                                           AS doc_aso_tipo_documento_impreso,
+    NULL                                                        AS doc_aso_timbrado,
+    NULL                                                        AS doc_aso_establecimiento,
+    NULL                                                        AS doc_aso_punto,
+    NULL                                                        AS doc_aso_numero,
+    NULL                                                        AS doc_aso_fecha,
+    NULL                                                        AS doc_aso_numero_retencion,
+    NULL                                                        AS doc_aso_reso_credito_fiscal,
+    NULL                                                        AS doc_aso_constancia_tipo,
+    NULL                                                        AS doc_aso_constancia_numero,
+    NULL                                                        AS doc_aso_constancia_control,
+    
+    --
+    -- Datos de Transporte
+    --
+    CASE WHEN mi.M_SHIPPER_ID = 1000000 THEN
+        2
+    ELSE 
+        1
+    END                                                         AS tra_tipo,
+    1                                                           AS tra_modalidad,
+    NULL                                                        AS tra_tipo_responsable,
+    'CFR'                                                       AS tra_condicion_negociacion,
+    (SELECT cl1.ADDRESS1 FROM C_LOCATION cl1 
+        WHERE cl1.C_LOCATION_ID = mw.C_LOCATION_ID  )           AS tra_sali_direccion,
+    0                                                           AS tra_sali_numero_casa,
+    NULL                                                        AS tra_sali_comple_direccion1,
+    NULL                                                        AS tra_sali_comple_direccion2,
+    (SELECT mg.MOLI_GEOREFCODE_DEPARTMENTKEY  
+    FROM MOLI_GEOREFCODE mg 
+    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)        AS tra_sali_departamento,
+    (SELECT mg.MOLI_GEOREFCODE_SECTIONKEY  
+    FROM MOLI_GEOREFCODE mg 
+    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)        AS tra_sali_distrito,
+     (SELECT mg.VALUE FROM MOLI_GEOREFCODE mg 
+    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)        AS tra_sali_ciudad,
+    (SELECT cc.MOLI_ALP3COUNTRYCODE FROM C_COUNTRY cc 
+    WHERE cc.C_COUNTRY_ID = (SELECT first_value
+    (cl.C_COUNTRY_ID)over 
+    (partition BY cl.C_COUNTRY_ID ORDER BY cl.CREATED DESC) 
+    FROM C_LOCATION cl
+    WHERE cl.C_LOCATION_ID = cbl.C_LOCATION_ID ) )              AS tra_sali_pais,
+    l.ADDRESS1                                                  AS tra_entre_direccion,
+    0                                                           AS tra_entre_numero_casa,
+    NULL                                                        AS tra_entre_comple_direccion1,
+    NULL                                                        AS tra_entre_comple_direccion2,
+    (SELECT mg.MOLI_GEOREFCODE_DEPARTMENTKEY  
+    FROM MOLI_GEOREFCODE mg 
+    WHERE mg.MOLI_GEOREFCODE_ID = cbl.MOLI_GEOREFCODE_ID)       AS tra_entre_departamento,
+    (SELECT mg.MOLI_GEOREFCODE_SECTIONKEY  
+    FROM MOLI_GEOREFCODE mg 
+    WHERE mg.MOLI_GEOREFCODE_ID = cbl.MOLI_GEOREFCODE_ID)       AS tra_entre_distrito,
+    (SELECT mg.VALUE FROM MOLI_GEOREFCODE mg 
+    WHERE mg.MOLI_GEOREFCODE_ID = cbl.MOLI_GEOREFCODE_ID)       AS tra_entre_ciudad,
+    (SELECT MOLI_ALP3COUNTRYCODE FROM C_COUNTRY cc2 
+    WHERE cc2.C_COUNTRY_ID = l.C_COUNTRY_ID )                   AS tra_entre_pais,
+    cbl.PHONE                                                   AS tra_entre_telefono_contacto,
+    NULL                                                        AS tra_vehi_tipo,
+    mi.VEHICLE                                                  AS tra_vehi_marca,
+    2                                                           AS tra_vehi_documento_tipo,
+    NULL                                                        AS tra_vehi_documento_numero,
+    NULL                                                        AS tra_vehi_obs,
+    mi.VEHICLEID                                                AS tra_vehi_numero_matricula,
+    NULL                                                        AS tra_vehi_numero_vuelo,
+    NULL                                                        AS tra_transpor_contribuyente,
+    NULL                                                        AS tra_transpor_nombre,
+    NULL                                                        AS tra_transpor_ruc,
+    NULL                                                        AS tra_transpor_documento_tipo,
+    MOLI_RUCTRANSPORTISTA                                       AS tra_transpor_documento_numero,
+    NULL                                                        AS tra_transpor_direccion,
+    NULL                                                        AS tra_transpor_obs,
+    NULL                                                        AS tra_transpor_pais,
+    mi.DRIVERID                                                 AS tra_transpor_chofer_doc_numero,
+    mi.DRIVERNAME                                               AS tra_transpor_chofer_nombre,
+    NULL                                                        AS tra_transpor_chofer_direccion,
+    NULL                                                        AS tra_transpor_agente_nombre,
+    NULL                                                        AS tra_transpor_agente_ruc,
+    NULL                                                        AS tra_transpor_agente_direccion,
+
+    ---
+    -- Campos informativos
+    ---
+    ci.DOCACTION,
+    ci.DOCSTATUS,
+    ci.MOLI_PREIMPNO,
+    ci.AD_ORG_ID,
+    ci.AD_CLIENT_ID,
+    ci.AD_USER_ID
+    FROM 
+        M_INOUT mi
+        INNER JOIN C_INVOICE ci ON
+            (mi.C_INVOICE_ID = ci.C_INVOICE_ID)
+        INNER JOIN M_INOUTLINE mil ON
+            (mi.M_INOUT_ID = mil.M_INOUT_ID)
+        INNER JOIN C_INVOICELINE cil ON
+            (ci.C_INVOICE_ID = cil.C_INVOICE_ID)
+        LEFT OUTER JOIN M_Product mp ON
+            (mil.M_PRODUCT_ID = mp.M_PRODUCT_ID)
+        INNER JOIN C_Currency cc2 ON
+            (ci.C_Currency_ID = cc2.C_Currency_ID)
+        LEFT OUTER JOIN C_DOCTYPE cd ON
+            (ci.C_DOCTYPE_ID = cd.C_DOCTYPE_ID AND cd.NAME LIKE '%AR Invoice%')
+        INNER JOIN C_PAYMENTTERM pt ON
+            (ci.C_PAYMENTTERM_ID  = pt.C_PAYMENTTERM_ID)
+        INNER JOIN C_BPARTNER cb ON
+            (mi.C_BPARTNER_ID = cb.C_BPARTNER_ID)
+        LEFT OUTER JOIN AD_USER bpc ON
+            (mi.AD_USER_ID = bpc.AD_USER_ID)
+        INNER JOIN C_BPARTNER_LOCATION cbl ON
+            (mi.C_BPARTNER_LOCATION_ID = cbl.C_BPARTNER_LOCATION_ID)
+        INNER JOIN C_LOCATION l ON
+            (cbl.C_LOCATION_ID = l.C_LOCATION_ID)
+        LEFT OUTER JOIN AD_USER u ON
+            (mi.SALESREP_ID = u.AD_USER_ID)
+        INNER JOIN C_BPARTNER cbu ON
+            (u.C_BPARTNER_ID = cbu.C_BPARTNER_ID)
+        INNER JOIN C_TAX ct ON
+            (cil.C_TAX_ID = ct.C_TAX_ID)
+        INNER JOIN C_TAXCATEGORY tc ON
+            (tc.C_TAXCATEGORY_ID = ct.C_TAXCATEGORY_ID)
+        INNER JOIN M_PRICELIST mp ON 
+            (mp.M_PRICELIST_ID = ci.M_PRICELIST_ID AND mp.NAME = 'Mayorista')
+       LEFT OUTER JOIN M_WAREHOUSE mw ON
+            (mi.M_WAREHOUSE_ID  = mw.M_WAREHOUSE_ID)
+    WHERE 1=1
+        AND ci.AD_ORG_ID = 1000005
+--      AND ci.DOCACTION = 'CL'
+        AND ci.DOCSTATUS = 'CO' --Completed
+        --Condiciones Temporales
+        AND ci.MOLI_PREIMPNO IS NOT NULL
 		
 		
 	ORDER BY 1 DESC;	
 
+/*Consultar los sigueintes campos :
+                                            Obligatorio
 
+ 1- tra_tipo_responsable                        SI			--como obtener
+ 2-tra_condicion_negociacion                    No              --Fijo actua
+ 3-tra_vehi_tipo                                si                        No esta el campo          
+ 4-tra_transpor_contribuyente                   si					
+ 5-tra_transpor_nombre                          si			--que pasa si no es un empresa, se pone el mismo nombre que el chofer? esta null            
+ 6-nota_remision_motivo							si		-fijo
+ 7-nota_remision_tipo_responsable				si		esta null
+ 8-nota_remision_costo_flete					si      null
+ 9-tra_modalidad								si --fijo 1
+ 10-tra_tipo_responsable						si		null
+ 11-tra_vehi_tipo								si      null
+ */
 
 
 
@@ -1049,22 +1368,6 @@ SELECT * FROM C_INVOICE ci WHERE ROWNUM <5
 ALTER TABLE C_INVOICE ADD MOLI_NUMERACION_PRUEBA number(10) DEFAULT 'nextval.TIMBRADO_PRUEBA_SEQ' NOT NULL
 
 SELECT TIMBRADO_PRUEBA_SEQ.currval FROM dual 
-
-
-DECLARE 
-integer c;
-BEGIN 
-	c:= 32001;
-	WHILE (c <= 35000) LOOP 
-		UPDATE C_INVOICE SET MOLI_NUMERACION_PRUEBA = TIMBRADO_PRUEBA_SEQ.currval 
-		WHERE ci.AD_ORG_ID = 1000005
-		AND ci.DOCSTATUS = 'CO'
-		AND MOLI_NUMERACION_PRUEBA IS NULL
-		AND ROWNUM < 2;
-		c:=c+1;
-		SELECT TIMBRADO_PRUEBA_SEQ.nextval FROM dual
-	END LOOP;
-END
 
 
 UPDATE C_INVOICE ci SET MOLI_NUMERACION_PRUEBA = TIMBRADO_PRUEBA_SEQ.nextval 

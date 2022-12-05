@@ -1,4 +1,4 @@
-package service;
+package util;
 
 public class StringUtil {
 	public static String padLeftZeros(String inputString, int length) {
