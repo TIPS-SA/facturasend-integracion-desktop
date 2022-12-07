@@ -531,6 +531,7 @@ public class Principal extends JFrame {
 						DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
 						
 		                Integer transaccionId = Integer.valueOf(model.getValueAt(row, 0) + "");
+		                String clasificador = String.valueOf(model.getValueAt(row, 8) + "");
 		                String descripcionEstado = model.getValueAt(row, 7) + "";
 		                
 		                log.info("model 6 " + model.getValueAt(row, 6));
@@ -540,7 +541,7 @@ public class Principal extends JFrame {
 							JOptionPane.showMessageDialog(null, "La transacción ya está Aprobada");
 			
 						} else {
-							fs.pausarEnviar(transaccionId, tipoDocumento);
+							fs.pausarEnviar(transaccionId, tipoDocumento, clasificador);
 							//fs.actualizarEstado(tipoDocumento);
 							
 							paginacion.refresh();

@@ -87,16 +87,16 @@ public class CoreIntegracionService {
 		//En el archivo de propiedades debe haber un key que defina si se va ejecutar infinito.
 		//o cada vez que se invoca
 		
-//		iniciarIntegracion(1, databaseProperties);
+		//iniciarIntegracion(1, databaseProperties);
 		//iniciarIntegracion(4, databaseProperties);
-		iniciarIntegracion(5, databaseProperties);
+//		iniciarIntegracion(5, databaseProperties);
 		//iniciarIntegracion(6, databaseProperties);
 		//iniciarIntegracion(7, databaseProperties);
 		
 		//Actualizacion de Estados de DE con Estado 0
-//		setTimeout(() -> actualizarEstadoDesdeFacturaSend(1, databaseProperties), 1000);	//Ejecuta en un thread
+		setTimeout(() -> actualizarEstadoDesdeFacturaSend(1, databaseProperties), 1000);	//Ejecuta en un thread
 		//setTimeout(() -> actualizarEstadoDesdeFacturaSend(4, databaseProperties), 1000);	//Ejecuta en un thread
-		setTimeout(() -> actualizarEstadoDesdeFacturaSend(5, databaseProperties), 1000);	//Ejecuta en un thread
+//		setTimeout(() -> actualizarEstadoDesdeFacturaSend(5, databaseProperties), 1000);	//Ejecuta en un thread
 	//	setTimeout(() -> actualizarEstadoDesdeFacturaSend(6, databaseProperties), 1000);	//Ejecuta en un thread
 //		setTimeout(() -> actualizarEstadoDesdeFacturaSend(7, databaseProperties), 1000);	//Ejecuta en un thread
 
@@ -212,6 +212,7 @@ public class CoreIntegracionService {
 								datosUpdate.put("ESTADO", respuestaDE.get("estado") != null ? respuestaDE.get("estado") + "" : "0");
 								datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
 								datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(viewRec, "transaccion_id", "tra_id"));
+								datosUpdate.put("CLASIFIC", CoreService.getValueForKey(viewRec, "clasific"));
 								
 								updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, true);
 								//---
@@ -332,8 +333,7 @@ public class CoreIntegracionService {
 	 * y FS haya devuelto error 
 	 * 
 	 */
-	private static void setearErrorInDocument(Map<String, Object> viewRec, String error,
-			Map<String, String> databaseProperties) throws Exception {
+	private static void setearErrorInDocument(Map<String, Object> viewRec, String error, Map<String, String> databaseProperties) throws Exception {
 		String pauseIfError = databaseProperties.get("database." + databaseProperties.get("database.type") + ".pause_if_error");
 		//---
 		//Actualiza la tabla destino de acuerdo a la configuracion
@@ -346,6 +346,7 @@ public class CoreIntegracionService {
 		}
 		datosUpdate.put("TIPO_DOCUMENTO", ((BigDecimal)CoreService.getValueForKey(viewRec, "tipo_documento", "tip_doc")).intValue());
 		datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(viewRec, "transaccion_id", "tra_id"));
+		datosUpdate.put("CLASIFIC", CoreService.getValueForKey(viewRec, "clasific"));
 		
 		updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, true);
 		//---
@@ -371,7 +372,11 @@ public class CoreIntegracionService {
 	 * Utiliza la misma logica del WHERE del update pero para recuperar los datos relacionados a FacturaSend
 	 * de la tabla Transacciones
 	 *  
-	 * @param datosUpdate
+	 * @param datosUpdate Map conteniendo minimamente
+	 * 						tipo_documento|tip_doc
+	 * 						clasific
+	 * 						y los valores para los WHEREs
+	 * 
 	 * @param databaseProperties
 	 * @throws Exception
 	 */
@@ -379,11 +384,17 @@ public class CoreIntegracionService {
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
 
 		Integer tipoDocumento = (Integer)CoreService.getValueForKey(datosUpdate, "tipo_documento", "tip_doc");
+		String clasificador = (String)CoreService.getValueForKey(datosUpdate, "clasific");
 		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
 		
 		Map<String, Object> preSQLListMap = new HashMap<String, Object>();
 				
-		if (databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE) != null) {
+		String prefijoTable = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE;
+		
+		if (clasificador != null) {
+			prefijoTable += "." + clasificador;
+		}
+		if (databaseProperties.get(prefijoTable) != null) {
 			//Si existe un nombre de tabla para actualizar
 			
 			String sql = "SELECT ";
@@ -395,7 +406,7 @@ public class CoreIntegracionService {
 				
 				String key = e.getKey()+"";
 				String value = e.getValue()+""; 
-				String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".field.";
+				String prefix = prefijoTable + ".field.";
 				if ( key.startsWith(prefix)) {
 					key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
 					Object valor = CoreService.getValueForKey(datosUpdate, value);
@@ -404,7 +415,7 @@ public class CoreIntegracionService {
 				}
 			}
 			sql = sql.substring(0, sql.length()-2) +  " ";
-			sql += "FROM " + databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE) + " ";
+			sql += "FROM " + prefijoTable + " ";
 			sql += "WHERE ";
 					
 			boolean poseeWhere = false;
@@ -415,7 +426,7 @@ public class CoreIntegracionService {
 				
 				String key = e.getKey()+"";
 				String value = e.getValue()+""; 
-				String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".where.";
+				String prefix = prefijoTable + ".where.";
 				if ( key.startsWith(prefix)) {
 					key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
 					Object valor = CoreService.getValueForKey(datosUpdate, value);
@@ -445,7 +456,7 @@ public class CoreIntegracionService {
 					String key = e.getKey()+"";
 					Object value = e.getValue(); 
 					
-					String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".field." + key;
+					String prefix = prefijoTable + ".field." + key;
 
 					preSQLListMap.put(CoreService.getValueFromMapCaseInsensitive(databaseProperties, prefix) + "", value);
 				}
@@ -468,6 +479,7 @@ public class CoreIntegracionService {
 	 * 									tra_id, 
 	 * 									tipo_documento, 
 	 * 									tip_doc, 
+	 * 									clasific
 	 * 									cdc, 
 	 * 									estado, 
 	 * 									pausado, 
@@ -483,15 +495,19 @@ public class CoreIntegracionService {
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
 
 		Integer tipoDocumento = (Integer)CoreService.getValueForKey(datosUpdate, "tipo_documento", "tip_doc");
+		String clasificador = (String)CoreService.getValueForKey(datosUpdate, "clasific");
 		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : 
 						tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : 
 						tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "" : "";
 		
-		
-		if (databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE) != null) {
+		String prefixTable = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE;
+		if (clasificador != null) {
+			prefixTable += "." + clasificador;
+		}
+		if (databaseProperties.get(prefixTable) != null) {
 			//Si existe un nombre de tabla para actualizar
 			
-			String sql = "UPDATE " + databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE) + " SET ";
+			String sql = "UPDATE " + databaseProperties.get(prefixTable) + " SET ";
 			
 			//Realiza el Seteo de los campos
 			Iterator itr = databaseProperties.entrySet().iterator();
@@ -500,7 +516,7 @@ public class CoreIntegracionService {
 				
 				String key = e.getKey()+"";
 				String value = e.getValue()+""; 
-				String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".field.";
+				String prefix = prefixTable + ".field.";
 				if ( key.startsWith(prefix)) {
 					key = key.substring(prefix.length(), key.length());	//Extrae el nombre del campo
 					Object valor = CoreService.getValueForKey(datosUpdate, value);
@@ -526,7 +542,7 @@ public class CoreIntegracionService {
 				
 				String key = e.getKey()+"";
 				String value = e.getValue()+""; 
-				String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".where.";
+				String prefix = prefixTable + ".where.";
 				if ( key.startsWith(prefix)) {
 					key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
 					Object valor = CoreService.getValueForKey(datosUpdate, value);
@@ -558,7 +574,7 @@ public class CoreIntegracionService {
 					
 					String key = e.getKey()+"";
 					String value = e.getValue()+""; 
-					String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".field.";
+					String prefix = prefixTable + ".field.";
 					
 					if ( key.startsWith(prefix)) {
 						key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
@@ -587,7 +603,7 @@ public class CoreIntegracionService {
 					
 					String key = e.getKey()+"";
 					String value = e.getValue()+""; 
-					String prefix = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE + ".where.";
+					String prefix = prefixTable + ".where.";
 					if ( key.startsWith(prefix)) {
 						key = key.substring(prefix.length(), key.length());	//Extrae el nombre del camp
 						Object valor = CoreService.getValueForKey(datosUpdate, value);
@@ -620,19 +636,54 @@ public class CoreIntegracionService {
 		}				
 	}
 
+	
+	public static Map<String, Object> actualizarEstadoDesdeFacturaSend(Integer tipoDocumento, Map<String, String> databaseProperties)  {
+		Map<String, Object> result = new HashMap<String, Object>();
+
+		Map<String, Object> clasificMap = new HashMap<String, Object>();	//Aqui se cargaran fe, nc, mio, mov, para uso posterior.
+		
+		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
+
+		String prefixForFields = "database." + databaseProperties.get("database.type") + ".facturasend_table." + tipoDE;
+
+		Iterator itr = databaseProperties.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry e = (Map.Entry)itr.next();
+			
+			String key = e.getKey()+""; 
+			if ((key).startsWith(prefixForFields) && key.contains(".field.")) {
+				String clasificadorFromConfig = key.substring(prefixForFields.length()+1, key.length());
+				//System.out.println("clasificadorFromConfig no" + clasificadorFromConfig);
+				clasificadorFromConfig = clasificadorFromConfig.substring(0, clasificadorFromConfig.indexOf("."));
+				//System.out.println(clasificadorFromConfig);
+				clasificMap.put(clasificadorFromConfig, clasificadorFromConfig);
+			}
+		}
+		
+		
+		Iterator itr2 = clasificMap.entrySet().iterator();
+		while (itr2.hasNext()) {
+			Map.Entry e = (Map.Entry)itr2.next();
+			String clasific = e.getKey() + "";
+			actualizarEstadoDesdeFacturaSendConClasif(tipoDocumento, clasific, databaseProperties);
+		}
+		
+		return null;
+	}
+
 	/*
 	 * Obtiene el Estado de los documentos desde FacturaSend
 	 * 
 	 * Se intentaran obtener los estados de los DEs cuyos estado actual = 0-Generado
 	 */
-	public static Map<String, Object> actualizarEstadoDesdeFacturaSend(Integer tipoDocumento, Map<String, String> databaseProperties)  {
+	public static Map<String, Object> actualizarEstadoDesdeFacturaSendConClasif(Integer tipoDocumento, String clasific, Map<String, String> databaseProperties)  {
 		//Recupera los transaccion_id que se deben integrar
 		Map<String, Object> result = new HashMap<String, Object>();
 		
 		
 		try {
 			//cdcList=> contendrá el campo cdc, y el campo transaccion_id|tra_id, para uso futuro
-			List<Map<String, Object>> cdcList = obtenerCDCsConEstadoGenerado(tipoDocumento, databaseProperties);
+			List<Map<String, Object>> cdcList = obtenerCDCsConEstadoGenerado(tipoDocumento, clasific, databaseProperties);
 			
 			for (Map<String, Object> map : cdcList) {
 				map.put("cdc", (map.get("cdc")+"").trim());
@@ -678,6 +729,7 @@ public class CoreIntegracionService {
 											datosUpdate.put("ESTADO", estadoActualizar);
 											datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
 											datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id"));
+											datosUpdate.put("CLASIFIC", CoreService.getValueForKey(cdcList.get(j), "clasific"));
 											
 											updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, false);
 											//---
@@ -689,8 +741,8 @@ public class CoreIntegracionService {
 											datosGuardar1.put("ESTADO", estadoActualizar);
 											saveDataToFacturaSendTable(cdcList.get(j), datosGuardar1, databaseProperties);
 											
-											System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + estadoActualizar);
-											System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + respuestaMensaje);
+											//System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + estadoActualizar);
+											//System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + respuestaMensaje);
 											
 											if (estadoActualizar == 4) {
 												System.out.println("XYSY actualizar aqui la descripcion del estado" + respuestaMensaje);
@@ -698,6 +750,7 @@ public class CoreIntegracionService {
 												Map<String, Object> datosRechazoUpdate = new HashMap<String, Object>();
 												datosRechazoUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
 												datosRechazoUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(cdcList.get(j), "transaccion_id", "tra_id"));
+												datosRechazoUpdate.put("CLASIFIC", CoreService.getValueForKey(cdcList.get(j), "clasific"));
 												datosRechazoUpdate.put("ERROR", respuestaMensaje);
 																								
 												updateFacturaSendDataInTableTransacciones(datosRechazoUpdate, databaseProperties, false);
@@ -883,7 +936,10 @@ public class CoreIntegracionService {
 
 	/**
 	 * 
-	 * @param de		Map conteniendo el transaccion_id|tra_id, tipo_documento|tip_doc
+	 * @param de		Map conteniendo el 
+	 * 					transaccion_id|tra_id, 
+	 * 					tipo_documento|tip_doc
+	 * 					clasific (opcional)
 	 * @param error
 	 * @param databaseProperties
 	 * @return
@@ -893,21 +949,45 @@ public class CoreIntegracionService {
 
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
 		
-		String tableToDelete = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table");
-		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
+		Integer tipoDocumento = Integer.valueOf(CoreService.getValueForKey(de, "tipo_documento", "tip_doc")+"");
+		
+		String clasificador = (String)CoreService.getValueForKey(de, "clasific");
+		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
+		String prefixForTable = "database." + databaseProperties.get("database.type") + ".facturasend_table";
+		
+		String tableToUpdateKey =  prefixForTable + ".key";
+		tableToUpdateKey = databaseProperties.get(tableToUpdateKey);
+		if (databaseProperties.get("database.type").equalsIgnoreCase("dbf")) {
+			if (prefixForTable.endsWith(".dbf")) {
+				prefixForTable = prefixForTable.substring(0, prefixForTable.indexOf(".dbf"));	
+			}
+		}else {
+			prefixForTable += "." + tipoDE;			
+		}
 
-		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table.field.";
+		if (clasificador != null) {
+			prefixForTable += "." + clasificador;
+		}
+		
+		
+		//---
+		String tableToDelete = databaseProperties.get(prefixForTable);
+		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table."+tipoDE;
+		if (clasificador != null) {
+			prefix += "." + clasificador;
+		}
+		prefix += ".field.";
 		String transaccionIdForeignKeyField = CoreService.findKeyByValueInProperties(databaseProperties, prefix, "transaccion_id");
+		System.out.println("\nDE\n"+de+"\n");
+		System.out.println("1-------" + transaccionIdForeignKeyField + " prefix "+prefix);
 		if (transaccionIdForeignKeyField == null) {
 			transaccionIdForeignKeyField = CoreService.findKeyByValueInProperties(databaseProperties, prefix, "tra_id");
 		}
+		System.out.println("2-------" + transaccionIdForeignKeyField);
 		transaccionIdForeignKeyField = transaccionIdForeignKeyField.substring(prefix.length(), transaccionIdForeignKeyField.length());
+		System.out.println("3-------" + transaccionIdForeignKeyField);
 		
-		if (databaseProperties.get("database.type").equalsIgnoreCase("dbf")) {
-			if (tableToDelete.endsWith(".dbf")) {
-				tableToDelete = tableToDelete.substring(0, tableToDelete.indexOf(".dbf"));	
-			}
-		}
+		
 		
 		String sql = "DELETE FROM " 
 						+ tableToDelete + " "
@@ -965,7 +1045,11 @@ public class CoreIntegracionService {
 	
 	/**
 	 * 
-	 * @param viewPrincipal		Map conteniendo el transaccion_id|tra_id, tipo_documento|tip_doc como asi tambien los valores para la 
+	 * @param viewPrincipal		Map conteniendo el 
+	 * 							transaccion_id|tra_id, 
+	 * 							tipo_documento|tip_doc,
+	 * 							clasific, 
+	 * 							como asi tambien los valores para la 
 	 * 							actualización de los elementos cuyos campos se definen en el archivo de configuración
 	 * 							en el campo database.type.facturasend_table.field.
 	 * @param error
@@ -977,15 +1061,28 @@ public class CoreIntegracionService {
 	
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
 		
-		String tableToUpdate = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table");
+		Integer tipoDocumento = Integer.valueOf(CoreService.getValueForKey(viewPrincipal, "tipo_documento", "tip_doc")+"");
+		String clasificador = (String)CoreService.getValueForKey(viewPrincipal, "clasific");
+		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
+		
+		String prefixForTable = "database." + databaseProperties.get("database.type") + ".facturasend_table." + tipoDE;
+		if (clasificador != null) {
+			prefixForTable += "." + clasificador;
+		}
+		String tableToUpdate = databaseProperties.get(prefixForTable);
 		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
 		String tableToUpdateValue = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.value");
+		
 		if (databaseProperties.get("database.type").equals("oracle")) {
 			tableToUpdateKey = tableToUpdateKey.toUpperCase();
 			tableToUpdateValue = tableToUpdateValue.toUpperCase();
 		}
-		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table.field.";
-
+		String fieldPrefix = prefixForTable + ".field." + tipoDE;
+		if (clasificador != null) {
+			fieldPrefix += "." + clasificador;
+		}
+		fieldPrefix += ".";
+		
 		String preUpdateSQL = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.pre_update_sql");
 		if (preUpdateSQL != null) {
 			PreparedStatement statement2 = conn.prepareStatement(preUpdateSQL);
@@ -1026,9 +1123,9 @@ public class CoreIntegracionService {
 			Map.Entry e = (Map.Entry)itr.next();
 			
 			String key = e.getKey()+""; 
-			if ((key).startsWith("database." + databaseProperties.get("database.type") + ".facturasend_table.field.")) {
+			if ((key).startsWith(prefixForTable + ".field.")) {
 				//sqlUpdate += "\"" + key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + "\", ";
-				sqlUpdate += "" + key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + ", ";
+				sqlUpdate += "" + key.substring((prefixForTable + ".field.").length(), key.length()) + ", ";
 			}
 		}
 				
@@ -1053,7 +1150,7 @@ public class CoreIntegracionService {
 				
 				String key = e.getKey()+""; 
 				String value = e.getValue()+"";
-				if ((key).startsWith("database." + databaseProperties.get("database.type") + ".facturasend_table.field.")) {
+				if ((key).startsWith(prefixForTable + ".field.")) {
 					if (value.startsWith("@SQL(")) {
 						//Si es un SQL debe colocar directo la sentencia
 						sqlUpdate += "" + value.substring(4, value.length() ) +  ", ";
@@ -1099,13 +1196,14 @@ public class CoreIntegracionService {
 				
 				String key = e.getKey()+""; 
 				String value = e.getValue()+"";
-				if ((key).startsWith("database." + databaseProperties.get("database.type") + ".facturasend_table.field.")) {
+				if ((key).startsWith(prefixForTable + ".field.")) {
 					if (value.startsWith("@SQL(")) {
 						//Como ya coloco el SQL, entonces aqui no inserta los parámetros.
 						
 					} else {
 						//Toma los valores del view-principal, dependiendo de las claves que estan en el config.
 						statement.setObject(f++, CoreService.getValueForKey(viewPrincipal, e.getValue()+""));
+						System.out.println("ALGO\n"+CoreService.getValueForKey(viewPrincipal, e.getValue()+""));
 					}
 				}
 			}
@@ -1120,11 +1218,13 @@ public class CoreIntegracionService {
 	
 		if (swTieneValores) {
 			log.info("\n" + sqlUpdate + " ");
-			
 			result = statement.executeUpdate();
 			log.info("result: " + result + "");
-			
-			String posUpdateSQL = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.pos_update_sql");
+			String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table." + tipoDE;
+			if (clasificador != null) {
+				prefix += "." + clasificador;
+			}
+			String posUpdateSQL = databaseProperties.get(prefix + ".pos_update_sql");
 			if (posUpdateSQL != null) {
 				log.info("\n" + posUpdateSQL + " ");
 				PreparedStatement statement2 = conn.prepareStatement(posUpdateSQL);
@@ -1147,14 +1247,14 @@ public class CoreIntegracionService {
 	 * @param databaseProperties
 	 * @return
 	 */
-	public static void pausarEnviar(Integer transaccionId, Integer tipoDocumento, Map<String, String> databaseProperties)  {
+	public static void pausarEnviar(Integer transaccionId, Integer tipoDocumento, String clasificador, Map<String, String> databaseProperties)  {
 		//Recupera los transaccion_id que se deben integrar
 		
 		try {
 						
 			
 			guardarPausarEnviarTablaTransacciones(transaccionId, tipoDocumento, databaseProperties);
-			guardarPausarEnviar(transaccionId, tipoDocumento, databaseProperties);
+			guardarPausarEnviar(transaccionId, tipoDocumento, clasificador, databaseProperties);
 
 			
 			//
@@ -1241,12 +1341,13 @@ public class CoreIntegracionService {
 	 * @param databaseProperties
 	 * @return
 	 */
-	public static Integer guardarPausarEnviar(Integer transaccionId, Integer tipoDocumento, Map<String, String> databaseProperties) throws Exception{
+	public static Integer guardarPausarEnviar(Integer transaccionId, Integer tipoDocumento, String clasificador, Map<String, String> databaseProperties) throws Exception{
 		Integer result = 0;
-	
+		//TODO:: Ver como traer el clasificador aqui por que no encuentra la tabla
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
-		
-		String tableToUpdate = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table");
+		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
+		String prefixTable = "database." + databaseProperties.get("database.type") + ".facturasend_table"+tipoDE;
+		String tableToUpdate = databaseProperties.get(prefixTable);
 		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
 		String tableToUpdateValue = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.value");
 		
@@ -1450,7 +1551,7 @@ public class CoreIntegracionService {
 	 * @param databaseProperties
 	 * @return
 	 */
-	public static List<Map<String, Object>> obtenerCDCsConEstadoGenerado(Integer tipoDocumento, Map<String, String> databaseProperties) throws Exception {
+	public static List<Map<String, Object>> obtenerCDCsConEstadoGenerado(Integer tipoDocumento, String clasific, Map<String, String> databaseProperties) throws Exception {
 		
 		List<Map<String, Object>> listadoDes = new ArrayList<Map<String,Object>>();
 		
@@ -1458,7 +1559,7 @@ public class CoreIntegracionService {
 		
 		Statement statement = conn.createStatement();
 		
-		String sql = obtenerCDCsConEstadoGeneradoSQL(databaseProperties, tipoDocumento);
+		String sql = obtenerCDCsConEstadoGeneradoSQL(databaseProperties, tipoDocumento, clasific);
 
 		log.info("\n" + sql + " ");
 
@@ -1479,10 +1580,21 @@ public class CoreIntegracionService {
 	 * @param tipoDocumento
 	 * @return
 	 */
-	private static String obtenerCDCsConEstadoGeneradoSQL(Map<String, String> databaseProperties, Integer tipoDocumento) {
+	private static String obtenerCDCsConEstadoGeneradoSQL(Map<String, String> databaseProperties, Integer tipoDocumento, String clasificador) {
 		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
 		String sql = "";
 		
+		//Integer tipoDocumento = (Integer)CoreService.getValueForKey(datosUpdate, "tipo_documento", "tip_doc");
+		//String clasificador = (String)CoreService.getValueForKey(datosUpdate, "clasific");
+		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
+
+		String prefixForFields = "database." + databaseProperties.get("database.type") + ".facturasend_table." + tipoDE;
+			
+		if (clasificador != null) {
+			prefixForFields += "." + clasificador;
+		}
+		prefixForFields += ".field"; 
+		//---
 		String extraFields = "";
 
 		Iterator itr = databaseProperties.entrySet().iterator();
@@ -1490,7 +1602,7 @@ public class CoreIntegracionService {
 			Map.Entry e = (Map.Entry)itr.next();
 			
 			String key = e.getKey()+""; 
-			if ((key).startsWith("database." + databaseProperties.get("database.type") + ".facturasend_table.field.")) {
+			if ((key).startsWith(prefixForFields)) {
 				//sql += key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + ", ";
 				if (!(e.getValue()+"").startsWith("@SQL") && !(e.getValue()+"").equals("transaccion_id") && !(e.getValue()+"").equals("tra_id")) {
 					extraFields += e.getValue() + ", ";	
@@ -1505,7 +1617,7 @@ public class CoreIntegracionService {
 			sql = "SELECT ";
 					//Primero los Fields adicionales que se requerirán al guardar 
 					sql += extraFields;
-					sql += "transaccion_id, cdc AS \"cdc\" \n";
+					sql += "transaccion_id, tipo_documento, clasific, cdc AS \"cdc\" \n";
 
 					sql += "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"
@@ -1516,7 +1628,7 @@ public class CoreIntegracionService {
 							+ "(ESTADO IS NOT NULL AND ESTADO = 0) \n"
 						+ "GROUP BY "
 						+ extraFields
-						+ "transaccion_id, cdc \n";	//Ordena de forma normal, para obtener el ultimo	
+						+ "transaccion_id, tipo_documento, clasific, cdc \n";	//Ordena de forma normal, para obtener el ultimo	
 		} else {
 			
 			boolean obtenerCdcEstadoPausadoPorSubSelect = true;
@@ -1763,6 +1875,7 @@ public class CoreIntegracionService {
 										datosUpdateCancelado.put("ESTADO", 99);
 										datosUpdateCancelado.put("TIPO_DOCUMENTO", tipoDocumento);
 										datosUpdateCancelado.put("TRANSACCION_ID", transaccionId);
+										//datosUpdateCancelado.put("CLSIFIC", transaccionId);
 										
 										updateFacturaSendDataInTableTransacciones(datosUpdateCancelado, databaseProperties, false);
 										//---

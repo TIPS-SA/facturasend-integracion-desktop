@@ -76,11 +76,11 @@ public class FacturasendService {
 	 * @return
 	 * @throws Exception
 	 */
-	public static void pausarEnviar(Integer transaccionId, Integer tipoDocumento) throws Exception {
+	public static void pausarEnviar(Integer transaccionId, Integer tipoDocumento, String clasificador) throws Exception {
 		
 		//Llamar a la consulta de Datos
 		
-		CoreIntegracionService.pausarEnviar(transaccionId, tipoDocumento, readDBProperties());
+		CoreIntegracionService.pausarEnviar(transaccionId, tipoDocumento, clasificador, readDBProperties());
 		
 	}
 	
@@ -122,8 +122,8 @@ public class FacturasendService {
 	TableDesign tb = new TableDesign();
 	public Integer populateTransactionTable(JTable table, String q, Integer tipoDocumento, Integer page, Integer size){
 		Integer retorno = 0;
-		Object [] titulos = {"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado", "CDC"};	//CDC
-		Object datos[] = { null, null, null, null, null, null, null, null};
+		Object [] titulos = {"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado", "CDC", "Clasificador"};	//CDC
+		Object datos[] = { null, null, null, null, null, null, null, null, null};
 		    
 		DefaultTableModel model = new DefaultTableModel(null, titulos) {
 			 @Override
@@ -181,6 +181,7 @@ public class FacturasendService {
 				}
 				
 				datos[7] = CoreService.getValueForKey(rs.get(i), "cdc");
+				datos[8] = CoreService.getValueForKey(rs.get(i), "clasific");
 
 				model.addRow(datos);
 			}
@@ -193,6 +194,8 @@ public class FacturasendService {
 		//tb.addCheckBox(0, table);
 		table.getColumnModel().getColumn(0).setPreferredWidth(10);
 		table.getColumnModel().getColumn(4).setPreferredWidth(20);
+		table.getColumnModel().getColumn(8).setPreferredWidth(0);
+		table.getTableHeader().getColumnModel().getColumn(8).setPreferredWidth(0);
 		
 		return retorno;
 	}

@@ -68,7 +68,7 @@ public class ConfigProperties {
 			br = new BufferedReader(fr);
 	        try {
 				while((linea=br.readLine())!=null) {
-				   log = log +" " + linea;
+				   log = log +" " + linea +"\n";
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
