@@ -87,7 +87,7 @@ public class CoreIntegracionService {
 		//En el archivo de propiedades debe haber un key que defina si se va ejecutar infinito.
 		//o cada vez que se invoca
 		
-		//iniciarIntegracion(1, databaseProperties);
+		iniciarIntegracion(1, databaseProperties);
 		//iniciarIntegracion(4, databaseProperties);
 //		iniciarIntegracion(5, databaseProperties);
 		//iniciarIntegracion(6, databaseProperties);
