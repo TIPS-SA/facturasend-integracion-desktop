@@ -194,8 +194,12 @@ public class FacturasendService {
 		//tb.addCheckBox(0, table);
 		table.getColumnModel().getColumn(0).setPreferredWidth(10);
 		table.getColumnModel().getColumn(4).setPreferredWidth(20);
-		table.getColumnModel().getColumn(8).setPreferredWidth(0);
-		table.getTableHeader().getColumnModel().getColumn(8).setPreferredWidth(0);
+		table.getColumnModel().getColumn(8).setMaxWidth(0);
+		table.getColumnModel().getColumn(8).setMinWidth(0);
+		table.getTableHeader().getColumnModel().getColumn(8).setMaxWidth(0);
+		table.getTableHeader().getColumnModel().getColumn(8).setMinWidth(0);
+//		table.getColumnModel().getColumn(8).setWidth(0);
+//		table.getTableHeader().getColumnModel().getColumn(8).setWidth(0);
 		
 		return retorno;
 	}

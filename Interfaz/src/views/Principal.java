@@ -526,7 +526,36 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					int row = jTableTransaction.getSelectedRow();
+					int rows [] = jTableTransaction.getSelectedRows();
+					if (rows.length >= 0) {
+						for (int i = 0; i < rows.length; i++) {
+							int row = rows[i];
+							DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
+							
+			                Integer transaccionId = Integer.valueOf(model.getValueAt(row, 0) + "");
+			                String clasificador = String.valueOf(model.getValueAt(row, 8) + "");
+			                String descripcionEstado = model.getValueAt(row, 7) + "";
+			                
+			                //log.info("model 6 " + model.getValueAt(row, 6));
+			                //log.info("model 7 " + model.getValueAt(row, 7));
+			                
+			                if (descripcionEstado != null && descripcionEstado.startsWith("Aprobado")) {
+								JOptionPane.showMessageDialog(null, "La transacción ya está Aprobada");
+				
+							} else {
+								fs.pausarEnviar(transaccionId, tipoDocumento, clasificador);
+								//fs.actualizarEstado(tipoDocumento);
+								
+								
+							}
+						}
+						paginacion.refresh();
+
+					} else {
+						JOptionPane.showMessageDialog(null, "Debe seleccionar un registro");
+					}
+					
+					/*int row = jTableTransaction.getSelectedRow();
 					if (jTableTransaction.getSelectedRow() >= 0) {
 						DefaultTableModel model = (DefaultTableModel) jTableTransaction.getModel();
 						
@@ -549,7 +578,7 @@ public class Principal extends JFrame {
 						}
 					} else {
 						JOptionPane.showMessageDialog(null, "Debe seleccionar un registro");
-					}
+					}*/
 				} catch (Exception e2) {
 					JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
 					log.info("Mostrar error en pantalla, " + e2);

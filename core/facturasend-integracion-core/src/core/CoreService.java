@@ -84,7 +84,7 @@ public class CoreService {
 		if (!databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
-				+ "establecimiento, punto, numero, serie, total, cdc, estado, error, pausado \n"
+				+ "establecimiento, punto, numero, serie, total, cdc, estado, error, pausado, clasific \n"
 				+ "FROM " + tableName + " \n"
 				+ "WHERE "
 				+ "( \n"
@@ -96,7 +96,7 @@ public class CoreService {
 				+ "AND tipo_documento = " + tipoDocumento + " \n"
 				+ "GROUP BY transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
-				+ "establecimiento, punto, numero, serie, total, cdc, estado, error, pausado \n"
+				+ "establecimiento, punto, numero, serie, total, cdc, estado, error, pausado, clasific \n"
 				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";			
 		} else {
 			//DBF
