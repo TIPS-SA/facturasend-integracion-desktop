@@ -129,11 +129,11 @@ public class Principal extends JFrame {
 						new Timer().schedule(new TimerTask() {
 						    @Override
 						    public void run() {
-						        window.paginacion.refresh();
+						    	window.refresh();					       
 						    }
 						}, new Date(), autoUpdateTableView); //Cada N millis segundos						
 					} else {
-						window.paginacion.refresh();
+						window.refresh();
 					}
 					
 					//---
@@ -543,7 +543,7 @@ public class Principal extends JFrame {
 							fs.pausarEnviar(transaccionId, tipoDocumento);
 							//fs.actualizarEstado(tipoDocumento);
 							
-							paginacion.refresh();
+							oThis.refresh();
 							
 						}
 					} else {
@@ -562,7 +562,7 @@ public class Principal extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					fs.iniciarIntegracion();
-					paginacion.refresh();
+					oThis.refresh();
 				} catch (Exception e2) {
 					JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
 					log.info("Mostrar error en pantalla, " + e2);
@@ -923,6 +923,42 @@ public class Principal extends JFrame {
 				inutilizacionDialog.setVisible(true);
 			}
 		});
+	}
+	
+	private void refresh() {
+		Integer transaccionId = null;
+		int row = jTableTransaction.getSelectedRow();
+		DefaultTableModel model = null;
+		if (row > 0) {
+			model = (DefaultTableModel) jTableTransaction.getModel();
+			transaccionId = Integer.valueOf(model.getValueAt(row, 0) + "");
+            System.out.println("seleccionado tranasccion id " + transaccionId);
+		}
+		
+		this.paginacion.refresh();
+		
+		boolean encontro = false;
+		if (transaccionId != null) {
+            System.out.println("seleccionado tranasccion id diferente a null " + transaccionId);
+
+			//Recorrer el elemento seleccionado para tratar de seleccionar
+			for (int row2 = 0; row2 < model.getRowCount(); row2++) {
+
+				Integer transaccionIdLocal = Integer.valueOf(model.getValueAt(row2, 0) + "");
+	            System.out.println("corroborando tranasccion id si son iguales" + transaccionId + "-" + transaccionIdLocal);
+				if (transaccionIdLocal.intValue() == transaccionId.intValue()) {
+					jTableTransaction.setSelectionMode(row2);
+					encontro = true;
+				}
+			}
+		}
+		
+		if (encontro) {
+			System.out.println("es igual, selecciona el item 0");
+			jTableTransaction.getSelectionModel().setLeadSelectionIndex(1);
+		}
+		
+
 	}
 	
 	private void selectedButton(String  btn) {
