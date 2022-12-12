@@ -32,7 +32,8 @@ public class Integrador {
 			    }
 			}, new Date(), autoUpdateTableView); //Cada N millis segundos						
 		} else {
-			log.info("No se inicio la integración, establezca 'database.autoupdate_millis.integracion' con un valor > 0 (1000=1seg)");
+			log.info("Se inicio el integrador 1 sola vez, establezca 'database.autoupdate_millis.integracion' con un valor > 0 (1000=1seg) para ejecutar ciclicamente.");
+			CoreIntegracionService.iniciarIntegracion(FacturasendService.readDBProperties());
 		}
 	}
 }
