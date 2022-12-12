@@ -972,7 +972,7 @@ public class CoreIntegracionService {
 		
 		//---
 		String tableToDelete = databaseProperties.get(prefixForTable);
-		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table."+tipoDE;
+		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table"+((databaseProperties.get("database.type").equals("dbf"))?"":"."+tipoDE);
 		if (clasificador != null) {
 			prefix += "." + clasificador;
 		}
@@ -986,6 +986,9 @@ public class CoreIntegracionService {
 		System.out.println("2-------" + transaccionIdForeignKeyField);
 		transaccionIdForeignKeyField = transaccionIdForeignKeyField.substring(prefix.length(), transaccionIdForeignKeyField.length());
 		System.out.println("3-------" + transaccionIdForeignKeyField);
+		if ( tableToDelete.endsWith(".dbf")) {
+			tableToDelete = tableToDelete.substring(0, tableToDelete.indexOf(".dbf"));
+		}
 		
 		
 		
@@ -1065,7 +1068,7 @@ public class CoreIntegracionService {
 		String clasificador = (String)CoreService.getValueForKey(viewPrincipal, "clasific");
 		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
 		
-		String prefixForTable = "database." + databaseProperties.get("database.type") + ".facturasend_table." + tipoDE;
+		String prefixForTable = "database." + databaseProperties.get("database.type") + ".facturasend_table" + (databaseProperties.get("database.type").equals("dbf")?"":"."+tipoDE);
 		if (clasificador != null) {
 			prefixForTable += "." + clasificador;
 		}
@@ -1167,7 +1170,7 @@ public class CoreIntegracionService {
 		
 		//Al final retirar la coma restante
 		sqlUpdate = sqlUpdate.substring(0, sqlUpdate.length() - 2);
-		
+		System.out.println("SQL UPDATE"+sqlUpdate);
 		PreparedStatement statement = conn.prepareStatement(sqlUpdate);
 
 		
