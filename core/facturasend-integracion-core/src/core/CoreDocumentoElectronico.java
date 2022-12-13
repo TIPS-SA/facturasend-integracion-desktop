@@ -14,8 +14,6 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.gson.Gson;
 
-import util.HttpUtil;
-
 public class CoreDocumentoElectronico {
 	
 	private static Gson gson = new Gson();
@@ -359,27 +357,27 @@ public class CoreDocumentoElectronico {
 			documentoAsociadoMap.put("tipoDocumentoImpreso", CoreService.getValueForKey(transaccionCabecera,"doc_aso_cdc","d_aso_tdi"));
 			documentoAsociadoMap.put("timbrado", CoreService.getValueForKey(transaccionCabecera,"doc_aso_timbrado","d_aso_tim"));
 			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_establecimiento","d_aso_est") != null) {
-				documentoAsociadoMap.put("establecimiento", CoreService.getValueForKey(transaccionCabecera,"doc_aso_establecimiento","d_aso_est")).toString().trim();
+				documentoAsociadoMap.put("establecimiento", CoreService.getValueForKey(transaccionCabecera,"doc_aso_establecimiento","d_aso_est").toString().trim());
 			}
 			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_punto","d_aso_pun") != null) {
-				documentoAsociadoMap.put("punto", CoreService.getValueForKey(transaccionCabecera,"doc_aso_punto","d_aso_pun")).toString().trim();
+				documentoAsociadoMap.put("punto", CoreService.getValueForKey(transaccionCabecera,"doc_aso_punto","d_aso_pun").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero","d_aso_num") != null){
-				documentoAsociadoMap.put("numero", CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero","d_aso_num")).toString().trim();
+				documentoAsociadoMap.put("numero", CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero","d_aso_num").toString().trim());
 			}
 			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_fecha","d_aso_fec") != null) {
-				documentoAsociadoMap.put("fecha", CoreService.getValueForKey(transaccionCabecera,"doc_aso_fecha","d_aso_fec")).toString().trim();
+				documentoAsociadoMap.put("fecha", CoreService.getValueForKey(transaccionCabecera,"doc_aso_fecha","d_aso_fec").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero_retencion","d_aso_ret") != null) {
-				documentoAsociadoMap.put("numeroRetencion", CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero_retencion","d_aso_ret")).toString().trim();
+				documentoAsociadoMap.put("numeroRetencion", CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero_retencion","d_aso_ret").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"doc_aso_reso_credito_fiscal","d_aso_rcf") != null) {
-				documentoAsociadoMap.put("resolucionCreditoFiscal", CoreService.getValueForKey(transaccionCabecera,"doc_aso_reso_credito_fiscal","d_aso_rcf")).toString().trim();
+				documentoAsociadoMap.put("resolucionCreditoFiscal", CoreService.getValueForKey(transaccionCabecera,"doc_aso_reso_credito_fiscal","d_aso_rcf").toString().trim());
 			}
 			documentoAsociadoMap.put("constanciaTipo", CoreService.getValueForKey(transaccionCabecera,"doc_aso_constancia_tipo","d_aso_cti"));
 			documentoAsociadoMap.put("constanciaNumero", CoreService.getValueForKey(transaccionCabecera,"doc_aso_constancia_numero","d_aso_cnu"));
 			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_constancia_control","d_aso_cco") != null) {
-				documentoAsociadoMap.put("constanciaControl", CoreService.getValueForKey(transaccionCabecera,"doc_aso_constancia_control","d_aso_cco")).toString().trim();
+				documentoAsociadoMap.put("constanciaControl", CoreService.getValueForKey(transaccionCabecera,"doc_aso_constancia_control","d_aso_cco").toString().trim());
 			}
 			
 			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_formato","d_aso_for") != null) {
@@ -391,10 +389,13 @@ public class CoreDocumentoElectronico {
 			transporteMap.put("modalidad", CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod"));
 			transporteMap.put("tipoResponsable", CoreService.getValueForKey(transaccionCabecera,"tra_tipo_responsable","t_tip_res"));
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_condicion_negociacion","t_con_neg") != null) {
-				transporteMap.put("condicionNegociacion", CoreService.getValueForKey(transaccionCabecera,"tra_condicion_negociacion","t_con_neg")).toString().trim();
+				transporteMap.put("condicionNegociacion", CoreService.getValueForKey(transaccionCabecera,"tra_condicion_negociacion","t_con_neg").toString().trim());
 			}
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip") != null &&
-					CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod") != null) {
+					((BigDecimal)CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip")).intValue() != 0 &&
+					CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod") != null &&
+					((BigDecimal)CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod")).intValue() != 0) {
+				
 				dataMap.put("transporte", transporteMap);	//Agrega transporte si tiene datos básicos	
 			}
 				
@@ -410,113 +411,113 @@ public class CoreDocumentoElectronico {
 			
 			Map<String, Object> transporteSalidaMap = new HashMap<String, Object>();
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_sali_direccion","t_sal_dir") != null) {
-				transporteSalidaMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"tra_sali_direccion","t_sal_dir")).toString().trim();
+				transporteSalidaMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"tra_sali_direccion","t_sal_dir").toString().trim());
 			}
 			transporteSalidaMap.put("numeroCasa", CoreService.getValueForKey(transaccionCabecera,"tra_sali_numero_casa","t_sal_nca"));
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_sali_comple_direccion1","t_sal_cd1")!= null) {
-				transporteSalidaMap.put("complementoDireccion1", CoreService.getValueForKey(transaccionCabecera,"tra_sali_comple_direccion1","t_sal_cd1")).toString().trim();
+				transporteSalidaMap.put("complementoDireccion1", CoreService.getValueForKey(transaccionCabecera,"tra_sali_comple_direccion1","t_sal_cd1").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_sali_comple_direccion2","t_sal_cd2")!= null) {
-				transporteSalidaMap.put("complementoDireccion2", CoreService.getValueForKey(transaccionCabecera,"tra_sali_comple_direccion2","t_sal_cd2")).toString().trim();
+				transporteSalidaMap.put("complementoDireccion2", CoreService.getValueForKey(transaccionCabecera,"tra_sali_comple_direccion2","t_sal_cd2").toString().trim());
 			}
 			transporteSalidaMap.put("departamento", CoreService.getValueForKey(transaccionCabecera,"tra_sali_departamento","t_sal_dep"));
 			transporteSalidaMap.put("distrito", CoreService.getValueForKey(transaccionCabecera,"tra_sali_distrito","t_sal_dis"));
 			transporteSalidaMap.put("ciudad", CoreService.getValueForKey(transaccionCabecera,"tra_sali_ciudad","t_sal_ciu"));
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_sali_pais","t_sal_pai") != null) {				
-				transporteSalidaMap.put("pais", CoreService.getValueForKey(transaccionCabecera,"tra_sali_pais","t_sal_pai")).toString().trim();
+				transporteSalidaMap.put("pais", CoreService.getValueForKey(transaccionCabecera,"tra_sali_pais","t_sal_pai").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_sali_telefono_contacto","t_sal_tel") != null) {
-				transporteSalidaMap.put("telefonoContacto", CoreService.getValueForKey(transaccionCabecera,"tra_sali_telefono_contacto","t_sal_tel")).toString().trim();
+				transporteSalidaMap.put("telefonoContacto", CoreService.getValueForKey(transaccionCabecera,"tra_sali_telefono_contacto","t_sal_tel").toString().trim());
 			}
 			
 			
 			Map<String, Object> transporteEntregaMap = new HashMap<String, Object>();
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_entre_direccion","t_ent_dir") != null) {
-				transporteEntregaMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"tra_entre_direccion","t_ent_dir")).toString().trim();
+				transporteEntregaMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"tra_entre_direccion","t_ent_dir").toString().trim());
 			}
 			transporteEntregaMap.put("numeroCasa", CoreService.getValueForKey(transaccionCabecera,"tra_entre_numero_casa","t_ent_nca"));
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_entre_comple_direccion1","t_ent_cd1") != null) { 
-				transporteEntregaMap.put("complementoDireccion1", CoreService.getValueForKey(transaccionCabecera,"tra_entre_comple_direccion1","t_ent_cd1")).toString().trim();
+				transporteEntregaMap.put("complementoDireccion1", CoreService.getValueForKey(transaccionCabecera,"tra_entre_comple_direccion1","t_ent_cd1").toString().trim());
 			}
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_entre_comple_direccion2","t_ent_cd2") != null) {
-				transporteEntregaMap.put("complementoDireccion2", CoreService.getValueForKey(transaccionCabecera,"tra_entre_comple_direccion2","t_ent_cd2")).toString().trim();
+				transporteEntregaMap.put("complementoDireccion2", CoreService.getValueForKey(transaccionCabecera,"tra_entre_comple_direccion2","t_ent_cd2").toString().trim());
 			}
 			transporteEntregaMap.put("departamento", CoreService.getValueForKey(transaccionCabecera,"tra_entre_departamento","t_ent_dep"));
 			transporteEntregaMap.put("distrito", CoreService.getValueForKey(transaccionCabecera,"tra_entre_distrito","t_ent_dis"));
 			transporteEntregaMap.put("ciudad", CoreService.getValueForKey(transaccionCabecera,"tra_entre_ciudad","t_ent_ciu"));
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_entre_pais","t_ent_pai") != null) {
-				transporteEntregaMap.put("pais", CoreService.getValueForKey(transaccionCabecera,"tra_entre_pais","t_ent_pai")).toString().trim();
+				transporteEntregaMap.put("pais", CoreService.getValueForKey(transaccionCabecera,"tra_entre_pais","t_ent_pai").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_entre_telefono_contacto","t_ent_tel") != null) {
-				transporteEntregaMap.put("telefonoContacto", CoreService.getValueForKey(transaccionCabecera,"tra_entre_telefono_contacto","t_ent_tel")).toString().trim();
+				transporteEntregaMap.put("telefonoContacto", CoreService.getValueForKey(transaccionCabecera,"tra_entre_telefono_contacto","t_ent_tel").toString().trim());
 			}
 			
 			
 			Map<String, Object> transporteVehiculoMap = new HashMap<String, Object>();
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_vehi_tipo","t_veh_tip") != null) {
-				transporteVehiculoMap.put("tipo", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_tipo","t_veh_tip")).toString().trim();
+				transporteVehiculoMap.put("tipo", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_tipo","t_veh_tip").toString().trim());
 			}
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_vehi_marca","t_veh_mar") != null) {
-				transporteVehiculoMap.put("marca", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_marca","t_veh_mar")).toString().trim();
+				transporteVehiculoMap.put("marca", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_marca","t_veh_mar").toString().trim());
 			}
 			transporteVehiculoMap.put("documentoTipo", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_documento_tipo","t_veh_dti"));
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_vehi_documento_numero","t_veh_dnu")!=null) {
-				transporteVehiculoMap.put("documentoNumero", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_documento_numero","t_veh_dnu")).toString().trim();
+				transporteVehiculoMap.put("documentoNumero", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_documento_numero","t_veh_dnu").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_vehi_obs","t_veh_obs") != null) {
-				transporteVehiculoMap.put("obs", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_obs","t_veh_obs")).toString().trim();
+				transporteVehiculoMap.put("obs", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_obs","t_veh_obs").toString().trim());
 			}
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_vehi_numero_matricula","t_veh_mat") != null) {
-				transporteVehiculoMap.put("numeroMatricula", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_numero_matricula","t_veh_mat")).toString().trim();
+				transporteVehiculoMap.put("numeroMatricula", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_numero_matricula","t_veh_mat").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_vehi_numero_vuelo","t_veh_vue")!= null) {
-				transporteVehiculoMap.put("numeroVuelo", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_numero_vuelo","t_veh_vue")).toString().trim();
+				transporteVehiculoMap.put("numeroVuelo", CoreService.getValueForKey(transaccionCabecera,"tra_vehi_numero_vuelo","t_veh_vue").toString().trim());
 			}
 			
 			
 			Map<String, Object> transporteTransportistaMap = new HashMap<String, Object>();
 			transporteTransportistaMap.put("contribuyente", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_contribuyente","t_t_con"));
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_transpor_nombre","t_t_nom")!= null) {
-				transporteTransportistaMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_nombre","t_t_nom")).toString().trim();
+				transporteTransportistaMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_nombre","t_t_nom").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_transpor_ruc","t_t_ruc")!=null) {
-				transporteTransportistaMap.put("ruc", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_ruc","t_t_ruc")).toString().trim();
+				transporteTransportistaMap.put("ruc", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_ruc","t_t_ruc").toString().trim());
 			}
 			transporteTransportistaMap.put("documentoTipo", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_documento_tipo","t_t_dti"));
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_transpor_documento_numero","t_t_dnu") != null) {
-				transporteTransportistaMap.put("documentoNumero", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_documento_numero","t_t_dnu")).toString().trim();
+				transporteTransportistaMap.put("documentoNumero", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_documento_numero","t_t_dnu").toString().trim());
 			}
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_transpor_direccion","t_t_dir")!= null) {
-				transporteTransportistaMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_direccion","t_t_dir")).toString().trim();
+				transporteTransportistaMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_direccion","t_t_dir").toString().trim());
 			}
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_transpor_obs","t_t_obs") != null) {
-				transporteTransportistaMap.put("obs", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_obs","t_t_obs")).toString().trim();
+				transporteTransportistaMap.put("obs", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_obs","t_t_obs").toString().trim());
 			}
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_transpor_pais","t_t_pai") != null) {
-				transporteTransportistaMap.put("pais", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_pais","t_t_pai")).toString().trim();
+				transporteTransportistaMap.put("pais", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_pais","t_t_pai").toString().trim());
 			}
 			
 			
 			Map<String, Object> transporteTransportistaChoferMap = new HashMap<String, Object>();
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_transpor_chofer_doc_numero","t_t_c_dnu")!= null) {
-				transporteTransportistaChoferMap.put("documentoNumero", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_chofer_doc_numero","t_t_c_dnu")).toString().trim();
+				transporteTransportistaChoferMap.put("documentoNumero", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_chofer_doc_numero","t_t_c_dnu").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_transpor_chofer_nombre","t_t_c_nom") != null) {
-				transporteTransportistaChoferMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_chofer_nombre","t_t_c_nom")).toString().trim();
+				transporteTransportistaChoferMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_chofer_nombre","t_t_c_nom").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_transpor_chofer_direccion","t_t_c_dir") != null) {
-				transporteTransportistaChoferMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_chofer_direccion","t_t_c_dir")).toString().trim();
+				transporteTransportistaChoferMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_chofer_direccion","t_t_c_dir").toString().trim());
 			}
 			
 			Map<String, Object> transporteTransportistaAgenteMap = new HashMap<String, Object>();
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_transpor_agente_nombre","t_t_a_nom") != null) {
-				transporteTransportistaAgenteMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_agente_nombre","t_t_a_nom")).toString().trim();
+				transporteTransportistaAgenteMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_agente_nombre","t_t_a_nom").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_transpor_agente_ruc","t_t_a_ruc") != null) {
-				transporteTransportistaAgenteMap.put("ruc", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_agente_ruc","t_t_a_ruc")).toString().trim();
+				transporteTransportistaAgenteMap.put("ruc", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_agente_ruc","t_t_a_ruc").toString().trim());
 			}
 			if(CoreService.getValueForKey(transaccionCabecera,"tra_transpor_agente_direccion","t_t_a_dir") != null) {
-				transporteTransportistaAgenteMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_agente_direccion","t_t_a_dir")).toString().trim();
+				transporteTransportistaAgenteMap.put("direccion", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_agente_direccion","t_t_a_dir").toString().trim());
 			}
 			
 			
