@@ -14,8 +14,6 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.gson.Gson;
 
-import util.HttpUtil;
-
 public class CoreDocumentoElectronico {
 	
 	private static Gson gson = new Gson();
@@ -239,7 +237,7 @@ public class CoreDocumentoElectronico {
 			//NotaCredito y Debito
 			if (tipoDocumento == 5) {
 				Map<String, Object> dataMapNotaCreditoDebito = new HashMap<String, Object>();
-				dataMapNotaCreditoDebito.put("motivo", CoreService.getValueForKey(transaccionCabecera,"nota_credito_motivo","nc_motiv"));
+				dataMapNotaCreditoDebito.put("motivo", CoreService.getValueForKey(transaccionCabecera,"nc_motivo","nc_motivo"));
 			
 				dataMap.put("notaCreditoDebito", dataMapNotaCreditoDebito);		
 			}
@@ -247,7 +245,7 @@ public class CoreDocumentoElectronico {
 			//NotaRemision			
 			if (tipoDocumento == 7) {
 				Map<String, Object> dataMapNotaRemision = new HashMap<String, Object>();
-				dataMapNotaRemision.put("motivo", CoreService.getValueForKey(transaccionCabecera,"nota_remision_motivo","nr_motiv"));
+				dataMapNotaRemision.put("motivo", CoreService.getValueForKey(transaccionCabecera,"nota_remision_motivo","nr_motivo"));
 				dataMapNotaRemision.put("tipoResponsable", CoreService.getValueForKey(transaccionCabecera,"nota_remision_tipo_responsable","nr_tip_res"));
 				dataMapNotaRemision.put("kms", CoreService.getValueForKey(transaccionCabecera,"nota_remision_kms","nr_kms"));
 	
@@ -358,13 +356,13 @@ public class CoreDocumentoElectronico {
 
 			documentoAsociadoMap.put("tipoDocumentoImpreso", CoreService.getValueForKey(transaccionCabecera,"doc_aso_cdc","d_aso_tdi"));
 			documentoAsociadoMap.put("timbrado", CoreService.getValueForKey(transaccionCabecera,"doc_aso_timbrado","d_aso_tim"));
-			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_establecimiento","d_aso_est") != null && CoreService.getValueForKey(transaccionCabecera,"doc_aso_establecimiento","d_aso_est") != "") {
+			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_establecimiento","d_aso_est") != null) {
 				documentoAsociadoMap.put("establecimiento", CoreService.getValueForKey(transaccionCabecera,"doc_aso_establecimiento","d_aso_est").toString().trim());
 			}
 			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_punto","d_aso_pun") != null) {
 				documentoAsociadoMap.put("punto", CoreService.getValueForKey(transaccionCabecera,"doc_aso_punto","d_aso_pun").toString().trim());
 			}
-			if(CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero","d_aso_num") != null ) {
+			if(CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero","d_aso_num") != null){
 				documentoAsociadoMap.put("numero", CoreService.getValueForKey(transaccionCabecera,"doc_aso_numero","d_aso_num").toString().trim());
 			}
 			if (CoreService.getValueForKey(transaccionCabecera,"doc_aso_fecha","d_aso_fec") != null) {
@@ -394,7 +392,10 @@ public class CoreDocumentoElectronico {
 				transporteMap.put("condicionNegociacion", CoreService.getValueForKey(transaccionCabecera,"tra_condicion_negociacion","t_con_neg").toString().trim());
 			}
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip") != null &&
-					CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod") != null) {
+					((BigDecimal)CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip")).intValue() != 0 &&
+					CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod") != null &&
+					((BigDecimal)CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod")).intValue() != 0) {
+				
 				dataMap.put("transporte", transporteMap);	//Agrega transporte si tiene datos básicos	
 			}
 				
