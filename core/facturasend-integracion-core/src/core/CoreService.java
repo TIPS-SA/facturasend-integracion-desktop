@@ -32,7 +32,7 @@ public class CoreService {
 	private static Gson gsonPP = new GsonBuilder().setPrettyPrinting().create();
 	public static Log log = LogFactory.getLog(CoreService.class);
 	
-	public static Map<String, Object> getTransaccionesList(String q, Integer tipoDocumento, Integer page, Integer size, Map<String, String> databaseProperties) {
+	public static Map<String, Object> getTransaccionesList(String q, Integer tipoDocumento, Integer page, Integer size, boolean inverso, Map<String, String> databaseProperties) {
 		log.info(databaseProperties);
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
@@ -40,7 +40,7 @@ public class CoreService {
 			
 			Statement statement = conn.createStatement();
 			
-			String sql = getSQLTransaccionesList(databaseProperties, q, tipoDocumento, page, size);
+			String sql = getSQLTransaccionesList(databaseProperties, q, tipoDocumento, page, size, inverso);
 			
 			result.put("count", SQLUtil.getCountFromSQL(statement, sql)); 
 
@@ -77,7 +77,7 @@ public class CoreService {
 		return result;
 	}
 			
-	private static String getSQLTransaccionesList(Map<String, String> databaseProperties, String q, Integer tipoDocumento, Integer page, Integer size) {
+	private static String getSQLTransaccionesList(Map<String, String> databaseProperties, String q, Integer tipoDocumento, Integer page, Integer size, boolean inverso) {
 		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
 		
 		String sql = "";
@@ -97,7 +97,7 @@ public class CoreService {
 				+ "GROUP BY transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
 				+ "establecimiento, punto, numero, serie, total, cdc, estado, error, pausado, clasific \n"
-				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC \n";			
+				+ "ORDER BY establecimiento " + (inverso ? "" : "DESC") + ", punto " + (inverso ? "" : "DESC") + ", numero " + (inverso ? "" : "DESC") + " \n";			
 		} else {
 			//DBF
 			
@@ -136,7 +136,7 @@ public class CoreService {
 				+ "GROUP BY tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
 				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
 				+ "estable, punto, numero, serie, total, cdc, estado, error, pausado \n"
-				+ "ORDER BY estable DESC, punto DESC, numero DESC \n";			
+				+ "ORDER BY estable " + (inverso ? "" : "DESC") + ", punto " + (inverso ? "" : "DESC") + ", numero " + (inverso ? "" : "DESC") + " \n";			
 			
 		}
 		

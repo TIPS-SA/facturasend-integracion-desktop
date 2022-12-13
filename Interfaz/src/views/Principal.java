@@ -54,6 +54,7 @@ import util.HttpUtil;
 import views.commons.Paginacion;
 import views.commons.PaginacionListener;
 import views.eventosDe.Inutilizacion;
+import views.table.TableDesign;
 
 public class Principal extends JFrame {
 
@@ -123,17 +124,20 @@ public class Principal extends JFrame {
 					window.frmFacturaSend.setVisible(true);
 					window.setLocationRelativeTo(null); 
 					
+					//-- Carga los datos en la pagina
+					window.refresh();
+					
 					Integer autoUpdateTableView = Integer.valueOf(FacturasendService.readDBProperties().get("database.autoupdate_millis.table_view")+"");
 					
 					if (autoUpdateTableView > 0) {
 						new Timer().schedule(new TimerTask() {
 						    @Override
 						    public void run() {
-						    	window.refresh();					       
+						    	window.refreshStatus();					       
 						    }
 						}, new Date(), autoUpdateTableView); //Cada N millis segundos						
 					} else {
-						window.refresh();
+						//window.refresh();
 					}
 					
 					//---
@@ -362,6 +366,27 @@ public class Principal extends JFrame {
 		paneCenter.setLayout(new BorderLayout(0, 0));
 		
 		jTableTransaction = new JTable();
+		Object [] titulos = {"Mov #", "Fecha", "Cliente", "N° Factura", "Moneda", "Total", "Estado", "CDC", "Clasificador"};	//CDC
+		DefaultTableModel model = new DefaultTableModel(null, titulos) {
+			 @Override
+			    public boolean isCellEditable(int row, int column) {
+			       //all cells false
+			       return false;
+			    }
+		};
+		jTableTransaction.setModel(model);
+		//model.setRowCount(0);
+		
+		TableDesign tb = new TableDesign();
+		tb.setPrincipalTableCellsStyle(jTableTransaction);
+		//tb.addCheckBox(0, table);
+		jTableTransaction.getColumnModel().getColumn(0).setPreferredWidth(10);
+		jTableTransaction.getColumnModel().getColumn(4).setPreferredWidth(20);
+		jTableTransaction.getColumnModel().getColumn(8).setMaxWidth(0);
+		jTableTransaction.getColumnModel().getColumn(8).setMinWidth(0);
+		jTableTransaction.getTableHeader().getColumnModel().getColumn(8).setMaxWidth(0);
+		jTableTransaction.getTableHeader().getColumnModel().getColumn(8).setMinWidth(0);
+		
 		//fs.cargar_tabla(table);
 		
 		scrollPaneCenter = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_NEVER,
@@ -534,7 +559,7 @@ public class Principal extends JFrame {
 							
 			                Integer transaccionId = Integer.valueOf(model.getValueAt(row, 0) + "");
 			                String clasificador = String.valueOf(model.getValueAt(row, 8) + "");
-			                String descripcionEstado = model.getValueAt(row, 7) + "";
+			                String descripcionEstado = model.getValueAt(row, 6) + "";
 			                
 			                //log.info("model 6 " + model.getValueAt(row, 6));
 			                //log.info("model 7 " + model.getValueAt(row, 7));
@@ -969,15 +994,15 @@ public class Principal extends JFrame {
 		
 		boolean encontro = false;
 		if (transaccionId != null) {
-            System.out.println("seleccionado tranasccion id diferente a null " + transaccionId);
+            //System.out.println("seleccionado tranasccion id diferente a null " + transaccionId);
 
 			//Recorrer el elemento seleccionado para tratar de seleccionar
 			for (int row2 = 0; row2 < model.getRowCount(); row2++) {
 
 				Integer transaccionIdLocal = Integer.valueOf(model.getValueAt(row2, 0) + "");
-	            System.out.println("corroborando tranasccion id si son iguales" + transaccionId + "-" + transaccionIdLocal);
+	            //System.out.println("corroborando tranasccion id si son iguales" + transaccionId + "-" + transaccionIdLocal);
 				if (transaccionIdLocal.intValue() == transaccionId.intValue()) {
-					jTableTransaction.setSelectionMode(row2);
+					jTableTransaction.getSelectionModel().setSelectionInterval(row2, row2);
 					encontro = true;
 				}
 			}
@@ -985,10 +1010,19 @@ public class Principal extends JFrame {
 		
 		if (encontro) {
 			System.out.println("es igual, selecciona el item 0");
-			jTableTransaction.getSelectionModel().setLeadSelectionIndex(1);
+			//jTableTransaction.getSelectionModel().setLeadSelectionIndex(1);
 		}
 		
 
+	}
+	
+	/**
+	 * De los registros que tienen Estado 0 (generado) envia al servidor para conocer su estado
+	 * y a la vuelta, solamente actualiza el estado de los registros que hayan cambiado de valor.
+	 *  
+	 */
+	private void refreshStatus() {
+		refresh();
 	}
 	
 	private void selectedButton(String  btn) {

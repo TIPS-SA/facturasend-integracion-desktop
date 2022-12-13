@@ -28,12 +28,12 @@ public class FacturasendService {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Map<String, Object> loadDocumentosElectronicos(String q, Integer tipo, Integer page, Integer size) throws Exception {
+	public static Map<String, Object> loadDocumentosElectronicos(String q, Integer tipo, Integer page, Integer size, boolean inverso) throws Exception {
 		
 		//Llamar a la consulta de Datos
 		//ConfigProperties configProperties = new ConfigProperties();
 		
-		Map<String, Object> returnData = CoreService.getTransaccionesList(q, tipo, page, size, readDBProperties());
+		Map<String, Object> returnData = CoreService.getTransaccionesList(q, tipo, page, size, inverso, readDBProperties());
 		
 		//log.info(returnData);
 		if (Boolean.valueOf(returnData.get("success")+"") == true) {
@@ -119,8 +119,147 @@ public class FacturasendService {
 		}*/
 	}
 	
-	TableDesign tb = new TableDesign();
+	//TableDesign tb = new TableDesign();
 	public Integer populateTransactionTable(JTable table, String q, Integer tipoDocumento, Integer page, Integer size){
+		Integer retorno = 0;
+//		Object [] titulos = {"Mov #", "Fecha", "Cliente", "N° Factura", "Moneda", "Total", "Estado", "CDC", "Clasificador"};	//CDC
+		Object registro[] = { null, null, null, null, null, null, null, null, null};
+		    
+		DefaultTableModel model = (DefaultTableModel) table.getModel();
+		//model.setRowCount(0);
+		/*if (model == null) {
+			System.out.println("Crea uno nuevo");
+			model = new DefaultTableModel(null, titulos) {
+				 @Override
+				    public boolean isCellEditable(int row, int column) {
+				       //all cells false
+				       return false;
+				    }
+			};
+			table.setModel(model);
+			//model.setRowCount(0);
+			
+			tb.setPrincipalTableCellsStyle(table);
+			//tb.addCheckBox(0, table);
+			table.getColumnModel().getColumn(0).setPreferredWidth(10);
+			table.getColumnModel().getColumn(4).setPreferredWidth(20);
+			table.getColumnModel().getColumn(8).setMaxWidth(0);
+			table.getColumnModel().getColumn(8).setMinWidth(0);
+			table.getTableHeader().getColumnModel().getColumn(8).setMaxWidth(0);
+			table.getTableHeader().getColumnModel().getColumn(8).setMinWidth(0);
+//			table.getColumnModel().getColumn(8).setWidth(0);
+//			table.getTableHeader().getColumnModel().getColumn(8).setWidth(0);
+		}*/
+		
+		try {
+			Map<String, Object> result = loadDocumentosElectronicos(q, tipoDocumento, page, size, true);
+			List<Map<String, Object>> rs = (List<Map<String, Object>>)result.get("result");
+			retorno =  (Integer)result.get("count");
+			//log.info("rs"  + rs);
+			for (int i = 0; i < rs.size(); i++) {
+				System.out.println(rs.get(i));
+				String moneda = (String)CoreService.getValueForKey(rs.get(i), "moneda");
+				DecimalFormat df = new DecimalFormat("###,###,###,##0.##");	//Preparado para PYG
+				if (!moneda.equals("PYG")) {
+					df = new DecimalFormat("###,###,###,##0.00######");	
+				}
+				
+				Double total = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "total")).doubleValue();
+				
+				registro[0] = CoreService.getValueForKey(rs.get(i), "transaccion_id", "tra_id");
+				registro[1] = CoreService.getValueForKey(rs.get(i), "fecha");
+				String infoDoc = "";
+				if (CoreService.getValueForKey(rs.get(i), "cliente_ruc", "c_ruc") != null) {
+					infoDoc = (String)CoreService.getValueForKey(rs.get(i), "cliente_ruc", "c_ruc");
+				}
+				if (CoreService.getValueForKey(rs.get(i), "cliente_documento_numero", "c_doc_num") != null) {
+					infoDoc = (String)CoreService.getValueForKey(rs.get(i), "cliente_documento_numero", "c_doc_num");
+				}
+				
+				registro[2] = infoDoc + "-" + CoreService.getValueForKey(rs.get(i), "cliente_razon_social", "c_raz_soc");
+				registro[3] = StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "establecimiento", "estable")+"", 3)  + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "punto")+"", 3) + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "numero")+"", 7);
+				registro[4] = moneda;
+				registro[5] = df.format(total);
+				
+				String fieldPausado = (String)CoreService.getValueForKey(rs.get(i), "pausado");
+				Object fieldEstado = CoreService.getValueForKey(rs.get(i), "estado");
+
+				Integer valueEstadoInt = -99;	//Sin estado	
+				
+				if (fieldEstado != null) {
+					valueEstadoInt = Integer.valueOf( (fieldEstado+"").trim() );
+				}
+				if (CoreService.getValueForKey(rs.get(i), "error") != null) {
+					registro[6] = "Error";
+				} else {
+					registro[6] = CoreService.getEstadoDescripcion(valueEstadoInt);					
+				}
+				
+				if (fieldPausado != null) {
+					registro[6] += "(Pausado)";
+				}
+				
+				registro[7] = CoreService.getValueForKey(rs.get(i), "cdc");
+				registro[8] = CoreService.getValueForKey(rs.get(i), "clasific");
+				
+				Integer posicionEncontrada = registroExisteEnModel(model, registro);
+				if ( posicionEncontrada == -1) {
+					//Si no existe, inserta
+					model.insertRow(0, registro);	
+					//model.addRow(registro);
+				} else {
+					//Si ya existe, actualiza los estados
+					Integer newTransaccionId = Integer.valueOf(registro[0] + "");
+					String newEstado = registro[6] + "";
+					String newCdc = registro[7] + "";
+					
+					Integer transaccionIdModel = Integer.valueOf(model.getValueAt(posicionEncontrada, 0) + "");
+					String estadoModel = model.getValueAt(posicionEncontrada, 6) + "";
+					String cdcModel = model.getValueAt(posicionEncontrada, 7) + "";
+					
+					System.out.println("tr id new " + newTransaccionId + " - old " + transaccionIdModel);
+					System.out.println("estado new " + newEstado + " - old " + estadoModel);
+					System.out.println("cdc new " + newCdc + " - old " + cdcModel);
+					
+					if ( ! newEstado.equals(estadoModel)) {
+						model.setValueAt(newEstado, posicionEncontrada, 6);
+					} 
+					if ( ! newCdc.equals(cdcModel)) {
+						model.setValueAt(newCdc, posicionEncontrada, 7);
+					} 
+				}
+				
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+		return retorno;
+	}
+		
+	
+	public Integer registroExisteEnModel(DefaultTableModel model, Object [] datos){
+		Integer encontrado = -1;
+		Integer transaccionId = ((BigDecimal)datos[0]).intValue();
+		
+		System.out.println("->" + model.getRowCount());
+		for (int row2 = 0; row2 < model.getRowCount(); row2++) {
+
+			Integer transaccionIdLocal = Integer.valueOf(model.getValueAt(row2, 0) + "");
+            System.out.println("corroborando tranasccion id si son iguales" + transaccionId + "-" + transaccionIdLocal);
+			if (transaccionIdLocal.intValue() == transaccionId.intValue()) {
+				encontrado = row2;
+			}
+		}
+		return encontrado;
+	}
+	
+
+	
+	/*public Integer populateTransactionTableBackup20221213(JTable table, String q, Integer tipoDocumento, Integer page, Integer size){
 		Integer retorno = 0;
 		Object [] titulos = {"Mov #", "Fecha","Cliente","N° Factura","Moneda", "Total", "Estado", "CDC", "Clasificador"};	//CDC
 		Object datos[] = { null, null, null, null, null, null, null, null, null};
@@ -202,8 +341,8 @@ public class FacturasendService {
 //		table.getTableHeader().getColumnModel().getColumn(8).setWidth(0);
 		
 		return retorno;
-	}
-		
+	}*/
+	
 	public List<Map<String, Object>> populateTransactionDetailsTable(JTable table, BigDecimal nroMov, Integer tipoDocumento) {
 		Object [] titulos = {"Codigo" , "Descripcion", "Cantidad", "Precio Unitario", "Descuento", "SubTotal"};
 		Object datos[] = {null, null, null, null,null, null};
@@ -252,6 +391,9 @@ public class FacturasendService {
 			e.printStackTrace();
 		}
 		table.setModel(model);
+		
+		TableDesign tb = new TableDesign();
+
 		tb.setItemsTableCellsStyle(table);
 		table.getColumnModel().getColumn(0).setPreferredWidth(35);
 		table.getColumnModel().getColumn(1).setPreferredWidth(285);

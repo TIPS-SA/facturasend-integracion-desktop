@@ -1293,6 +1293,8 @@ public class CoreIntegracionService {
 		return;
 	}
 	
+	
+	
 	/**
 	 * 
 	 * @param viewPrincipal
@@ -1557,7 +1559,7 @@ public class CoreIntegracionService {
 	
 	
 	/**
-	 * 
+	 * Obtiene una lista de los registros de transaccionse que ya tienen CDC pero cuyo estado este en generado.
 	 * 
 	 * @param tipoDocumento
 	 * @param databaseProperties
@@ -1581,10 +1583,35 @@ public class CoreIntegracionService {
 		log.info("listadoDes:" + listadoDes);
 		
 		return listadoDes;
-		
-
 	}
-			
+	
+	/**
+	 * Obtiene una lista de los estados de las transacciones de acuerdo a los transaccion_ids pasados como parametros
+	 * 
+	 * @param tipoDocumento
+	 * @param databaseProperties
+	 * @return
+	 */
+	public static List<Map<String, Object>> obtenerEstadosPorTransaccionesId(Integer tipoDocumento, String transaccionesId, String clasific, Map<String, String> databaseProperties) throws Exception {
+		
+		List<Map<String, Object>> listadoDes = new ArrayList<Map<String,Object>>();
+		
+		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
+		
+		Statement statement = conn.createStatement();
+		
+		String sql = obtenerEstadosPorTransaccionesIdSQL(databaseProperties, tipoDocumento, transaccionesId, clasific);
+
+		log.info("\n" + sql + " ");
+
+		ResultSet rs = statement.executeQuery(sql);
+		
+		listadoDes = SQLUtil.convertResultSetToList(rs);
+		log.info("listadoDes:" + listadoDes);
+		
+		return listadoDes;
+	}
+	
 	/**
 	 * 
 	 * 
@@ -1686,7 +1713,103 @@ public class CoreIntegracionService {
 	}
 	
 	
-	
+	/**
+	 * 
+	 * 
+	 * @param databaseProperties
+	 * @param tipoDocumento
+	 * @return
+	 */
+	private static String obtenerEstadosPorTransaccionesIdSQL(Map<String, String> databaseProperties, Integer tipoDocumento, String transaccionesId, String clasificador) {
+		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
+		String sql = "";
+		
+		//Integer tipoDocumento = (Integer)CoreService.getValueForKey(datosUpdate, "tipo_documento", "tip_doc");
+		//String clasificador = (String)CoreService.getValueForKey(datosUpdate, "clasific");
+		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
+
+		String prefixForFields = "database." + databaseProperties.get("database.type") + ".facturasend_table." + tipoDE;
+			
+		if (clasificador != null) {
+			prefixForFields += "." + clasificador;
+		}
+		prefixForFields += ".field"; 
+		//---
+		String extraFields = "";
+
+		Iterator itr = databaseProperties.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry e = (Map.Entry)itr.next();
+			
+			String key = e.getKey()+""; 
+			if ((key).startsWith(prefixForFields)) {
+				//sql += key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + ", ";
+				if (!(e.getValue()+"").startsWith("@SQL") && !(e.getValue()+"").equals("transaccion_id") && !(e.getValue()+"").equals("tra_id")) {
+					extraFields += e.getValue() + ", ";	
+				}
+				
+			}
+		}
+
+		
+		if (!databaseProperties.get("database.type").equals("dbf")) {
+			//agregar mas campos 
+			sql = "SELECT ";
+					//Primero los Fields adicionales que se requerirán al guardar 
+					sql += extraFields;
+					sql += "transaccion_id, tipo_documento, clasific, cdc AS \"cdc\" \n";
+
+					sql += "FROM " + tableName + " \n"
+						+ "WHERE 1=1 \n"
+						+ "AND tipo_documento = " + tipoDocumento + " \n"
+						+ "AND \n"
+							+ "TRANSACCION_ID IN (" + transaccionesId + ") \n"
+						+ "GROUP BY "
+						+ extraFields
+						+ "transaccion_id, tipo_documento, clasific, cdc \n";	//Ordena de forma normal, para obtener el ultimo	
+		} else {
+			
+			boolean obtenerCdcEstadoPausadoPorSubSelect = true;
+			String transactionTableName = databaseProperties.get("database.dbf.transaccion_table");
+			transactionTableName = transactionTableName.substring(0, transactionTableName.indexOf(".dbf"));
+
+			String facturaSendTableName = databaseProperties.get("database.dbf.facturasend_table");
+			facturaSendTableName = facturaSendTableName.substring(0, facturaSendTableName.indexOf(".dbf"));
+			String facturaSendTableKey = databaseProperties.get("database.dbf.facturasend_table.key");
+			String facturaSendTableValue = databaseProperties.get("database.dbf.facturasend_table.value");
+
+			sql = "SELECT "
+					+ extraFields
+					+ "tra_id, \n";
+			if (obtenerCdcEstadoPausadoPorSubSelect) {
+//				sql += "cdc AS \"cdc\" \n";
+				sql += "(SELECT \"" + facturaSendTableValue + "\" FROM \"" + facturaSendTableName + "\" mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) AS \"cdc\" \n";
+
+			} else {
+				sql += "cdc AS \"cdc\" \n";
+			}
+			
+			sql += "FROM " + transactionTableName + " vp \n"
+				+ "WHERE 1=1 \n"
+				+ "AND tip_doc = " + tipoDocumento + " \n";
+				
+			if (obtenerCdcEstadoPausadoPorSubSelect) {
+				sql += "AND ( \n"
+					+ "(SELECT \"" + facturaSendTableValue + "\" FROM \"" + facturaSendTableName + "\" mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) IS NOT NULL \n"
+					+ "AND \n"
+					+ "COALESCE(CAST((SELECT \"" + facturaSendTableValue + "\" FROM \"" + facturaSendTableName + "\" mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='ESTADO' LIMIT 1) AS INTEGER), 999) = 0 \n"
+				+ ") \n";
+			} else {
+				sql += "AND (cdc IS NOT NULL OR estado = 0) ";
+			}
+			sql += "GROUP BY "
+				+ extraFields
+				+ "tra_id, cdc";
+		}
+		
+		
+		return sql;
+	}
 	
 	
 	
