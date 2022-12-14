@@ -213,6 +213,8 @@ public class CoreIntegracionService {
 								datosUpdate.put("TIPO_DOCUMENTO", tipoDocumento);
 								datosUpdate.put("TRANSACCION_ID", CoreService.getValueForKey(viewRec, "transaccion_id", "tra_id"));
 								datosUpdate.put("CLASIFIC", CoreService.getValueForKey(viewRec, "clasific"));
+								datosUpdate.put("TIMBRADO", CoreService.getValueForKey(viewRec, "timbrado"));
+								datosUpdate.put("NUMERO_FACTURA", CoreService.getValueForKey(viewRec, "numero_factura", "num_fac"));
 								
 								updateFacturaSendDataInTableTransacciones(datosUpdate, databaseProperties, true);
 								//---
