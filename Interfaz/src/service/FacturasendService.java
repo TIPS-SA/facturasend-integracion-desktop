@@ -245,11 +245,11 @@ public class FacturasendService {
 		Integer encontrado = -1;
 		Integer transaccionId = ((BigDecimal)datos[0]).intValue();
 		
-		System.out.println("->" + model.getRowCount());
+		//System.out.println("->" + model.getRowCount());
 		for (int row2 = 0; row2 < model.getRowCount(); row2++) {
 
 			Integer transaccionIdLocal = Integer.valueOf(model.getValueAt(row2, 0) + "");
-            System.out.println("corroborando tranasccion id si son iguales" + transaccionId + "-" + transaccionIdLocal);
+            //System.out.println("corroborando tranasccion id si son iguales" + transaccionId + "-" + transaccionIdLocal);
 			if (transaccionIdLocal.intValue() == transaccionId.intValue()) {
 				encontrado = row2;
 			}
@@ -404,8 +404,8 @@ public class FacturasendService {
 		return rs;
 	}
 	
-	public static Map<String, Object> ejecutarEventoCancelacion (Integer tipoDocumento, BigDecimal transaccionId, String cdc, String motivo) {
-		return CoreIntegracionService.eventoCancelacion(tipoDocumento, transaccionId, cdc, motivo, readDBProperties());
+	public static Map<String, Object> ejecutarEventoCancelacion (Integer tipoDocumento, String clasific, Integer transaccionId, String cdc, String motivo) {
+		return CoreIntegracionService.eventoCancelacion(tipoDocumento, clasific, transaccionId, cdc, motivo, readDBProperties());
 	}
 	
 	public static Map<String, Object> ejecutarEventoInutilizacion (Map<String, Object> body) {

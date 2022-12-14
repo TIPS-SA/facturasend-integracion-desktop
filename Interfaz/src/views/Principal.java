@@ -1007,13 +1007,6 @@ public class Principal extends JFrame {
 				}
 			}
 		}
-		
-		if (encontro) {
-			System.out.println("es igual, selecciona el item 0");
-			//jTableTransaction.getSelectionModel().setLeadSelectionIndex(1);
-		}
-		
-
 	}
 	
 	/**

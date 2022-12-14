@@ -87,15 +87,15 @@ public class CoreIntegracionService {
 		//En el archivo de propiedades debe haber un key que defina si se va ejecutar infinito.
 		//o cada vez que se invoca
 		
-		iniciarIntegracion(1, databaseProperties);
+		//iniciarIntegracion(1, databaseProperties);
 		//iniciarIntegracion(4, databaseProperties);
 //		iniciarIntegracion(5, databaseProperties);
 		//iniciarIntegracion(6, databaseProperties);
 		//iniciarIntegracion(7, databaseProperties);
-		iniciarIntegracionCancelado(1, databaseProperties);
+		iniciarIntegracionCancelado(databaseProperties);	//Cancelacion para todos los tipos de documentos
 		
 		//Actualizacion de Estados de DE con Estado 0
-		setTimeout(() -> actualizarEstadoDesdeFacturaSend(1, databaseProperties), 1000);	//Ejecuta en un thread
+		//setTimeout(() -> actualizarEstadoDesdeFacturaSend(1, databaseProperties), 1000);	//Ejecuta en un thread
 		//setTimeout(() -> actualizarEstadoDesdeFacturaSend(4, databaseProperties), 1000);	//Ejecuta en un thread
 //		setTimeout(() -> actualizarEstadoDesdeFacturaSend(5, databaseProperties), 1000);	//Ejecuta en un thread
 	//	setTimeout(() -> actualizarEstadoDesdeFacturaSend(6, databaseProperties), 1000);	//Ejecuta en un thread
@@ -332,32 +332,35 @@ public class CoreIntegracionService {
 	}
 
 	/**
-	 * Paso 1. Proceso que inicia la integración, dependiendo del tipo de documento.
+	 * Paso 1. Proceso que inicia la integración de una cancelacion, para todos los tipos de documento.
 	 * @param tipoDocumento
 	 * @param databaseProperties
 	 * @return
 	 */
 	
 	//Evento de Cancelacion, no se pudo culminar
-	public static Map<String, Object> iniciarIntegracionCancelado(Integer tipoDocumento, Map<String, String> databaseProperties)  {
+	public static Map<String, Object> iniciarIntegracionCancelado(Map<String, String> databaseProperties)  {
 		//Recupera los transaccion_id que se deben integrar
-		Map<String, Object> obtener50registrosNoIntegradosMap = obtenerHasta50registrosNoIntegrados(tipoDocumento, databaseProperties);
+		Map<String, Object> registrosAprobadosACancelarMap = obtenerRegistrosAprobadosACancelar(databaseProperties);
 		
 		try {
 			
-			String transaccionIdString = "(-1)";
-			if (Boolean.valueOf(obtener50registrosNoIntegradosMap.get("success")+"") == true) {
-				List<Map<String, Object>> obtener50registrosNoIntegradosListMap = (List<Map<String, Object>>)obtener50registrosNoIntegradosMap.get("result");
+			if (Boolean.valueOf(registrosAprobadosACancelarMap.get("success")+"") == true) {
+				List<Map<String, Object>> registrosAprobadosACancelarListMap = (List<Map<String, Object>>)registrosAprobadosACancelarMap.get("result");
 
-				transaccionIdString = "";
-				for (Map<String, Object> map : obtener50registrosNoIntegradosListMap) {
-					transaccionIdString += CoreService.getValueForKey(map, "transaccion_id", "tra_id") + ",";
+				for (Map<String, Object> map : registrosAprobadosACancelarListMap) {
+					Integer tipoDocumento = ((BigDecimal)CoreService.getValueForKey(map, "tipo_documento", "tip_doc")).intValue();
+					Integer transaccionId = ((BigDecimal)CoreService.getValueForKey(map, "transaccion_id", "tra_id")).intValue();
+					String cdc = ((String)CoreService.getValueForKey(map, "cdc"));
+					String motivo = ((String)CoreService.getValueForKey(map, "evento_motivo"));
+					String clasific = ((String)CoreService.getValueForKey(map, "clasific"));
+					
+					eventoCancelacion(tipoDocumento, clasific, transaccionId, cdc, motivo, databaseProperties);
 				}
-				transaccionIdString += "";
 				
 				//log.info(transaccionIdString);
 			} else {
-				throw new Exception(obtener50registrosNoIntegradosMap.get("error")+"");
+				throw new Exception(registrosAprobadosACancelarMap.get("error")+"");
 			}
 			
 		} catch (Exception e) {
@@ -1586,7 +1589,119 @@ public class CoreIntegracionService {
 	}
 	
 	
-	
+	/**
+	 * Paso 1.1 - Obtener los registros que ya estan aprobados y cuyo action_event = 'Cancelar'
+	 * 
+	 * @param tipoDocumento
+	 * @param databaseProperties
+	 * @return
+	 */
+	public static Map<String, Object> obtenerRegistrosAprobadosACancelar(Map<String, String> databaseProperties) {
+		
+		Map<String, Object> result = new HashMap<String, Object>();
+		try {
+
+			Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
+			
+			Statement statement = conn.createStatement();
+			
+			String sql = obtenerRegistrosAprobadosACancelarSQL(databaseProperties);
+
+//			Integer rowsLoteRequest = 50;
+//			if (databaseProperties.get("facturasend.rows_lote_request") != null) {
+//				rowsLoteRequest = Integer.valueOf(databaseProperties.get("facturasend.rows_lote_request"));
+//			}
+//			if (rowsLoteRequest > 50) {
+//				throw new Exception("Cantidad máxima de documentos por lote = 50 (facturasend.rows_lote_request)");
+//			}
+
+//			if (databaseProperties.get("database.type").equals("oracle")) {
+//				sql = CoreService.getOracleSQLPaginado(sql, 1, rowsLoteRequest);	
+//			} else if (databaseProperties.get("database.type").equals("postgres")) {
+//				sql = CoreService.getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
+//			} else if (databaseProperties.get("database.type").equals("dbf")) {
+//				sql = CoreService.getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
+//			}
+
+			log.info("\n" + sql + " ");
+
+			ResultSet rs = statement.executeQuery(sql);
+			
+			List<Map<String, Object>> listadoRegistrosACancelar = SQLUtil.convertResultSetToList(rs);
+			log.info("listadoRegistrosACancelar:" + listadoRegistrosACancelar);
+			
+			result.put("success", true);
+			result.put("result", listadoRegistrosACancelar);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("success", false);
+			result.put("error", e.getMessage());
+			
+		}
+		return result;
+	}
+			
+	/**
+	 * Paso 1.2 - Devuelve el SQL para Obtener los registros que ya estan aprobados y cuyo action_event = 'Cancelar'
+	 * 
+	 * @param databaseProperties
+	 * @param tipoDocumento
+	 * @return
+	 */
+	private static String obtenerRegistrosAprobadosACancelarSQL(Map<String, String> databaseProperties) {
+		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
+		String sql = "";
+		if (!databaseProperties.get("database.type").equals("dbf")) {
+			sql = "SELECT transaccion_id, tipo_documento, clasific, cdc, estado, evento_motivo \n"
+						+ "FROM " + tableName + " \n"
+						+ "WHERE 1=1 \n"
+						//+ "AND tipo_documento = " + tipoDocumento + " \n"
+						//+ "AND pausado IS NULL \n"
+						+ "AND UPPER(evento) = 'CANCELAR' \n"
+						+ "AND ( \n"
+							+ "CDC IS NOT NULL \n"
+							+ "AND \n"
+							+ "(ESTADO IS NOT NULL AND (ESTADO = 2 OR ESTADO = 3)) \n"
+						+ ") \n"
+						+ "GROUP BY transaccion_id, tipo_documento, clasific, cdc, estado, evento_motivo, establecimiento, punto, numero \n"
+						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
+		} else {
+			boolean obtenerCdcEstadoPausadoPorSubSelect = true;
+			String transactionTableName = databaseProperties.get("database.dbf.transaccion_table");
+			transactionTableName = transactionTableName.substring(0, transactionTableName.indexOf(".dbf"));
+
+			String facturaSendTableName = databaseProperties.get("database.dbf.facturasend_table");
+			facturaSendTableName = facturaSendTableName.substring(0, facturaSendTableName.indexOf(".dbf"));
+			String facturaSendTableKey = databaseProperties.get("database.dbf.facturasend_table.key");
+			String facturaSendTableValue = databaseProperties.get("database.dbf.facturasend_table.value");
+			
+			tableName = databaseProperties.get("database.dbf.transaccion_table");
+			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
+
+			sql = "SELECT tra_id \n"
+					+ "FROM " + tableName + " vp \n"
+					+ "WHERE 1=1 \n";
+					//+ "AND tip_doc = " + tipoDocumento + " \n";
+
+			if (obtenerCdcEstadoPausadoPorSubSelect) {
+
+				sql += "AND (SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='PAUSADO' LIMIT 1) IS NULL \n"
+						+ "AND ( \n"
+						+ "(SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) IS NULL \n"
+						+ "OR \n"
+						+ "COALESCE(CAST((SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='ESTADO' LIMIT 1) AS INTEGER), 999) = 4 \n"
+					+ ") \n";
+			} else {
+				sql += "AND pausado IS NULL AND (cdc IS NULL OR estado = 4) ";
+			}
+			sql += "GROUP BY tra_id, estable, punto, numero \n"
+					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				
+		}
+		
+		
+		return sql;
+	}
 	
 	
 	
@@ -1992,7 +2107,7 @@ public class CoreIntegracionService {
 		return sql;
 	}
 	
-	public static Map<String, Object> eventoCancelacion(Integer tipoDocumento, BigDecimal transaccionId, String cdc, String motivo, Map<String, String> databaseProperties) {
+	public static Map<String, Object> eventoCancelacion(Integer tipoDocumento, String clasific, Integer transaccionId, String cdc, String motivo, Map<String, String> databaseProperties) {
 		Map<String, String> body  = new HashMap<String, String>();
 		Map<String, Object> resultadoJson = new HashMap<String, Object>();
 		try {
@@ -2009,26 +2124,6 @@ public class CoreIntegracionService {
 					if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
 						
 						System.out.println("----" + resultadoJson);
-						/* "success": true,
-						    "result": {
-						        "ns2:rRetEnviEventoDe": {
-						            "$": {
-						                "xmlns:ns2": "http://ekuatia.set.gov.py/sifen/xsd"
-						            },
-						            "ns2:dFecProc": "2022-11-30T16:29:54-03:00",
-						            "ns2:gResProcEVe": {
-						                "ns2:dEstRes": "Aprobado",
-						                "ns2:dProtAut": "836317",
-						                "ns2:id": "1",
-						                "ns2:gResProc": {
-						                    "ns2:dCodRes": "0600",
-						                    "ns2:dMsgRes": "Evento registrado correctamente"
-						                }
-						            }
-						        },
-						        "id": 2
-						    }
-						}*/
 
 						Map<String, Object> resultadoJsonMap = (Map<String, Object>)resultadoJson.get("result");
 						if  (resultadoJsonMap.get("ns2:rRetEnviEventoDe") != null) {
@@ -2048,7 +2143,7 @@ public class CoreIntegracionService {
 										datosUpdateCancelado.put("ESTADO", 99);
 										datosUpdateCancelado.put("TIPO_DOCUMENTO", tipoDocumento);
 										datosUpdateCancelado.put("TRANSACCION_ID", transaccionId);
-										//datosUpdateCancelado.put("CLSIFIC", transaccionId);
+										datosUpdateCancelado.put("CLASIFIC", clasific);
 										
 										updateFacturaSendDataInTableTransacciones(datosUpdateCancelado, databaseProperties, false);
 										//---

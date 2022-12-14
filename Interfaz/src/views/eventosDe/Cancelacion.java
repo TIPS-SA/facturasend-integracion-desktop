@@ -140,7 +140,7 @@ public class Cancelacion extends JDialog {
 		});
 		btnCancelacion.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Map<String, Object> result = FacturasendService.ejecutarEventoCancelacion(tipoDocumento, transaccionId, txtCdc.getText(), txtMotivo.getText());
+				Map<String, Object> result = FacturasendService.ejecutarEventoCancelacion(tipoDocumento, null, transaccionId.intValue(), txtCdc.getText(), txtMotivo.getText());
 				
 				if (Boolean.valueOf(result.get("success") + "") == true) {
 					Map<String, Object> resultadoJsonMap = (Map<String, Object>)result.get("result");
