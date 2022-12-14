@@ -217,10 +217,10 @@ public class FacturasendService {
 					String estadoModel = model.getValueAt(posicionEncontrada, 6) + "";
 					String cdcModel = model.getValueAt(posicionEncontrada, 7) + "";
 					
-					System.out.println("tr id new " + newTransaccionId + " - old " + transaccionIdModel);
+/*					System.out.println("tr id new " + newTransaccionId + " - old " + transaccionIdModel);
 					System.out.println("estado new " + newEstado + " - old " + estadoModel);
 					System.out.println("cdc new " + newCdc + " - old " + cdcModel);
-					
+	*/				
 					if ( ! newEstado.equals(estadoModel)) {
 						model.setValueAt(newEstado, posicionEncontrada, 6);
 					} 

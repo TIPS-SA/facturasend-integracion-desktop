@@ -92,6 +92,7 @@ public class CoreIntegracionService {
 //		iniciarIntegracion(5, databaseProperties);
 		//iniciarIntegracion(6, databaseProperties);
 		//iniciarIntegracion(7, databaseProperties);
+		iniciarIntegracionCancelado(1, databaseProperties);
 		
 		//Actualizacion de Estados de DE con Estado 0
 		setTimeout(() -> actualizarEstadoDesdeFacturaSend(1, databaseProperties), 1000);	//Ejecuta en un thread
@@ -330,6 +331,41 @@ public class CoreIntegracionService {
 		return obtener50registrosNoIntegradosMap;
 	}
 
+	/**
+	 * Paso 1. Proceso que inicia la integración, dependiendo del tipo de documento.
+	 * @param tipoDocumento
+	 * @param databaseProperties
+	 * @return
+	 */
+	
+	//Evento de Cancelacion, no se pudo culminar
+	public static Map<String, Object> iniciarIntegracionCancelado(Integer tipoDocumento, Map<String, String> databaseProperties)  {
+		//Recupera los transaccion_id que se deben integrar
+		Map<String, Object> obtener50registrosNoIntegradosMap = obtenerHasta50registrosNoIntegrados(tipoDocumento, databaseProperties);
+		
+		try {
+			
+			String transaccionIdString = "(-1)";
+			if (Boolean.valueOf(obtener50registrosNoIntegradosMap.get("success")+"") == true) {
+				List<Map<String, Object>> obtener50registrosNoIntegradosListMap = (List<Map<String, Object>>)obtener50registrosNoIntegradosMap.get("result");
+
+				transaccionIdString = "";
+				for (Map<String, Object> map : obtener50registrosNoIntegradosListMap) {
+					transaccionIdString += CoreService.getValueForKey(map, "transaccion_id", "tra_id") + ",";
+				}
+				transaccionIdString += "";
+				
+				//log.info(transaccionIdString);
+			} else {
+				throw new Exception(obtener50registrosNoIntegradosMap.get("error")+"");
+			}
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return null;
+	}
+	
 	/*
 	 * Setea el error en el registro de transaccion, luego de que este haya sido integrado a facturasend
 	 * y FS haya devuelto error 
