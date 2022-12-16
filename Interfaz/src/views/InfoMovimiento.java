@@ -21,6 +21,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 import java.awt.event.ActionEvent;
@@ -65,6 +66,8 @@ public class InfoMovimiento extends JDialog {
 	private Principal parent;
 	private JButton btnCancelacion;
 	private JLabel lblQrEnlace;
+	private JLabel lblTotal;
+	private JLabel lblTotalGeneral;
 	/**
 	 * Launch the application.
 	 */
@@ -142,6 +145,10 @@ public class InfoMovimiento extends JDialog {
 		txtAError = new JTextArea();
 		txtAError.setLineWrap(true);
 		txtAError.setEditable(false);
+		
+		lblTotal = new JLabel("Total:");
+		
+		lblTotalGeneral = new JLabel("");
 		List<Map<String, Object>> transacconesItem = fs.populateTransactionDetailsTable(jTableTransaccionesItems, transaccionId, tipoDocumento);
 		//Asignar valores
 		if (transacconesItem.size() > 0) {
@@ -187,6 +194,23 @@ public class InfoMovimiento extends JDialog {
 					}
 				}
 			}
+			Double totalGeneral = 0.0;
+			DecimalFormat dfFinal = new DecimalFormat();
+			for (int i = 0; i < transacconesItem.size(); i++) {
+				String moneda = (String)CoreService.getValueForKey(transacconesItem.get(i), "moneda");
+				DecimalFormat df = new DecimalFormat("###,###,###,##0.##");	//Preparado para PYG
+				if (!moneda.equals("PYG")) {
+					df = new DecimalFormat("###,###,###,##0.00######");	
+				}
+				dfFinal = df;
+				Double cantidad = ((BigDecimal) CoreService.getValueForKey(transacconesItem.get(i), "item_cantidad", "i_cantidad")).doubleValue();
+				Double precioUnitario = ((BigDecimal) CoreService.getValueForKey(transacconesItem.get(i), "item_precio_unitario", "i_pre_uni")).doubleValue();
+				Double descuento = ((BigDecimal) CoreService.getValueForKey(transacconesItem.get(i), "item_descuento", "i_descue")).doubleValue();
+				
+				totalGeneral += cantidad.doubleValue() * precioUnitario.doubleValue() - descuento.doubleValue();
+			}
+			
+			lblTotalGeneral.setText(dfFinal.format(totalGeneral));
 		}
 		
 		//if (resultadoXml != null) {
@@ -255,6 +279,8 @@ public class InfoMovimiento extends JDialog {
 			lblItemsTotal = new JLabel("Item(s):");
 			
 			lblCantidadItemsTotal = new JLabel(transacconesItem.size()+"");
+			
+			
 			GroupLayout gl_paneSouth = new GroupLayout(paneSouth);
 			gl_paneSouth.setHorizontalGroup(
 				gl_paneSouth.createParallelGroup(Alignment.LEADING)
@@ -262,14 +288,20 @@ public class InfoMovimiento extends JDialog {
 						.addComponent(lblItemsTotal, GroupLayout.PREFERRED_SIZE, 51, GroupLayout.PREFERRED_SIZE)
 						.addPreferredGap(ComponentPlacement.RELATED)
 						.addComponent(lblCantidadItemsTotal)
-						.addContainerGap(669, Short.MAX_VALUE))
+						.addPreferredGap(ComponentPlacement.RELATED, 592, Short.MAX_VALUE)
+						.addComponent(lblTotal)
+						.addGap(18)
+						.addComponent(lblTotalGeneral)
+						.addGap(19))
 			);
 			gl_paneSouth.setVerticalGroup(
 				gl_paneSouth.createParallelGroup(Alignment.LEADING)
 					.addGroup(gl_paneSouth.createSequentialGroup()
 						.addGroup(gl_paneSouth.createParallelGroup(Alignment.BASELINE)
 							.addComponent(lblItemsTotal)
-							.addComponent(lblCantidadItemsTotal))
+							.addComponent(lblCantidadItemsTotal)
+							.addComponent(lblTotal)
+							.addComponent(lblTotalGeneral))
 						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 			);
 			paneSouth.setLayout(gl_paneSouth);

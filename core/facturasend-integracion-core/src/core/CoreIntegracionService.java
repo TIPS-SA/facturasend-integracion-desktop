@@ -87,7 +87,7 @@ public class CoreIntegracionService {
 		//En el archivo de propiedades debe haber un key que defina si se va ejecutar infinito.
 		//o cada vez que se invoca
 		
-		//iniciarIntegracion(1, databaseProperties);
+		iniciarIntegracion(1, databaseProperties);
 		//iniciarIntegracion(4, databaseProperties);
 //		iniciarIntegracion(5, databaseProperties);
 		//iniciarIntegracion(6, databaseProperties);
@@ -2140,7 +2140,7 @@ public class CoreIntegracionService {
 										
 										//Actualiza la tabla destino de acuerdo a la configuracion
 										Map<String, Object> datosUpdateCancelado = new HashMap<String, Object>();
-										datosUpdateCancelado.put("ESTADO", 99);
+										datosUpdateCancelado.put("ESTADO", 99);	//CANCELADO
 										datosUpdateCancelado.put("TIPO_DOCUMENTO", tipoDocumento);
 										datosUpdateCancelado.put("TRANSACCION_ID", transaccionId);
 										datosUpdateCancelado.put("CLASIFIC", clasific);
@@ -2154,33 +2154,72 @@ public class CoreIntegracionService {
 										
 										//COMENTADO POR MIENTRAS PARA EL COMPIERER 
 										//Habilitar pra probar con DBF
-								/*		Map<String, Object> viewRec = new HashMap<String, Object>();
+										Map<String, Object> viewRec = new HashMap<String, Object>();
 										viewRec.put("TIPO_DOCUMENTO", tipoDocumento);
 										viewRec.put("TRANSACCION_ID", transaccionId);
 										viewRec.put("AD_CLIENT_ID", transaccionId);
-										
+										viewRec.put("CLASIFIC", clasific);
+
 										//Borrar registros previamente cargados, para evitar duplicidad
 										deleteFacturaSendTableByTransaccionId(viewRec, databaseProperties, "('ESTADO')");
 
 										Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
 										datosGuardar1.put("ESTADO", 99);
 										saveDataToFacturaSendTable(viewRec, datosGuardar1, databaseProperties);
-										*/
 										
 										
-									} else {
-										System.out.println("Ocurrio alun error 4");
+										
+									} else if (dEstRes.equalsIgnoreCase("Rechazado")){
+										Map<String, Object> gResProc = (Map<String, Object>)gResProcEVe.get("ns2:gResProc");
+										String dCodRes = (String)gResProc.get("ns2:dCodRes");
+
+										if  (dCodRes.equalsIgnoreCase("4003")) {
+											// Si el evento fallo antes con el Error de XML mal formado, y ahora dice que ya tiene ese evento
+											// es por que es un problema de la SET y hay que actualizar el estado.
+											
+											//Actualiza la tabla destino de acuerdo a la configuracion
+											Map<String, Object> datosUpdateCancelado = new HashMap<String, Object>();
+											datosUpdateCancelado.put("ESTADO", 99);	//CANCELADO
+											datosUpdateCancelado.put("TIPO_DOCUMENTO", tipoDocumento);
+											datosUpdateCancelado.put("TRANSACCION_ID", transaccionId);
+											datosUpdateCancelado.put("CLASIFIC", clasific);
+											
+											updateFacturaSendDataInTableTransacciones(datosUpdateCancelado, databaseProperties, false);
+											//---
+											
+											//Borrar registros previamente cargados, para evitar duplicidad
+											//deleteFacturaSendTableByTransaccionId(viewRec, databaseProperties);
+
+											
+											//COMENTADO POR MIENTRAS PARA EL COMPIERER 
+											//Habilitar pra probar con DBF
+									/*		Map<String, Object> viewRec = new HashMap<String, Object>();
+											viewRec.put("TIPO_DOCUMENTO", tipoDocumento);
+											viewRec.put("TRANSACCION_ID", transaccionId);
+											viewRec.put("AD_CLIENT_ID", transaccionId);
+											
+											//Borrar registros previamente cargados, para evitar duplicidad
+											deleteFacturaSendTableByTransaccionId(viewRec, databaseProperties, "('ESTADO')");
+
+											Map<String, Object> datosGuardar1 = new HashMap<String, Object>();
+											datosGuardar1.put("ESTADO", 99);
+											saveDataToFacturaSendTable(viewRec, datosGuardar1, databaseProperties);
+											*/
+											
+											
+										}
+										log.error("Error al ejecutar evento de Cancelaciòn, ver resultado de la API 4");
 									}	
 									
 								} else {
-									System.out.println("Ocurrio alun error 3");
+									log.error("Error al ejecutar evento de Cancelaciòn, ver resultado de la API 3");
 								}
 							} else {
-								System.out.println("Ocurrio alun error 2");
+								log.error("Error al ejecutar evento de Cancelaciòn, ver resultado de la API 2");
 							}
 							
 						} else {
-							System.out.println("Ocurrio alun error 1");
+							log.error("Error al ejecutar evento de Cancelaciòn, ver resultado de la API 1");
 						} 
 					}
 

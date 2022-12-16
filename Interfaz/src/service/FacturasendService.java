@@ -205,7 +205,10 @@ public class FacturasendService {
 				Integer posicionEncontrada = registroExisteEnModel(model, registro);
 				if ( posicionEncontrada == -1) {
 					//Si no existe, inserta
-					model.insertRow(0, registro);	
+					model.insertRow(0, registro);
+					/*if (model.getRowCount()>18) {
+						model.removeRow(19);
+					}*/
 					//model.addRow(registro);
 				} else {
 					//Si ya existe, actualiza los estados
@@ -229,6 +232,10 @@ public class FacturasendService {
 					} 
 				}
 				
+			}
+			
+			while (model.getRowCount() > 20) {
+				model.removeRow( model.getRowCount() );
 			}
 			
 		} catch (Exception e) {
@@ -257,6 +264,21 @@ public class FacturasendService {
 		return encontrado;
 	}
 	
+	public Integer registroNoExisteEnModel(DefaultTableModel model, Object [] datos){
+		Integer encontrado = -1;
+		Integer transaccionId = ((BigDecimal)datos[0]).intValue();
+		
+		//System.out.println("->" + model.getRowCount());
+		for (int row2 = 0; row2 < model.getRowCount(); row2++) {
+
+			Integer transaccionIdLocal = Integer.valueOf(model.getValueAt(row2, 0) + "");
+            //System.out.println("corroborando tranasccion id si son iguales" + transaccionId + "-" + transaccionIdLocal);
+			if (transaccionIdLocal.intValue() == transaccionId.intValue()) {
+				encontrado = row2;
+			}
+		}
+		return encontrado;
+	}
 
 	
 	/*public Integer populateTransactionTableBackup20221213(JTable table, String q, Integer tipoDocumento, Integer page, Integer size){

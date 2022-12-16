@@ -54,9 +54,18 @@ public class CoreService {
 			}
 			
 			if (databaseProperties.get("database.type").equals("dbf")) {
+				if (inverso) {
+					//Agrega el orden inverso, que seria sin utilizar el DESC
+					sql += "ORDER BY estable, punto, numero";
+				}
 				log.info("\nReload ");
 				Statement st = conn.createStatement();
 				st.execute("reload '" + databaseProperties.get("database.dbf.parent_folder") + "/" + databaseProperties.get("database.dbf.transaccion_table") + "'");
+			} else {
+				if (inverso) {
+					//Agrega el orden inverso, que seria sin utilizar el DESC
+					sql += "ORDER BY establecimiento, punto, numero";
+				}
 			}
 			
 			log.info("\n" + sql + " ");
@@ -97,7 +106,8 @@ public class CoreService {
 				+ "GROUP BY transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
 				+ "establecimiento, punto, numero, serie, total, cdc, estado, error, pausado, clasific \n"
-				+ "ORDER BY establecimiento " + (inverso ? "" : "DESC") + ", punto " + (inverso ? "" : "DESC") + ", numero " + (inverso ? "" : "DESC") + " \n";			
+				//+ "ORDER BY establecimiento " + (inverso ? "" : "DESC") + ", punto " + (inverso ? "" : "DESC") + ", numero " + (inverso ? "" : "DESC") + " \n";
+				+ "ORDER BY establecimiento DESC, punto DESC, numero DESC\n";
 		} else {
 			//DBF
 			
@@ -136,7 +146,9 @@ public class CoreService {
 				+ "GROUP BY tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
 				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
 				+ "estable, punto, numero, serie, total, cdc, estado, error, pausado \n"
-				+ "ORDER BY estable " + (inverso ? "" : "DESC") + ", punto " + (inverso ? "" : "DESC") + ", numero " + (inverso ? "" : "DESC") + " \n";			
+				//+ "ORDER BY estable " + (inverso ? "" : "DESC") + ", punto " + (inverso ? "" : "DESC") + ", numero " + (inverso ? "" : "DESC") + " \n";
+				+ "ORDER BY estable DESC ,punto DESC, numero DESC \n"; 
+
 			
 		}
 		
