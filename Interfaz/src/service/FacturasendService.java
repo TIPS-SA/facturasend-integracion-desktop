@@ -120,12 +120,12 @@ public class FacturasendService {
 	}
 	
 	//TableDesign tb = new TableDesign();
-	public Integer populateTransactionTable(JTable table, String q, Integer tipoDocumento, Integer page, Integer size){
+	public Integer populateTransactionTable(JTable jTable, String q, Integer tipoDocumento, Integer page, Integer size){
 		Integer retorno = 0;
 //		Object [] titulos = {"Mov #", "Fecha", "Cliente", "N° Factura", "Moneda", "Total", "Estado", "CDC", "Clasificador"};	//CDC
 		Object registro[] = { null, null, null, null, null, null, null, null, null};
 		    
-		DefaultTableModel model = (DefaultTableModel) table.getModel();
+		DefaultTableModel model = (DefaultTableModel) jTable.getModel();
 		//model.setRowCount(0);
 		/*if (model == null) {
 			System.out.println("Crea uno nuevo");
@@ -235,9 +235,9 @@ public class FacturasendService {
 			}
 			
 			while (model.getRowCount() > 20) {
-				model.removeRow( model.getRowCount() );
+				model.removeRow( model.getRowCount()-1 );
 			}
-			
+			jTable.repaint();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
