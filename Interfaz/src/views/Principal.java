@@ -95,6 +95,7 @@ public class Principal extends JFrame {
 	private JPanel paneSouthTableCenter;
 	InfoMovimiento movDetails;
 	Paginacion paginacion;
+	private Integer actualPage = -1;
 	FacturasendService fs;
 	
 	private Integer rowsPerPage = 10;
@@ -470,7 +471,8 @@ public class Principal extends JFrame {
 		paginacion.addActionListener(new PaginacionListener() {
 			@Override
 			public void goTo(Integer currentPage) {
-				paginacion.setTotal(fs.populateTransactionTable(jTableTransaction, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage));
+				paginacion.setTotal(fs.populateTransactionTable(jTableTransaction, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage, actualPage.intValue() != currentPage));
+				actualPage = currentPage;
 			}
 		});
 		

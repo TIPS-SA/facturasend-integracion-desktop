@@ -1543,7 +1543,7 @@ public class CoreIntegracionService {
 						+ "WHERE 1=1 \n"
 						+ "AND tipo_documento = " + tipoDocumento + " \n"
 						+ "AND pausado IS NULL \n"
-						
+						+ "AND evento IS NULL \n"
 						+ "AND ( \n"
 							+ "CDC IS NULL \n"
 							+ "OR \n"
