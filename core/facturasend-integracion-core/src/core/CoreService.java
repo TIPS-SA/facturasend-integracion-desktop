@@ -89,7 +89,7 @@ public class CoreService {
 	private static String getSQLTransaccionesList(Map<String, String> databaseProperties, String q, Integer tipoDocumento, Integer page, Integer size, boolean incluirInutilizados) {
 		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
 		
-		String filtroInutilizado = "AND evento IS NULL OR evento = 'Cancelar' ";
+		String filtroInutilizado = "AND (evento IS NULL OR evento = 'Cancelar' )";
 		/*if (!incluirInutilizados) {
 			filtroInutilizado += "AND evento != 'Inutilizar' ";
 		}

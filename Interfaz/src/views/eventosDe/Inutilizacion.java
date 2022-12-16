@@ -197,16 +197,8 @@ public class Inutilizacion extends JDialog {
 		btnInutilizar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int tipoDocumento = CoreService.getTipoDocumentoNro(cbTipoDocumento.getSelectedItem().toString());
-				Map<String, Object> body = new HashMap<String, Object>();
-				body.put("tipoDocumento", tipoDocumento);
-				body.put("establecimiento", txtEstablecimiento.getText());
-				body.put("punto", txtPunto.getText());
-				body.put("desde", txtNumeracionDesde.getText());
-				body.put("hasta", txtNumeracionHasta.getText());
-				body.put("serie", txtSerie.getText());
-				body.put("motivo", txtMotivo.getText());
 				
-				Map<String, Object> result = FacturasendService.ejecutarEventoInutilizacion(body);
+				Map<String, Object> result = FacturasendService.ejecutarEventoInutilizacion(null, null, txtSerie.getText(), tipoDocumento, txtEstablecimiento.getText(), txtPunto.getText(), txtNumeracionHasta.getText(), txtNumeracionHasta.getText(), txtMotivo.getText());
 				if (Boolean.valueOf(result.get("success").toString())==true) {
 					if(result.get("result") != null) {
 						Map<String, Object> respuesta = (Map<String, Object>)result.get("result");

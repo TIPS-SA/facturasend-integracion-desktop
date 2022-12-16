@@ -951,6 +951,7 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				selectedButton("Nota Credito");
+				//jTableTransaction.repaint();
 				tipoDocumento = 5;
 				getPaginacion().setCurrentPage(1);
 				//paginacion.setTotal(fs.populateTable(table, tfBuscar.getText(), tipoDocumento, getPaginacion().getCurrentPage(), rowsPerPage));

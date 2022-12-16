@@ -406,8 +406,8 @@ public class FacturasendService {
 		return CoreIntegracionService.eventoCancelacion(tipoDocumento, clasific, transaccionId, cdc, motivo, readDBProperties());
 	}
 	
-	public static Map<String, Object> ejecutarEventoInutilizacion (Map<String, Object> body) {
-		return CoreIntegracionService.eventoInutilizacion(body, readDBProperties());
+	public static Map<String, Object> ejecutarEventoInutilizacion (Integer transaccionId, String clasific, String serie, Integer tipoDocumento, String establecimiento, String punto, String desde, String hasta, String motivo) {
+		return CoreIntegracionService.eventoInutilizacion(transaccionId, clasific, serie, tipoDocumento, establecimiento, punto, desde, hasta, motivo, readDBProperties());
 	}
 	
 	public static Map<String, Object> ejecutarObtenerJsonDelXml (String cdc){
