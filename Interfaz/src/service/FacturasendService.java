@@ -120,7 +120,7 @@ public class FacturasendService {
 	}
 	
 	//TableDesign tb = new TableDesign();
-	public Integer populateTransactionTable(JTable jTable, String q, Integer tipoDocumento, Integer page, Integer size, boolean refreshAll){
+	public static Integer populateTransactionTable(JTable jTable, String q, Integer tipoDocumento, Integer page, Integer size, boolean refreshAll){
 		Integer retorno = 0;
 //		Object [] titulos = {"Mov #", "Fecha", "Cliente", "N° Factura", "Moneda", "Total", "Estado", "CDC", "Clasificador"};	//CDC
 		Object registro[] = { null, null, null, null, null, null, null, null, null};
@@ -224,7 +224,7 @@ public class FacturasendService {
 	}
 		
 	
-	public Integer registroExisteEnModel(DefaultTableModel model, Object [] datos){
+	public static Integer registroExisteEnModel(DefaultTableModel model, Object [] datos){
 		Integer encontrado = -1;
 		Integer transaccionId = ((BigDecimal)datos[0]).intValue();
 		

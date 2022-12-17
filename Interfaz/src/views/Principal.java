@@ -95,8 +95,9 @@ public class Principal extends JFrame {
 	private JPanel paneSouthTableCenter;
 	InfoMovimiento movDetails;
 	Paginacion paginacion;
-	private Integer actualPage = -1;
-	FacturasendService fs;
+	private Integer actualPage = -1;			//Se utiliza para controlar, si se debe refrescar completamente los datos del JTable
+	private Integer actualTipoDocumento = -1;	//Se utiliza para controlar, si se debe refrescar completamente los datos del JTable
+	//FacturasendService fs;
 	
 	private Integer rowsPerPage = 10;
 	private Integer tipoDocumento = 1;
@@ -157,7 +158,7 @@ public class Principal extends JFrame {
 	 * Create the application.
 	 */
 	public Principal() {
-		fs = new FacturasendService();
+		//fs = new FacturasendService();
 		initialize();
 		events();
 		
@@ -471,8 +472,9 @@ public class Principal extends JFrame {
 		paginacion.addActionListener(new PaginacionListener() {
 			@Override
 			public void goTo(Integer currentPage) {
-				paginacion.setTotal(fs.populateTransactionTable(jTableTransaction, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage, actualPage.intValue() != currentPage));
+				paginacion.setTotal(FacturasendService.populateTransactionTable(jTableTransaction, tfBuscar.getText(), tipoDocumento, currentPage, rowsPerPage, (actualPage.intValue() != currentPage || actualTipoDocumento != tipoDocumento) ));
 				actualPage = currentPage;
+				actualTipoDocumento = tipoDocumento;
 			}
 		});
 		
@@ -570,7 +572,7 @@ public class Principal extends JFrame {
 								JOptionPane.showMessageDialog(null, "La transacción ya está Aprobada");
 				
 							} else {
-								fs.pausarEnviar(transaccionId, tipoDocumento, clasificador);
+								FacturasendService.pausarEnviar(transaccionId, tipoDocumento, clasificador);
 								//fs.actualizarEstado(tipoDocumento);
 								
 								
@@ -618,7 +620,7 @@ public class Principal extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					fs.iniciarIntegracion();
+					FacturasendService.iniciarIntegracion();
 					oThis.refresh();
 				} catch (Exception e2) {
 					JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);

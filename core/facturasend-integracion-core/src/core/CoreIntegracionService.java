@@ -51,31 +51,6 @@ public class CoreIntegracionService {
 	public static Log log = LogFactory.getLog(CoreIntegracionService.class);
 
 	/**
-	 * Inicia el proceso de Integracion de los documentos electronicos cada cierto tiempo
-	 * 
-	 * @param args
-	 */
-	/*public static void main(String[] args) {
-		Integer autoUpdateIntegracion = Integer.valueOf(FacturasendService.readDBProperties().get("database.autoupdate_millis.integracion")+"");
-		
-		if (autoUpdateIntegracion > 0) {
-			new Timer().schedule(new TimerTask() {
-			    @Override
-			    public void run() {
-			    	try {
-			    		iniciarIntegracion();	
-					} catch (Exception e2) {
-						JOptionPane.showMessageDialog(null, "Ocurrio un problema inesperado\n"+e2);
-						log.info("Mostrar error en pantalla, " + e2);
-					};
-			    }
-			}, new Date(), autoUpdateIntegracion); //Cada N millis segundos						
-		} else {
-			
-		}
-	}*/
-
-	/**
 	 * Paso 0
 	 * 
 	 * @param tipoDocumento
@@ -89,11 +64,11 @@ public class CoreIntegracionService {
 		
 		//iniciarIntegracion(1, databaseProperties);
 		//iniciarIntegracion(4, databaseProperties);
-//		iniciarIntegracion(5, databaseProperties);
+		iniciarIntegracion(5, databaseProperties);
 		//iniciarIntegracion(6, databaseProperties);
 		//iniciarIntegracion(7, databaseProperties);
-		iniciarIntegracionCancelado(databaseProperties);	//Cancelacion para todos los tipos de documentos
-		iniciarIntegracionInutilizacion(databaseProperties);  //Inutilizacion para todos los registros que se crearon, aun no se mandaron a la set y se quiere inutilizar
+//		iniciarIntegracionCancelado(databaseProperties);	//Cancelacion para todos los tipos de documentos
+//		iniciarIntegracionInutilizacion(databaseProperties);  //Inutilizacion para todos los registros que se crearon, aun no se mandaron a la set y se quiere inutilizar
 		
 		//Actualizacion de Estados de DE con Estado 0
 		//setTimeout(() -> actualizarEstadoDesdeFacturaSend(1, databaseProperties), 1000);	//Ejecuta en un thread
@@ -349,14 +324,14 @@ public class CoreIntegracionService {
 			if (Boolean.valueOf(registrosAprobadosACancelarMap.get("success")+"") == true) {
 				List<Map<String, Object>> registrosAprobadosACancelarListMap = (List<Map<String, Object>>)registrosAprobadosACancelarMap.get("result");
 
-				for (Map<String, Object> map : registrosAprobadosACancelarListMap) {
-					Integer tipoDocumento = ((BigDecimal)CoreService.getValueForKey(map, "tipo_documento", "tip_doc")).intValue();
-					Integer transaccionId = ((BigDecimal)CoreService.getValueForKey(map, "transaccion_id", "tra_id")).intValue();
-					String cdc = ((String)CoreService.getValueForKey(map, "cdc"));
-					String motivo = ((String)CoreService.getValueForKey(map, "evento_motivo"));
-					String clasific = ((String)CoreService.getValueForKey(map, "clasific"));
+				for (Map<String, Object> registroAprobadoACancelar : registrosAprobadosACancelarListMap) {
+					Integer tipoDocumento = ((BigDecimal)CoreService.getValueForKey(registroAprobadoACancelar, "tipo_documento", "tip_doc")).intValue();
+					Integer transaccionId = ((BigDecimal)CoreService.getValueForKey(registroAprobadoACancelar, "transaccion_id", "tra_id")).intValue();
+					String cdc = ((String)CoreService.getValueForKey(registroAprobadoACancelar, "cdc"));
+					String motivo = ((String)CoreService.getValueForKey(registroAprobadoACancelar, "evento_motivo"));
+					String clasific = ((String)CoreService.getValueForKey(registroAprobadoACancelar, "clasific"));
 					
-					eventoCancelacion(tipoDocumento, clasific, transaccionId, cdc, motivo, databaseProperties);
+					eventoCancelacion(tipoDocumento, clasific, transaccionId, cdc, motivo, registroAprobadoACancelar, databaseProperties);
 				}
 				
 				//log.info(transaccionIdString);
@@ -386,19 +361,19 @@ public class CoreIntegracionService {
 			if (Boolean.valueOf(registrosAInutilizarMap.get("success")+"") == true) {
 				List<Map<String, Object>> registrosAInutilizarListMap = (List<Map<String, Object>>)registrosAInutilizarMap.get("result");
 
-				for (Map<String, Object> map : registrosAInutilizarListMap) {
-					Integer tipoDocumento = ((BigDecimal)CoreService.getValueForKey(map, "tipo_documento", "tip_doc")).intValue();
-					Integer transaccionId = ((BigDecimal)CoreService.getValueForKey(map, "transaccion_id", "tra_id")).intValue();
-					String cdc = ((String)CoreService.getValueForKey(map, "cdc"));
-					String motivo = ((String)CoreService.getValueForKey(map, "evento_motivo"));
-					String clasific = ((String)CoreService.getValueForKey(map, "clasific"));
-					String establecimiento = ((String)CoreService.getValueForKey(map, "establecimiento", "estable"));
-					String punto = ((String)CoreService.getValueForKey(map, "punto"));
-					String numeroFactura = ((String)CoreService.getValueForKey(map, "numero"));
-					String serie = ((String)CoreService.getValueForKey(map, "serie"));
+				for (Map<String, Object> registroAInutilizar : registrosAInutilizarListMap) {
+					Integer tipoDocumento = ((BigDecimal)CoreService.getValueForKey(registroAInutilizar, "tipo_documento", "tip_doc")).intValue();
+					Integer transaccionId = ((BigDecimal)CoreService.getValueForKey(registroAInutilizar, "transaccion_id", "tra_id")).intValue();
+					String cdc = ((String)CoreService.getValueForKey(registroAInutilizar, "cdc"));
+					String motivo = ((String)CoreService.getValueForKey(registroAInutilizar, "evento_motivo"));
+					String clasific = ((String)CoreService.getValueForKey(registroAInutilizar, "clasific"));
+					String establecimiento = ((String)CoreService.getValueForKey(registroAInutilizar, "establecimiento", "estable"));
+					String punto = ((String)CoreService.getValueForKey(registroAInutilizar, "punto"));
+					String numeroFactura = ((String)CoreService.getValueForKey(registroAInutilizar, "numero"));
+					String serie = ((String)CoreService.getValueForKey(registroAInutilizar, "serie"));
 					
 					
-					eventoInutilizacion(transaccionId, clasific, serie, tipoDocumento, establecimiento, punto, numeroFactura, numeroFactura, motivo, databaseProperties);
+					eventoInutilizacion(transaccionId, clasific, serie, tipoDocumento, establecimiento, punto, numeroFactura, numeroFactura, motivo, registroAInutilizar, databaseProperties);
 				}
 				
 				//log.info(transaccionIdString);
@@ -1056,7 +1031,7 @@ public class CoreIntegracionService {
 		
 		//---
 		String tableToDelete = databaseProperties.get(prefixForTable);
-		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table"+((databaseProperties.get("database.type").equals("dbf"))?"":"."+tipoDE);
+		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table" + ((databaseProperties.get("database.type").equals("dbf"))?"":"."+tipoDE);
 		if (clasificador != null) {
 			prefix += "." + clasificador;
 		}
@@ -1211,7 +1186,6 @@ public class CoreIntegracionService {
 			
 			String key = e.getKey()+""; 
 			if ((key).startsWith(prefixForTable + ".field.")) {
-				//sqlUpdate += "\"" + key.substring(("database." + databaseProperties.get("database.type") + ".facturasend_table.field.").length(), key.length()) + "\", ";
 				sqlUpdate += "" + key.substring((prefixForTable + ".field.").length(), key.length()) + ", ";
 			}
 		}
@@ -1650,22 +1624,6 @@ public class CoreIntegracionService {
 			
 			String sql = obtenerRegistrosAprobadosACancelarSQL(databaseProperties);
 
-//			Integer rowsLoteRequest = 50;
-//			if (databaseProperties.get("facturasend.rows_lote_request") != null) {
-//				rowsLoteRequest = Integer.valueOf(databaseProperties.get("facturasend.rows_lote_request"));
-//			}
-//			if (rowsLoteRequest > 50) {
-//				throw new Exception("Cantidad máxima de documentos por lote = 50 (facturasend.rows_lote_request)");
-//			}
-
-//			if (databaseProperties.get("database.type").equals("oracle")) {
-//				sql = CoreService.getOracleSQLPaginado(sql, 1, rowsLoteRequest);	
-//			} else if (databaseProperties.get("database.type").equals("postgres")) {
-//				sql = CoreService.getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
-//			} else if (databaseProperties.get("database.type").equals("dbf")) {
-//				sql = CoreService.getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
-//			}
-
 			log.info("\n" + sql + " ");
 
 			ResultSet rs = statement.executeQuery(sql);
@@ -1694,20 +1652,91 @@ public class CoreIntegracionService {
 	 */
 	private static String obtenerRegistrosAprobadosACancelarSQL(Map<String, String> databaseProperties) {
 		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
+		Map<String, String> fieldsSelectMap = new HashMap<String, String>();	//Lista de Campos que seran utilizados en el SELECT-SQL
+		
+		
+		
+		//-- Proceso para recuperar los datos adicionales, que se necesitaran mas adelante, cuando se va actualizar la tabla FacturaSend_data
+		Integer tipoDocumento = 1;	//Fijo por el momento, si todos lostipos tienen los mismos campos adicionales va funcionar
+		String clasificador = "fe";	//Fijo por el momento, si todos lostipos tienen los mismos campos adicionales va funcionar
+		
+		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
+		
+		String prefixForTable = "database." + databaseProperties.get("database.type") + ".facturasend_table" + (databaseProperties.get("database.type").equals("dbf")?"":"."+tipoDE);
+		if (clasificador != null) {
+			prefixForTable += "." + clasificador;
+		}
+		String tableToUpdate = databaseProperties.get(prefixForTable);
+		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.value");
+		
+		if (databaseProperties.get("database.type").equals("oracle")) {
+			tableToUpdateKey = tableToUpdateKey.toUpperCase();
+			tableToUpdateValue = tableToUpdateValue.toUpperCase();
+		}
+		String fieldPrefix = prefixForTable + ".field." + tipoDE;
+		if (clasificador != null) {
+			fieldPrefix += "." + clasificador;
+		}
+		fieldPrefix += ".";
+		
+		//Buscar fields adicionales
+		//String camposAdicionales = "";
+		Iterator itr = databaseProperties.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry e = (Map.Entry)itr.next();
+			
+			String key = e.getKey()+""; 
+			String value = e.getValue()+""; 
+			if (key.startsWith(prefixForTable + ".field.") && !value.startsWith("@SQL")) {
+				String fieldName = key.substring((prefixForTable + ".field.").length(), key.length());
+				//Agrega solo si el campo esta en la tabla transacciones
+				if (!fieldName.equalsIgnoreCase("c_invoice_id"))	//TODO cambiar.
+					fieldsSelectMap.put(fieldName + "", "");
+			}
+		}
+		//System.out.println("camposAdicionales " + camposAdicionales);
+		//-- Fin Proceso para recuperar los datos adicionales, que se necesitaran mas adelante, cuando se va actualizar la tabla FacturaSend_data
+
+		fieldsSelectMap.put("clasific", "");
+		fieldsSelectMap.put("cdc", "");
+		fieldsSelectMap.put("estado", "");
+		fieldsSelectMap.put("punto", "");
+		fieldsSelectMap.put("numero", "");
+		if (!databaseProperties.get("database.type").equals("dbf")) {
+			fieldsSelectMap.put("transaccion_id", "");
+			fieldsSelectMap.put("tipo_documento", "");
+			fieldsSelectMap.put("evento_motivo", "");
+			fieldsSelectMap.put("establecimiento", "");
+		} else {
+			fieldsSelectMap.put("tra_id", "");
+			fieldsSelectMap.put("tip_doc", "");
+			fieldsSelectMap.put("eve_mot", "");
+			fieldsSelectMap.put("establec", "");
+		}
+
+		String fieldsSelectString = "";
+		Iterator itr2 = fieldsSelectMap.entrySet().iterator();
+		while (itr2.hasNext()) {
+			fieldsSelectString += ((Map.Entry)itr2.next()).getKey()+", ";
+		}
+		fieldsSelectString = fieldsSelectString.substring(0, fieldsSelectString.length() -2);
+		
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
-			sql = "SELECT transaccion_id, tipo_documento, clasific, cdc, estado, evento_motivo \n"
+			
+			sql = "SELECT " + fieldsSelectString + " \n"
 						+ "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"
 						//+ "AND tipo_documento = " + tipoDocumento + " \n"
 						//+ "AND pausado IS NULL \n"
 						+ "AND UPPER(evento) = 'CANCELAR' \n"
 						+ "AND ( \n"
-							+ "CDC IS NOT NULL \n"
+							+ "cdc IS NOT NULL \n"
 							+ "AND \n"
-							+ "(ESTADO IS NOT NULL AND (ESTADO = 2 OR ESTADO = 3)) \n"
+							+ "(estado IS NOT NULL AND (estado = 2 OR estado = 3)) \n"
 						+ ") \n"
-						+ "GROUP BY transaccion_id, tipo_documento, clasific, cdc, estado, evento_motivo, establecimiento, punto, numero \n"
+						+ "GROUP BY " + fieldsSelectString + " \n"
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
 		} else {
 			boolean obtenerCdcEstadoPausadoPorSubSelect = true;
@@ -1722,7 +1751,7 @@ public class CoreIntegracionService {
 			tableName = databaseProperties.get("database.dbf.transaccion_table");
 			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
 
-			sql = "SELECT tra_id \n"
+			sql = "SELECT " + fieldsSelectString + " \n"
 					+ "FROM " + tableName + " vp \n"
 					+ "WHERE 1=1 \n";
 					//+ "AND tip_doc = " + tipoDocumento + " \n";
@@ -1738,7 +1767,7 @@ public class CoreIntegracionService {
 			} else {
 				sql += "AND pausado IS NULL AND (cdc IS NULL OR estado = 4) ";
 			}
-			sql += "GROUP BY tra_id, estable, punto, numero \n"
+			sql += "GROUP BY " + fieldsSelectString + " \n"
 					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				
 		}
 		
@@ -1812,18 +1841,90 @@ public class CoreIntegracionService {
 	 */
 	private static String obtenerRegistrosAInutilizarSQL(Map<String, String> databaseProperties) {
 		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
+		
+		Map<String, String> fieldsSelectMap = new HashMap<String, String>();	//Lista de Campos que seran utilizados en el SELECT-SQL
+		
+		
+		
+		//-- Proceso para recuperar los datos adicionales, que se necesitaran mas adelante, cuando se va actualizar la tabla FacturaSend_data
+		Integer tipoDocumento = 1;	//Fijo por el momento, si todos lostipos tienen los mismos campos adicionales va funcionar
+		String clasificador = "fe";	//Fijo por el momento, si todos lostipos tienen los mismos campos adicionales va funcionar
+		
+		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
+		
+		String prefixForTable = "database." + databaseProperties.get("database.type") + ".facturasend_table" + (databaseProperties.get("database.type").equals("dbf")?"":"."+tipoDE);
+		if (clasificador != null) {
+			prefixForTable += "." + clasificador;
+		}
+		String tableToUpdate = databaseProperties.get(prefixForTable);
+		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
+		String tableToUpdateValue = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.value");
+		
+		if (databaseProperties.get("database.type").equals("oracle")) {
+			tableToUpdateKey = tableToUpdateKey.toUpperCase();
+			tableToUpdateValue = tableToUpdateValue.toUpperCase();
+		}
+		String fieldPrefix = prefixForTable + ".field." + tipoDE;
+		if (clasificador != null) {
+			fieldPrefix += "." + clasificador;
+		}
+		fieldPrefix += ".";
+		
+		//Buscar fields adicionales
+		//String camposAdicionales = "";
+		Iterator itr = databaseProperties.entrySet().iterator();
+		while (itr.hasNext()) {
+			Map.Entry e = (Map.Entry)itr.next();
+			
+			String key = e.getKey()+""; 
+			String value = e.getValue()+""; 
+			if (key.startsWith(prefixForTable + ".field.") && !value.startsWith("@SQL")) {
+				String fieldName = key.substring((prefixForTable + ".field.").length(), key.length());
+				//Agrega solo si el campo esta en la tabla transacciones
+				if (!fieldName.equalsIgnoreCase("c_invoice_id"))	//TODO cambiar.
+					fieldsSelectMap.put(fieldName + "", "");
+			}
+		}
+		//System.out.println("camposAdicionales " + camposAdicionales);
+		//-- Fin Proceso para recuperar los datos adicionales, que se necesitaran mas adelante, cuando se va actualizar la tabla FacturaSend_data
+
+		fieldsSelectMap.put("clasific", "");
+		fieldsSelectMap.put("cdc", "");
+		fieldsSelectMap.put("estado", "");
+		fieldsSelectMap.put("punto", "");
+		fieldsSelectMap.put("numero", "");
+		fieldsSelectMap.put("serie", "");
+		if (!databaseProperties.get("database.type").equals("dbf")) {
+			fieldsSelectMap.put("transaccion_id", "");
+			fieldsSelectMap.put("tipo_documento", "");
+			fieldsSelectMap.put("evento_motivo", "");
+			fieldsSelectMap.put("establecimiento", "");
+		} else {
+			fieldsSelectMap.put("tra_id", "");
+			fieldsSelectMap.put("tip_doc", "");
+			fieldsSelectMap.put("eve_mot", "");
+			fieldsSelectMap.put("establec", "");
+		}
+
+		String fieldsSelectString = "";
+		Iterator itr2 = fieldsSelectMap.entrySet().iterator();
+		while (itr2.hasNext()) {
+			fieldsSelectString += ((Map.Entry)itr2.next()).getKey()+", ";
+		}
+		fieldsSelectString = fieldsSelectString.substring(0, fieldsSelectString.length() -2);
+		
 		String sql = "";
 		if (!databaseProperties.get("database.type").equals("dbf")) {
-			sql = "SELECT transaccion_id, tipo_documento, clasific, cdc, estado, evento_motivo, establecimiento, punto, numero, serie  \n"
+			sql = "SELECT " + fieldsSelectString + "  \n"
 						+ "FROM " + tableName + " \n"
 						+ "WHERE 1=1 \n"
 						//+ "AND tipo_documento = " + tipoDocumento + " \n"
 						//+ "AND pausado IS NULL \n"
 						+ "AND UPPER(evento) = 'INUTILIZAR' \n"
 						+ "and (ESTADO != 97) \n"
-						+ "GROUP BY transaccion_id, tipo_documento, clasific, cdc, estado, evento_motivo, establecimiento, punto, numero, serie \n"
+						+ "GROUP BY " + fieldsSelectString + " \n"
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
-		}/* else {
+		} else {
 			boolean obtenerCdcEstadoPausadoPorSubSelect = true;
 			String transactionTableName = databaseProperties.get("database.dbf.transaccion_table");
 			transactionTableName = transactionTableName.substring(0, transactionTableName.indexOf(".dbf"));
@@ -1836,7 +1937,7 @@ public class CoreIntegracionService {
 			tableName = databaseProperties.get("database.dbf.transaccion_table");
 			tableName = tableName.substring(0, tableName.indexOf(".dbf"));
 
-			sql = "SELECT tra_id \n"
+			sql = "SELECT " + fieldsSelectString + " \n"
 					+ "FROM " + tableName + " vp \n"
 					+ "WHERE 1=1 \n";
 					//+ "AND tip_doc = " + tipoDocumento + " \n";
@@ -1852,9 +1953,9 @@ public class CoreIntegracionService {
 			} else {
 				sql += "AND pausado IS NULL AND (cdc IS NULL OR estado = 4) ";
 			}
-			sql += "GROUP BY tra_id, estable, punto, numero \n"
+			sql += "GROUP BY " + fieldsSelectString + " \n"
 					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				
-		}*/
+		}
 		
 		
 		return sql;
@@ -2264,7 +2365,7 @@ public class CoreIntegracionService {
 		return sql;
 	}
 	
-	public static Map<String, Object> eventoCancelacion(Integer tipoDocumento, String clasific, Integer transaccionId, String cdc, String motivo, Map<String, String> databaseProperties) {
+	public static Map<String, Object> eventoCancelacion(Integer tipoDocumento, String clasific, Integer transaccionId, String cdc, String motivo, Map<String, Object> viewRec, Map<String, String> databaseProperties) {
 		Map<String, String> body  = new HashMap<String, String>();
 		Map<String, Object> resultadoJson = new HashMap<String, Object>();
 		try {
@@ -2280,7 +2381,7 @@ public class CoreIntegracionService {
 				if (resultadoJson != null) {
 					if (Boolean.valueOf(resultadoJson.get("success") + "") == true) {
 						
-						System.out.println("----" + resultadoJson);
+						//System.out.println("----" + resultadoJson);
 
 						Map<String, Object> resultadoJsonMap = (Map<String, Object>)resultadoJson.get("result");
 						if  (resultadoJsonMap.get("ns2:rRetEnviEventoDe") != null) {
@@ -2311,11 +2412,6 @@ public class CoreIntegracionService {
 										
 										//COMENTADO POR MIENTRAS PARA EL COMPIERER 
 										//Habilitar pra probar con DBF
-										Map<String, Object> viewRec = new HashMap<String, Object>();
-										viewRec.put("TIPO_DOCUMENTO", tipoDocumento);
-										viewRec.put("TRANSACCION_ID", transaccionId);
-										viewRec.put("AD_CLIENT_ID", transaccionId);
-										viewRec.put("CLASIFIC", clasific);
 
 										//Borrar registros previamente cargados, para evitar duplicidad
 										deleteFacturaSendTableByTransaccionId(viewRec, databaseProperties, "('ESTADO')");
@@ -2392,7 +2488,7 @@ public class CoreIntegracionService {
 		return resultadoJson;
 	}
 	
-	public static Map<String, Object> eventoInutilizacion(Integer transaccionId, String clasific, String serie, Integer tipoDocumento, String establecimiento, String punto, String desde, String hasta, String motivo, Map<String, String> databaseProperties) {
+	public static Map<String, Object> eventoInutilizacion(Integer transaccionId, String clasific, String serie, Integer tipoDocumento, String establecimiento, String punto, String desde, String hasta, String motivo, Map<String, Object> viewRec, Map<String, String> databaseProperties) {
 		Map<String, Object> resultadoJson = new HashMap<String, Object>();
 		
 		Map<String, Object> body = new HashMap<String, Object>();
@@ -2447,11 +2543,7 @@ public class CoreIntegracionService {
 										
 										//COMENTADO POR MIENTRAS PARA EL COMPIERER 
 										//Habilitar pra probar con DBF
-										Map<String, Object> viewRec = new HashMap<String, Object>();
-										viewRec.put("TIPO_DOCUMENTO", tipoDocumento);
-										viewRec.put("TRANSACCION_ID", transaccionId);
-										viewRec.put("AD_CLIENT_ID", transaccionId);
-										viewRec.put("CLASIFIC", clasific);
+										
 
 										//Borrar registros previamente cargados, para evitar duplicidad
 										deleteFacturaSendTableByTransaccionId(viewRec, databaseProperties, "('ESTADO')");

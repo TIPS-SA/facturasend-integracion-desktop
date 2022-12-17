@@ -237,7 +237,7 @@ public class CoreDocumentoElectronico {
 			//NotaCredito y Debito
 			if (tipoDocumento == 5) {
 				Map<String, Object> dataMapNotaCreditoDebito = new HashMap<String, Object>();
-				dataMapNotaCreditoDebito.put("motivo", CoreService.getValueForKey(transaccionCabecera,"nc_motivo","nc_motivo"));
+				dataMapNotaCreditoDebito.put("motivo", CoreService.getValueForKey(transaccionCabecera,"nota_credito_motivo","nc_motivo"));
 			
 				dataMap.put("notaCreditoDebito", dataMapNotaCreditoDebito);		
 			}
