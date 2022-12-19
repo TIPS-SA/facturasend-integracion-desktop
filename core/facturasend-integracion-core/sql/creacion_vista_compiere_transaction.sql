@@ -700,20 +700,20 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
     --NOTA DE REMISION (VENTA MINOUT)
             
     SELECT
-    ci.C_INVOICE_ID                                             AS transaccion_id,
+    mi.M_INOUT_ID		                                        AS transaccion_id,
     7                                                           AS tipo_documento,
    	'mio'														AS clasific,
 
-    SUBSTR(ci.MOLI_PREIMPNO, 1, 3)                              AS establecimiento,
-    SUBSTR(ci.MOLI_PREIMPNO, 5, 3)                              AS punto,
-    SUBSTR(ci.MOLI_PREIMPNO, 9, 7)                              AS numero,
-    	NULL									AS timbrado,
-	NULL								AS numero_factura,
+	SUBSTR(ci.DOCUMENTNO, 10,3)		 							AS establecimiento,
+	SUBSTR(ci.DOCUMENTNO, 14,3)									AS punto,
+	SUBSTR(ci.DOCUMENTNO, 18,7)									AS numero,
+	SUBSTR(ci.DOCUMENTNO, 0,8)									AS timbrado,
+	SUBSTR(ci.DOCUMENTNO, 10,15)								AS numero_factura,
 
     NULL                                                        AS serie,
     NULL                                                        AS descripcion,
-    ci.description                                              AS observacion,
-    ci.DATEINVOICED                                             AS fecha,
+    mi.description                                              AS observacion,
+    mi.MOVEMENTDATE	                                            AS fecha,
 --    CAST(TRANSLATE('2022-11-29T00:00:00' USING nchar_cs) AS VARCHAR(19)) AS fecha,
     1                                                           AS tipo_emision,    -- 1=Normal
     1                                                           AS tipo_transicion, -- 1=Venta de mercadería (Por defecto).
@@ -801,12 +801,12 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
     -- Totales y Otros
     --
     ci.GRANDTOTAL                                               AS total,
-    ci.moli_cdc                                                 AS cdc,
+    mi.moli_cdc                                                 AS cdc,
     NULL 														AS evento,
 	'Cancelado por el Usuario'									AS evento_motivo,
-    TO_NUMBER(ci.moli_fsstatus)                                 AS estado,
-    ci.moli_fsPaused                                            AS pausado,
-    ci.moli_fsError                                             AS error,
+    TO_NUMBER(mi.moli_fsstatus)                                 AS estado,
+    mi.moli_fsPaused                                            AS pausado,
+    mi.moli_fsError                                             AS error,
     --
     -- Items
     --
@@ -961,20 +961,23 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
     ci.AD_ORG_ID,
     ci.AD_CLIENT_ID,
     ci.AD_USER_ID
+    
     FROM 
         M_INOUT mi
+        INNER JOIN C_ORDER co ON
+            (mi.C_ORDER_ID = co.C_ORDER_ID)
         INNER JOIN C_INVOICE ci ON
-            (mi.C_INVOICE_ID = ci.C_INVOICE_ID)
+            (co.C_ORDER_ID = ci.C_ORDER_ID) 
         INNER JOIN M_INOUTLINE mil ON
             (mi.M_INOUT_ID = mil.M_INOUT_ID)
         INNER JOIN C_INVOICELINE cil ON
-            (ci.C_INVOICE_ID = cil.C_INVOICE_ID)
+            (ci.C_INVOICE_ID = cil.C_INVOICE_ID) 
         LEFT OUTER JOIN M_Product mp ON
             (mil.M_PRODUCT_ID = mp.M_PRODUCT_ID)
         INNER JOIN C_Currency cc2 ON
             (ci.C_Currency_ID = cc2.C_Currency_ID)
         LEFT OUTER JOIN C_DOCTYPE cd ON
-            (ci.C_DOCTYPE_ID = cd.C_DOCTYPE_ID AND cd.NAME LIKE '%AR Invoice%')
+            (ci.C_DOCTYPE_ID = cd.C_DOCTYPE_ID AND (cd.NAME LIKE '%AR Nota Crédito Electrónica%' OR cd.NAME LIKE '%AR Factura Electronica%'))
         INNER JOIN C_PAYMENTTERM pt ON
             (ci.C_PAYMENTTERM_ID  = pt.C_PAYMENTTERM_ID)
         INNER JOIN C_BPARTNER cb ON
@@ -1002,7 +1005,7 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
 --      AND ci.DOCACTION = 'CL'
         AND ci.DOCSTATUS = 'CO' --Completed
         --Condiciones Temporales
-        AND ci.MOLI_PREIMPNO IS NOT NULL
+        --AND ci.MOLI_PREIMPNO IS NOT NULL
         AND ci.DATEINVOICED > TO_DATE('2022-12-09', 'YYYY-MM-DD')
         
         
@@ -1854,7 +1857,7 @@ FROM C_INVOICELINE ci WHERE C_INVOICE_ID =  1959251
 91,479999
 
 
-SELECT ITEM_PRECIO_UNITARIO  FROM RV_C_Invoice_FacturaSend WHERE TRANSACCION_ID = 1959251
+SELECT ITEM_PRECIO_UNITARIO  FROM RV_C_Invoice_FacturaSend WHERE TRANSACCION_ID = 1959506
 
 UPDATE C_INVOICE SET MOLI_FSSTATUS = 99 WHERE C_INVOICE_ID IN ( 1959214, 1959216, 1959217, 1959219, 1959232,1959244)
 
@@ -1903,3 +1906,4 @@ WHERE
 rn  >= 1
 ORDER BY establecimiento , punto , numero 
 
+SELECT * FROM trans
