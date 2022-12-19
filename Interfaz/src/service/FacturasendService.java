@@ -402,12 +402,12 @@ public class FacturasendService {
 		return rs;
 	}
 	
-	public static Map<String, Object> ejecutarEventoCancelacion (Integer tipoDocumento, String clasific, Integer transaccionId, String cdc, String motivo) {
-		return CoreIntegracionService.eventoCancelacion(tipoDocumento, clasific, transaccionId, cdc, motivo, readDBProperties());
+	public static Map<String, Object> ejecutarEventoCancelacion (Integer tipoDocumento, String clasific, Integer transaccionId, String cdc, String motivo, Map<String, Object> viewRec) {
+		return CoreIntegracionService.eventoCancelacion(tipoDocumento, clasific, transaccionId, cdc, motivo, viewRec, readDBProperties());
 	}
 	
-	public static Map<String, Object> ejecutarEventoInutilizacion (Integer transaccionId, String clasific, String serie, Integer tipoDocumento, String establecimiento, String punto, String desde, String hasta, String motivo) {
-		return CoreIntegracionService.eventoInutilizacion(transaccionId, clasific, serie, tipoDocumento, establecimiento, punto, desde, hasta, motivo, readDBProperties());
+	public static Map<String, Object> ejecutarEventoInutilizacion (Integer transaccionId, String clasific, String serie, Integer tipoDocumento, String establecimiento, String punto, String desde, String hasta, String motivo, Map<String, Object> viewRec) {
+		return CoreIntegracionService.eventoInutilizacion(transaccionId, clasific, serie, tipoDocumento, establecimiento, punto, desde, hasta, motivo, viewRec, readDBProperties());
 	}
 	
 	public static Map<String, Object> ejecutarObtenerJsonDelXml (String cdc){

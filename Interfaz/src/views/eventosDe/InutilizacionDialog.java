@@ -27,7 +27,7 @@ import javax.swing.JTextField;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-public class Inutilizacion extends JDialog {
+public class InutilizacionDialog extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
 	private JButton btnInutilizar;
@@ -47,7 +47,7 @@ public class Inutilizacion extends JDialog {
 	 */
 	public static void main(String[] args) {
 		try {
-			Inutilizacion dialog = new Inutilizacion();
+			InutilizacionDialog dialog = new InutilizacionDialog();
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
@@ -58,7 +58,7 @@ public class Inutilizacion extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public Inutilizacion() {
+	public InutilizacionDialog() {
 		setTitle("Evento de Inutilizacion");
 		setModal(true);
 		setBounds(100, 100, 434, 366);

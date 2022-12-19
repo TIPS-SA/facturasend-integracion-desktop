@@ -26,7 +26,7 @@ import javax.swing.JTextArea;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-public class Cancelacion extends JDialog {
+public class CancelacionDialog extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtCdc;
@@ -45,7 +45,7 @@ public class Cancelacion extends JDialog {
 	 */
 	public static void main(String[] args) {
 		try {
-			Cancelacion dialog = new Cancelacion(cdc, tipoDocumento, transaccionId);
+			CancelacionDialog dialog = new CancelacionDialog(cdc, tipoDocumento, transaccionId);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
@@ -56,7 +56,7 @@ public class Cancelacion extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public Cancelacion(String cdc, Integer tipoDocumento, BigDecimal transaccionId) {
+	public CancelacionDialog(String cdc, Integer tipoDocumento, BigDecimal transaccionId) {
 		this.cdc = cdc;
 		this.tipoDocumento = tipoDocumento;
 		this.transaccionId = transaccionId;

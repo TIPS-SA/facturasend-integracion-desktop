@@ -53,7 +53,7 @@ import service.FacturasendService;
 import util.HttpUtil;
 import views.commons.Paginacion;
 import views.commons.PaginacionListener;
-import views.eventosDe.Inutilizacion;
+import views.eventosDe.InutilizacionDialog;
 import views.table.TableDesign;
 
 public class Principal extends JFrame {
@@ -979,7 +979,7 @@ public class Principal extends JFrame {
 		});
 		btnInutilizacion.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Inutilizacion inutilizacionDialog = new Inutilizacion();
+				InutilizacionDialog inutilizacionDialog = new InutilizacionDialog();
 				inutilizacionDialog.setVisible(true);
 			}
 		});
