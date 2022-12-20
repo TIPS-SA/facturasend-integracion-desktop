@@ -137,7 +137,6 @@ public class FacturasendService {
 				}
 			}
 			for (int i = 0; i < rs.size(); i++) {
-				System.out.println(rs.get(i));
 				String moneda = (String)CoreService.getValueForKey(rs.get(i), "moneda");
 				DecimalFormat df = new DecimalFormat("###,###,###,##0.##");	//Preparado para PYG
 				if (!moneda.equals("PYG")) {

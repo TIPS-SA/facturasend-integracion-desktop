@@ -42,35 +42,15 @@ public class CoreService {
 			Statement statement = conn.createStatement();
 			
 			String sql = getSQLTransaccionesList(databaseProperties, q, tipoDocumento, page, size, incluirInutilizados);
-			
-			//if ( ! databaseProperties.get("database.type").equals("dbf")) {
-				//Si es DBF el count va realizar despues
-				//result.put("count", SQLUtil.getCountFromSQL(statement, sql));
-			//}
-
-
-			
+						
 			if (databaseProperties.get("database.type").equals("dbf")) {
-				/*if (inverso) {
-					//Agrega el orden inverso, que seria sin utilizar el DESC
-					sql += "ORDER BY estable, punto, numero";
-				}*/
 				log.info("\nReload ");
 				Statement st = conn.createStatement();
 				st.execute("reload '" + databaseProperties.get("database.dbf.parent_folder") + "/" + databaseProperties.get("database.dbf.transaccion_table") + "'");
-
-				//Despues de la Carga consulta la Cantidad
-
-			//} else {
-				/*if (inverso) {
-					//Agrega el orden inverso, que seria sin utilizar el DESC
-					sql += "ORDER BY establecimiento, punto, numero";
-				}*/
 			}
 
 			result.put("count", SQLUtil.getCountFromSQL(statement, sql)); 
 
-			//sql = getSQLListDesPaginado(databaseProperties, sql, q, page, size);
 			if (databaseProperties.get("database.type").equals("oracle")) {
 				sql = getOracleSQLPaginado(sql, page, size);
 			} else if (databaseProperties.get("database.type").equals("postgres")) {
