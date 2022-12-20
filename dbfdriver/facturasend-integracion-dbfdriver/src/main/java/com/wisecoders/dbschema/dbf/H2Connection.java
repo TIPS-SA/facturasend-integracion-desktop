@@ -108,9 +108,9 @@ public class H2Connection implements Connection {
                     args = new String[]{""};
                 }
             }
-            System.out.println(method);
-            System.out.println(target);
-            System.out.println(args);
+            //System.out.println(method);
+            //System.out.println(target);
+            //System.out.println(args);
             return method.invoke(target, args);
         }
     }
@@ -183,7 +183,7 @@ public class H2Connection implements Connection {
 		        for(int i=1; i<=columns; ++i) {
 		            row.put(md.getColumnName(i), rs.getObject(i));
 		        }
-		        System.out.println("row: " + row);
+		        //System.out.println("row: " + row);
 		    }
 	    }
 		
@@ -200,13 +200,13 @@ public class H2Connection implements Connection {
             filePath = filePath.replace("/", File.separator);
             
             File dbfFile = new File(filePath);
-            System.out.println("ahora intentando leer con DBF Reader... ! " + dbfFile);
+            //System.out.println("ahora intentando leer con DBF Reader... ! " + dbfFile);
             //Charset charset = Charset.forName(defaultCharset);
             try ( DBFReader reader = new DBFReader( new FileInputStream(filePath) )) {
-            	System.out.println("file path " + filePath + " - sepa " + File.separator);
+            	//System.out.println("file path " + filePath + " - sepa " + File.separator);
             	
                 String relativePath = filePath.substring(filePath.lastIndexOf(File.separator) + 1, filePath.length() - ".dbf".length());
-                System.out.println("table name " + relativePath);
+                //System.out.println("table name " + relativePath);
                 final Table table = new Table( relativePath);
                 //if ( !H2Loader.isFileTransferred( dbfFile, h2Connection )){
                     H2Loader.transferData( table, reader, h2Connection );

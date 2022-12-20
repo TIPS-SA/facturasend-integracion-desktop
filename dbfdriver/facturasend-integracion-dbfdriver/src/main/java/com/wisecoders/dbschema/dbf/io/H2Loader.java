@@ -82,7 +82,7 @@ public class H2Loader {
         for (int i = 0; i < numberOfFields; i++) {
 
             final DBFField field = reader.getField(i);
-            System.out.println("*** " + field.getName() +"->" + field.getSetFieldsFlag());
+            //System.out.println("*** " + field.getName() +"->" + field.getSetFieldsFlag());
             
             logSb.append( "\t").append( DBFUtil.getFieldDescription( field ) ).append(" \n");
             saveFieldInMetaTable(h2Connection, table, field);

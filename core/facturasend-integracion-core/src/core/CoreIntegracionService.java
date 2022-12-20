@@ -422,8 +422,10 @@ public class CoreIntegracionService {
 			Map<String, Object> datosPausar = new HashMap<String, Object>();
 			if (error != null) {
 				datosPausar.put("PAUSADO", 1);	//Si dio error (que no es null) debe pausar				
+				saveDataToFacturaSendTable(viewRec, datosPausar, databaseProperties);
 			}
-			saveDataToFacturaSendTable(viewRec, datosPausar, databaseProperties);
+//			saveDataToFacturaSendTable(viewRec, datosPausar, databaseProperties);
+
 		}
 	}
 	
@@ -1286,11 +1288,21 @@ public class CoreIntegracionService {
 			log.info("\n" + sqlUpdate + " ");
 			result = statement.executeUpdate();
 			log.info("result: " + result + "");
-			String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table." + tipoDE;
-			if (clasificador != null) {
-				prefix += "." + clasificador;
-			}
+			String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table.";
+			
 			String posUpdateSQL = databaseProperties.get(prefix + ".pos_update_sql");
+
+			if (posUpdateSQL == null) {
+				prefix += tipoDE;
+				
+				if (clasificador != null) {
+					prefix += "." + clasificador;
+				}
+				
+				posUpdateSQL = databaseProperties.get(prefix + ".pos_update_sql");
+			}
+
+			//String posUpdateSQL = databaseProperties.get(prefix + ".pos_update_sql");
 			if (posUpdateSQL != null) {
 				log.info("\n" + posUpdateSQL + " ");
 				PreparedStatement statement2 = conn.prepareStatement(posUpdateSQL);
