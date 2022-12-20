@@ -62,7 +62,58 @@ public class CoreIntegracionService {
 		//En el archivo de propiedades debe haber un key que defina si se va ejecutar infinito.
 		//o cada vez que se invoca
 		
-		iniciarIntegracion(1, databaseProperties);
+		
+		if (databaseProperties.get("facturaend.do_integrar_tipo_1").equalsIgnoreCase("Y")) {
+			iniciarIntegracion(1, databaseProperties);			
+		}
+		if (databaseProperties.get("facturaend.do_integrar_tipo_2").equalsIgnoreCase("Y")) {
+			iniciarIntegracion(2, databaseProperties);			
+		}
+		if (databaseProperties.get("facturaend.do_integrar_tipo_3").equalsIgnoreCase("Y")) {
+			iniciarIntegracion(3, databaseProperties);			
+		}
+		if (databaseProperties.get("facturaend.do_integrar_tipo_4").equalsIgnoreCase("Y")) {
+			iniciarIntegracion(4, databaseProperties);			
+		}
+		if (databaseProperties.get("facturaend.do_integrar_tipo_5").equalsIgnoreCase("Y")) {
+			iniciarIntegracion(5, databaseProperties);			
+		}
+		if (databaseProperties.get("facturaend.do_integrar_tipo_6").equalsIgnoreCase("Y")) {
+			iniciarIntegracion(6, databaseProperties);			
+		}
+		if (databaseProperties.get("facturaend.do_integrar_tipo_7").equalsIgnoreCase("Y")) {
+			iniciarIntegracion(7, databaseProperties);			
+		}
+		
+		if (databaseProperties.get("facturaend.do_obtener_estado_tipo_1").equalsIgnoreCase("Y")) {
+			setTimeout(() -> actualizarEstadoDesdeFacturaSend(1, databaseProperties), 1000);	//Ejecuta en un thread			
+		}
+		if (databaseProperties.get("facturaend.do_obtener_estado_tipo_2").equalsIgnoreCase("Y")) {
+			setTimeout(() -> actualizarEstadoDesdeFacturaSend(2, databaseProperties), 1000);	//Ejecuta en un thread			
+		}
+		if (databaseProperties.get("facturaend.do_obtener_estado_tipo_3").equalsIgnoreCase("Y")) {
+			setTimeout(() -> actualizarEstadoDesdeFacturaSend(3, databaseProperties), 1000);	//Ejecuta en un thread			
+		}
+		if (databaseProperties.get("facturaend.do_obtener_estado_tipo_4").equalsIgnoreCase("Y")) {
+			setTimeout(() -> actualizarEstadoDesdeFacturaSend(4, databaseProperties), 1000);	//Ejecuta en un thread			
+		}
+		if (databaseProperties.get("facturaend.do_obtener_estado_tipo_5").equalsIgnoreCase("Y")) {
+			setTimeout(() -> actualizarEstadoDesdeFacturaSend(5, databaseProperties), 1000);	//Ejecuta en un thread			
+		}
+		if (databaseProperties.get("facturaend.do_obtener_estado_tipo_6").equalsIgnoreCase("Y")) {
+			setTimeout(() -> actualizarEstadoDesdeFacturaSend(6, databaseProperties), 1000);	//Ejecuta en un thread			
+		}
+		if (databaseProperties.get("facturaend.do_obtener_estado_tipo_7").equalsIgnoreCase("Y")) {
+			setTimeout(() -> actualizarEstadoDesdeFacturaSend(7, databaseProperties), 1000);	//Ejecuta en un thread			
+		}
+		
+		
+		if (databaseProperties.get("facturaend.do_evento_cancelacion").equalsIgnoreCase("Y")) {
+			iniciarIntegracionCancelado(databaseProperties);	//Cancelacion para todos los tipos de documentos
+		}
+		if (databaseProperties.get("facturaend.do_evento_inutilizacion").equalsIgnoreCase("Y")) {
+			iniciarIntegracionInutilizacion(databaseProperties);  //Inutilizacion para todos los registros que se crearon, aun no se mandaron a la set y se quiere inutilizar
+		}
 		//iniciarIntegracion(4, databaseProperties);
 		//iniciarIntegracion(5, databaseProperties);
 		//iniciarIntegracion(6, databaseProperties);
