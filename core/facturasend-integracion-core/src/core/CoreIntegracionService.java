@@ -64,9 +64,9 @@ public class CoreIntegracionService {
 		
 		//iniciarIntegracion(1, databaseProperties);
 		//iniciarIntegracion(4, databaseProperties);
-		iniciarIntegracion(5, databaseProperties);
+//		iniciarIntegracion(5, databaseProperties);
 		//iniciarIntegracion(6, databaseProperties);
-		//iniciarIntegracion(7, databaseProperties);
+		iniciarIntegracion(7, databaseProperties);
 //		iniciarIntegracionCancelado(databaseProperties);	//Cancelacion para todos los tipos de documentos
 //		iniciarIntegracionInutilizacion(databaseProperties);  //Inutilizacion para todos los registros que se crearon, aun no se mandaron a la set y se quiere inutilizar
 		
@@ -1264,7 +1264,6 @@ public class CoreIntegracionService {
 					} else {
 						//Toma los valores del view-principal, dependiendo de las claves que estan en el config.
 						statement.setObject(f++, CoreService.getValueForKey(viewPrincipal, e.getValue()+""));
-						System.out.println("ALGO\n"+CoreService.getValueForKey(viewPrincipal, e.getValue()+""));
 					}
 				}
 			}
