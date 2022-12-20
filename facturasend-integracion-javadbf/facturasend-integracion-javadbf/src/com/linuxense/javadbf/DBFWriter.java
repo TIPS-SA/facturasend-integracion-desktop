@@ -159,8 +159,8 @@ public class DBFWriter extends DBFBase implements java.io.Closeable {
 			// to ignore the END_OF_DATA byte at EoF
 			// only if there are records,
 			
-			System.out.println("Tamaño de la cabecera del archivo " + header.headerLength);
-			System.out.println("Tamaño del raf " + this.raf.length());
+			//System.out.println("Tamaño de la cabecera del archivo " + header.headerLength);
+			//System.out.println("Tamaño del raf " + this.raf.length());
 			
 			
 			/*if (this.raf.length() > header.headerLength) {

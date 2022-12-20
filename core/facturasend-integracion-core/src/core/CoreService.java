@@ -174,7 +174,7 @@ public class CoreService {
 			
 			String sql = getSQLTransaccionesItem(databaseProperties, transaccionId, tipoDocumento, page, size);
 			
-			log.info("\n" + sql + " ");
+			log.debug("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> listadoTransaccionesItem = SQLUtil.convertResultSetToList(rs);
@@ -271,7 +271,7 @@ public class CoreService {
 		Statement statement = conn.createStatement();
 		
 		String sql = formasPagosSQLByTransaccion(databaseProperties, tipoDocumento, transaccionId);
-		log.info("\n" + sql + " ");
+		log.debug("\n" + sql + " ");
 		ResultSet rs = statement.executeQuery(sql);
 		
 		result = SQLUtil.convertResultSetToList(rs);

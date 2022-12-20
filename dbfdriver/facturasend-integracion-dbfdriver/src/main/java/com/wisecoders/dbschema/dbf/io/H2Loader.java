@@ -82,7 +82,9 @@ public class H2Loader {
         for (int i = 0; i < numberOfFields; i++) {
 
             final DBFField field = reader.getField(i);
-            logSb.append( "\t").append( DBFUtil.getFieldDescription( field )).append(" \n");
+            //System.out.println("*** " + field.getName() +"->" + field.getSetFieldsFlag());
+            
+            logSb.append( "\t").append( DBFUtil.getFieldDescription( field ) ).append(" \n");
             saveFieldInMetaTable(h2Connection, table, field);
             dbfFieldList.add(field);
             if (appendComma) {
@@ -93,7 +95,7 @@ public class H2Loader {
             createSb.append("\t").append(QUOTE_CHAR).append(field.getName().toLowerCase()).append(QUOTE_CHAR).append(" ");
             insertSb.append(QUOTE_CHAR).append(field.getName().toLowerCase()).append(QUOTE_CHAR);
             insertValuesSb.append("?");
-            createSb.append( DataTypeUtil.getH2Type( field));
+            createSb.append( DataTypeUtil.getH2Type( field ));
             appendComma = true;
         }
         createSb.append(")");
@@ -251,10 +253,20 @@ public class H2Loader {
                 for (int i = 0; i < record.length && i < dbfFieldList.size(); i++) {
                     Object value = record[i];
                     DBFField field = dbfFieldList.get(i);
+                    
+                    /*if (field.getName().equalsIgnoreCase("clasific")) {
+                    	System.out.println(field + "-" + value + "-");
+                    }
+                    */
+                    
                     if (value == null) {
                         stInsert.setNull(i + 1, DataTypeUtil.getJavaType(field));
                     } else {
-                    	if (field.getType().equals(DBFDataType.CHARACTER) || field.getType().equals(DBFDataType.VARCHAR) ) {
+                        if ((field.getType().equals(DBFDataType.CHARACTER) || field.getType().equals(DBFDataType.VARCHAR)) &&
+                        		(value+"").trim().equalsIgnoreCase(".null.")) {
+                        	stInsert.setNull(i + 1, DataTypeUtil.getJavaType(field));
+                        	
+                        } else if (field.getType().equals(DBFDataType.CHARACTER) || field.getType().equals(DBFDataType.VARCHAR) ) {
                     		stInsert.setObject(i + 1, value.toString().trim());
                     	} else {
                     		stInsert.setObject(i + 1, value);	

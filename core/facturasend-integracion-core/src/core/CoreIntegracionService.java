@@ -62,11 +62,11 @@ public class CoreIntegracionService {
 		//En el archivo de propiedades debe haber un key que defina si se va ejecutar infinito.
 		//o cada vez que se invoca
 		
-		//iniciarIntegracion(1, databaseProperties);
+		iniciarIntegracion(1, databaseProperties);
 		//iniciarIntegracion(4, databaseProperties);
-//		iniciarIntegracion(5, databaseProperties);
+		//iniciarIntegracion(5, databaseProperties);
 		//iniciarIntegracion(6, databaseProperties);
-		iniciarIntegracion(7, databaseProperties);
+		//iniciarIntegracion(7, databaseProperties);
 //		iniciarIntegracionCancelado(databaseProperties);	//Cancelacion para todos los tipos de documentos
 //		iniciarIntegracionInutilizacion(databaseProperties);  //Inutilizacion para todos los registros que se crearon, aun no se mandaron a la set y se quiere inutilizar
 		
@@ -276,7 +276,7 @@ public class CoreIntegracionService {
 							}
 							String sql = "save '" + dbfTableName + "' to '" + databaseProperties.get("database.dbf.parent_folder") + "'";
 							//+ "\\saved' ";
-							log.info("\n" + sql + " ");
+							log.debug("\n" + sql + " ");
 							//PreparedStatement statement = conn.prepareStatement(sql);
 							Statement statement = conn.createStatement();
 							boolean ejecutado = statement.execute(sql);
@@ -422,8 +422,10 @@ public class CoreIntegracionService {
 			Map<String, Object> datosPausar = new HashMap<String, Object>();
 			if (error != null) {
 				datosPausar.put("PAUSADO", 1);	//Si dio error (que no es null) debe pausar				
+				saveDataToFacturaSendTable(viewRec, datosPausar, databaseProperties);
 			}
-			saveDataToFacturaSendTable(viewRec, datosPausar, databaseProperties);
+//			saveDataToFacturaSendTable(viewRec, datosPausar, databaseProperties);
+
 		}
 	}
 	
@@ -500,7 +502,7 @@ public class CoreIntegracionService {
 			if (poseeWhere) {
 				//log.info("Comando a ejecutar para actualizar la BD " + sql);
 
-				log.info("\n" + sql + " ");
+				log.debug("\n" + sql + " ");
 				PreparedStatement statement = conn.prepareStatement(sql);
 
 				ResultSet rs = statement.executeQuery();
@@ -622,7 +624,7 @@ public class CoreIntegracionService {
 					statusPauedSize = Integer.valueOf(databaseProperties.get(prefixSize) + "");
 				}
 
-				log.info("\n" + sql + " ");
+				log.debug("\n" + sql + " ");
 				PreparedStatement statement = conn.prepareStatement(sql);
 				
 				//SET Params Value
@@ -994,13 +996,18 @@ public class CoreIntegracionService {
 	}
 
 	/**
+	 * Borra los registros de la tabla FacturaSend Data, relacionada con la Transaccion, para 
+	 * que pueda posteriormente recibir datos actualizados.
 	 * 
+	 * Debe especifiarse en "inNames", las Keys de la tabla, que deberán eliminarse
+	 *  
 	 * @param de		Map conteniendo el 
 	 * 					transaccion_id|tra_id, 
 	 * 					tipo_documento|tip_doc
 	 * 					clasific (opcional)
 	 * @param error
 	 * @param databaseProperties
+	 * @param inNames	Clausula IN con las names que deberán eliminarse, ej.: "('ERROR', 'CDC')"
 	 * @return
 	 */
 	public static Integer deleteFacturaSendTableByTransaccionId(Map<String, Object> de, Map<String, String> databaseProperties, String inNames) throws Exception{
@@ -1031,7 +1038,7 @@ public class CoreIntegracionService {
 		
 		//---
 		String tableToDelete = databaseProperties.get(prefixForTable);
-		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table" + ((databaseProperties.get("database.type").equals("dbf"))?"":"."+tipoDE);
+		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table" + ((databaseProperties.get("database.type").equals("dbf")) ? "" : "." + tipoDE);
 		if (clasificador != null) {
 			prefix += "." + clasificador;
 		}
@@ -1064,7 +1071,7 @@ public class CoreIntegracionService {
 		sql += "AND " + transaccionIdForeignKeyField + " = " + CoreService.getValueForKey(de, "transaccion_id", "tra_id") + " "
 			+ "AND TRIM(UPPER(" + tableToUpdateKey + ")) IN " + inNames;
 
-		log.info("\n" + sql + " ");
+		log.debug("\n" + sql + " ");
 		PreparedStatement statement = conn.prepareStatement(sql);
 
 		result = statement.executeUpdate();
@@ -1096,7 +1103,7 @@ public class CoreIntegracionService {
 			// Borrar tabla, opcional
 			if (false) {
 				String sql = "DROP TABLE " + tableToCreate + " ";
-				log.info("\n" + sql + " ");
+				log.debug("\n" + sql + " ");
 				statement = conn.prepareStatement(sql);
 				int dropTableResult = statement.executeUpdate();
 				
@@ -1264,6 +1271,7 @@ public class CoreIntegracionService {
 					} else {
 						//Toma los valores del view-principal, dependiendo de las claves que estan en el config.
 						statement.setObject(f++, CoreService.getValueForKey(viewPrincipal, e.getValue()+""));
+						System.out.println("ALGO\n"+CoreService.getValueForKey(viewPrincipal, e.getValue()+""));
 					}
 				}
 			}
@@ -1280,11 +1288,21 @@ public class CoreIntegracionService {
 			log.info("\n" + sqlUpdate + " ");
 			result = statement.executeUpdate();
 			log.info("result: " + result + "");
-			String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table." + tipoDE;
-			if (clasificador != null) {
-				prefix += "." + clasificador;
-			}
+			String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table.";
+			
 			String posUpdateSQL = databaseProperties.get(prefix + ".pos_update_sql");
+
+			if (posUpdateSQL == null) {
+				prefix += tipoDE;
+				
+				if (clasificador != null) {
+					prefix += "." + clasificador;
+				}
+				
+				posUpdateSQL = databaseProperties.get(prefix + ".pos_update_sql");
+			}
+
+			//String posUpdateSQL = databaseProperties.get(prefix + ".pos_update_sql");
 			if (posUpdateSQL != null) {
 				log.info("\n" + posUpdateSQL + " ");
 				PreparedStatement statement2 = conn.prepareStatement(posUpdateSQL);
@@ -1524,7 +1542,7 @@ public class CoreIntegracionService {
 				sql = CoreService.getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
 			}
 
-			log.info("\n" + sql + " ");
+			log.debug("\n" + sql + " ");
 
 			ResultSet rs = statement.executeQuery(sql);
 			
@@ -1623,7 +1641,7 @@ public class CoreIntegracionService {
 			
 			String sql = obtenerRegistrosAprobadosACancelarSQL(databaseProperties);
 
-			log.info("\n" + sql + " ");
+			log.debug("\n" + sql + " ");
 
 			ResultSet rs = statement.executeQuery(sql);
 			
@@ -1810,7 +1828,7 @@ public class CoreIntegracionService {
 //				sql = CoreService.getPostgreSQLPaginado(sql, 1, rowsLoteRequest);
 //			}
 
-			log.info("\n" + sql + " ");
+			log.debug("\n" + sql + " ");
 
 			ResultSet rs = statement.executeQuery(sql);
 			
@@ -1985,7 +2003,7 @@ public class CoreIntegracionService {
 		
 		String sql = obtenerCDCsConEstadoGeneradoSQL(databaseProperties, tipoDocumento, clasific);
 
-		log.info("\n" + sql + " ");
+		log.debug("\n" + sql + " ");
 
 		ResultSet rs = statement.executeQuery(sql);
 		
@@ -2012,7 +2030,7 @@ public class CoreIntegracionService {
 		
 		String sql = obtenerEstadosPorTransaccionesIdSQL(databaseProperties, tipoDocumento, transaccionesId, clasific);
 
-		log.info("\n" + sql + " ");
+		log.debug("\n" + sql + " ");
 
 		ResultSet rs = statement.executeQuery(sql);
 		
@@ -2271,15 +2289,15 @@ public class CoreIntegracionService {
 			
 			String sql = obtenerTransaccionesSQLParaEnvioLote(databaseProperties, transaccionIdString);
 			
-			log.info("\n" + sql + " ");
+			log.debug("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
-			List<Map<String, Object>> transacionesParaEnvioLote = SQLUtil.convertResultSetToList(rs);
+			List<Map<String, Object>> transaccionesParaEnvioLote = SQLUtil.convertResultSetToList(rs);
 			
-			log.info("transacionesParaEnvioLote: " + transacionesParaEnvioLote);
+			log.info("transaccionesParaEnvioLote.size: " + transaccionesParaEnvioLote.size());
 			
 			result.put("success", true);
-			result.put("result", transacionesParaEnvioLote);
+			result.put("result", transaccionesParaEnvioLote);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2325,18 +2343,18 @@ public class CoreIntegracionService {
 	
 	public static List<Map<String, Object>> formasPagosByTransaccion(Integer tipoDocumento, String transaccionIdString, Map<String, String> databaseProperties) throws Exception{
 		
-		List<Map<String, Object>> result = new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> formasPagoByTransacction = new ArrayList<Map<String,Object>>();
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
 				
 		Statement statement = conn.createStatement();
 		
 		String sql = formasPagosSQLByTransaccion(databaseProperties, tipoDocumento, transaccionIdString);
-		log.info("\n" + sql + " ");
+		log.debug("\n" + sql + " ");
 		ResultSet rs = statement.executeQuery(sql);
 		
-		result = SQLUtil.convertResultSetToList(rs);
-		log.info("result: " + result);
-		return result;
+		formasPagoByTransacction = SQLUtil.convertResultSetToList(rs);
+		log.info("formasPagoByTransacction.size: " + formasPagoByTransacction.size());
+		return formasPagoByTransacction;
 	}
 			
 	private static String formasPagosSQLByTransaccion(Map<String, String> databaseProperties, Integer tipoDocumento, String transaccionIdString) {
