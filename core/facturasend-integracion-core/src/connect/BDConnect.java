@@ -3,7 +3,7 @@ package connect;
 import java.util.Map;
 
 public class BDConnect {
-	private String tipo;	//mysql, derby, oracle, postgres, sqlserver, dbf
+	private String tipo;	//mysql, derby, oracle, postgres, sqlserver, dbf 
 	private String host;
 	private Integer port;
 	private String database;
