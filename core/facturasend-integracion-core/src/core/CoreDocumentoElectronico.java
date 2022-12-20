@@ -129,6 +129,7 @@ public class CoreDocumentoElectronico {
 
 			dataMap.put("condicionTipoCambio", CoreService.getValueForKey(transaccionCabecera,"tipo_cambio","tip_cam"));			
 			dataMap.put("cambio", CoreService.getValueForKey(transaccionCabecera,"cambio"));
+			dataMap.put("format", CoreService.getValueForKey(transaccionCabecera,"format"));
 			
 			// Cliente
 			Map<String, Object> cliente = new HashMap<String, Object>();

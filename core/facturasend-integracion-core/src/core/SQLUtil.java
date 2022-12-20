@@ -105,7 +105,7 @@ public class SQLUtil {
 		Integer total = 0;
 		try {
 			String sqlCount = "SELECT COUNT(*) FROM (" + sql + ")";
-			log.info(sqlCount);
+			log.debug(sqlCount);
 			ResultSet rs = statement.executeQuery(sqlCount);
 			
 			rs.next();

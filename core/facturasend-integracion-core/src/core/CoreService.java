@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.h2.jdbc.JdbcSQLSyntaxErrorException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -42,6 +43,31 @@ public class CoreService {
 			
 			String sql = getSQLTransaccionesList(databaseProperties, q, tipoDocumento, page, size, incluirInutilizados);
 			
+			//if ( ! databaseProperties.get("database.type").equals("dbf")) {
+				//Si es DBF el count va realizar despues
+				//result.put("count", SQLUtil.getCountFromSQL(statement, sql));
+			//}
+
+
+			
+			if (databaseProperties.get("database.type").equals("dbf")) {
+				/*if (inverso) {
+					//Agrega el orden inverso, que seria sin utilizar el DESC
+					sql += "ORDER BY estable, punto, numero";
+				}*/
+				log.info("\nReload ");
+				Statement st = conn.createStatement();
+				st.execute("reload '" + databaseProperties.get("database.dbf.parent_folder") + "/" + databaseProperties.get("database.dbf.transaccion_table") + "'");
+
+				//Despues de la Carga consulta la Cantidad
+
+			//} else {
+				/*if (inverso) {
+					//Agrega el orden inverso, que seria sin utilizar el DESC
+					sql += "ORDER BY establecimiento, punto, numero";
+				}*/
+			}
+
 			result.put("count", SQLUtil.getCountFromSQL(statement, sql)); 
 
 			//sql = getSQLListDesPaginado(databaseProperties, sql, q, page, size);
@@ -53,32 +79,28 @@ public class CoreService {
 				sql = getPostgreSQLPaginado(sql, page, size);
 			}
 			
-			if (databaseProperties.get("database.type").equals("dbf")) {
-				if (inverso) {
-					//Agrega el orden inverso, que seria sin utilizar el DESC
+			if (inverso) {
+				//Agrega el orden inverso, que seria sin utilizar el DESC
+				if (databaseProperties.get("database.type").equals("dbf")) {
 					sql += "ORDER BY estable, punto, numero";
-				}
-				log.info("\nReload ");
-				Statement st = conn.createStatement();
-				st.execute("reload '" + databaseProperties.get("database.dbf.parent_folder") + "/" + databaseProperties.get("database.dbf.transaccion_table") + "'");
-			} else {
-				if (inverso) {
-					//Agrega el orden inverso, que seria sin utilizar el DESC
+				} else {
 					sql += "ORDER BY establecimiento, punto, numero";
 				}
 			}
 			
-			log.info("\n" + sql + " ");
+			log.debug("\n" + sql + " ");
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> transaccionesList = SQLUtil.convertResultSetToList(rs);
 			
-			log.info("transaccionesList: " + transaccionesList + " ");
+			log.info("transaccionesList.size: " + transaccionesList.size() + " ");
+			log.debug("transaccionesList: " + transaccionesList + " ");
 			result.put("success", true);
 			result.put("result", transaccionesList);
-			
+
 		} catch (Exception e) {
-			log.info("Error 1 " + e); 
+			//log.error(e); 	//Mejor asi, solo que no esta mostrando.
+			e.printStackTrace();
 			result.put("success", false);
 			result.put("error", e.getMessage());
 			
@@ -89,14 +111,15 @@ public class CoreService {
 	private static String getSQLTransaccionesList(Map<String, String> databaseProperties, String q, Integer tipoDocumento, Integer page, Integer size, boolean incluirInutilizados) {
 		String tableName = databaseProperties.get("database." + databaseProperties.get("database.type") + ".transaction_table_read");
 		
-		String filtroInutilizado = "AND (evento IS NULL OR evento = 'Cancelar' )";
+		//String filtroInutilizado = " ";
+		String filtroInutilizado = "AND (evento IS NULL OR TRIM(evento) = '' OR evento = 'Cancelar' ) \n";
 		/*if (!incluirInutilizados) {
 			filtroInutilizado += "AND evento != 'Inutilizar' ";
 		}
 		filtroInutilizado += ") ";**/
 		
 		String sql = "";
-		if (!databaseProperties.get("database.type").equals("dbf")) {
+		if ( ! databaseProperties.get("database.type").equals("dbf")) {
 			sql = "SELECT transaccion_id, tipo_documento, descripcion, observacion, fecha, moneda, \n"
 				+ "cliente_contribuyente, cliente_ruc, cliente_documento_numero, cliente_razon_social, \n"
 				+ "establecimiento, punto, numero, serie, total, cdc, estado, error, pausado, clasific \n"
@@ -128,7 +151,7 @@ public class CoreService {
 			
 			sql = "SELECT tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
 					+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
-					+ "estable, punto, numero, serie, total, evento \n";
+					+ "estable, punto, numero, serie, total, evento, \n";
 			
 			if (obtenerCdcEstadoPausadoPorSubSelect) {
 				sql += "(SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) AS cdc, \n"
@@ -153,7 +176,7 @@ public class CoreService {
 				+ "GROUP BY tra_id, tip_doc, descrip, observa, fecha, moneda, \n"
 				+ "c_contribu, c_ruc, c_doc_num, c_raz_soc, \n"
 				+ "estable, punto, numero, serie, total, cdc, estado, error, pausado, evento \n"
-				+ "ORDER BY estable DESC ,punto DESC, numero DESC \n"; 
+				+ "ORDER BY estable DESC, punto DESC, numero DESC \n"; 
 
 			
 		}
@@ -335,7 +358,9 @@ public class CoreService {
 	public static String getPostgreSQLPaginado(String sql, Integer page, Integer size) {
 		
 		//Paginacion Oracle
+		//sql += " LIMIT " + size + " OFFSET " + (page == 1 ? (page-1) : ((((page-1) * size) + 1))-1) + " \n";
 		sql += " LIMIT " + size + " OFFSET " + (page == 1 ? (page-1) : ((((page-1) * size) + 1))-1) + " \n";
+		sql = "SELECT * FROM (" + sql + ") ";
 		return sql;
 	}
 

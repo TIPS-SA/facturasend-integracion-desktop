@@ -156,7 +156,7 @@ public class FacturasendService {
 					infoDoc = (String)CoreService.getValueForKey(rs.get(i), "cliente_documento_numero", "c_doc_num");
 				}
 				
-				registro[2] = infoDoc + "-" + CoreService.getValueForKey(rs.get(i), "cliente_razon_social", "c_raz_soc");
+				registro[2] = infoDoc.trim() + "-" + CoreService.getValueForKey(rs.get(i), "cliente_razon_social", "c_raz_soc");
 				registro[3] = StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "establecimiento", "estable")+"", 3)  + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "punto")+"", 3) + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "numero")+"", 7);
 				registro[4] = moneda;
 				registro[5] = df.format(total);
