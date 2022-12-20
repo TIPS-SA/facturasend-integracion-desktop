@@ -84,7 +84,8 @@ public class CoreDocumentoElectronico {
 	public static Map<String, Object> invocarDocumentoElectronicoDesdeView(List<Map<String, Object>> transaccionMap, List<Map<String, Object>> paymentViewMap, Map<String, String> databaseProperties) throws Exception{
 		Map<String, Object> dataMap = new HashMap<String, Object>();
 
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		SimpleDateFormat sdfYyyyMMddHHmmss = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		SimpleDateFormat sdfYyyyMMdd = new SimpleDateFormat("yyyy-MM-dd");
 		if (transaccionMap != null && transaccionMap.size() > 0) {
 			
 			Map<String, Object> transaccionCabecera = transaccionMap.get(0);
@@ -111,7 +112,7 @@ public class CoreDocumentoElectronico {
 			}
 
 			if ( CoreService.getValueForKey(transaccionCabecera,"fecha") instanceof Date) {
-				dataMap.put("fecha", sdf.format((Date) CoreService.getValueForKey(transaccionCabecera,"fecha")) );
+				dataMap.put("fecha", sdfYyyyMMddHHmmss.format((Date) CoreService.getValueForKey(transaccionCabecera,"fecha")) );
 			} else {
 				dataMap.put("fecha", CoreService.getValueForKey(transaccionCabecera,"fecha") );
 			}
@@ -291,6 +292,7 @@ public class CoreDocumentoElectronico {
 				dataMapProducto.put("ivaBase", CoreService.getValueForKey(transaccionItems,"item_iva_base","i_iva_bas"));
 				dataMapProducto.put("iva", CoreService.getValueForKey(transaccionItems,"item_iva","i_iva"));
 				dataMapProducto.put("lote", CoreService.getValueForKey(transaccionItems,"item_lote","i_lote"));
+				dataMapProducto.put("tolerancia", CoreService.getValueForKey(transaccionItems,"item_tolerancia","i_tol"));
 				
 				dataMapProducto.put("vencimiento", CoreService.getValueForKey(transaccionItems,"item_vencimiento","i_venci"));
 				dataMapProducto.put("numeroSerie", CoreService.getValueForKey(transaccionItems,"item_numero_serie","i_num_ser"));
@@ -388,6 +390,19 @@ public class CoreDocumentoElectronico {
 			Map<String, Object> transporteMap = new HashMap<String, Object>();
 			transporteMap.put("tipo", CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip"));
 			transporteMap.put("modalidad", CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod"));
+			transporteMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"tra_nombre","t_nom"));
+			if ( CoreService.getValueForKey(transaccionCabecera,"tra_fecha_inicio", "t_f_ini") instanceof Date) {
+				transporteMap.put("inicioEstimadoTranslado", sdfYyyyMMdd.format((Date) CoreService.getValueForKey(transaccionCabecera, "tra_fecha_inicio","t_f_ini")));
+			} else {
+				dataMap.put("inicioEstimadoTranslado", CoreService.getValueForKey(transaccionCabecera, "tra_fecha_inicio", "t_f_ini") );
+			}
+			if ( CoreService.getValueForKey(transaccionCabecera,"tra_fecha_fin", "t_f_fin") instanceof Date) {
+				transporteMap.put("finEstimadoTranslado", sdfYyyyMMdd.format((Date) CoreService.getValueForKey(transaccionCabecera, "tra_fecha_fin","t_f_fin")));
+			} else {
+				dataMap.put("finEstimadoTranslado", CoreService.getValueForKey(transaccionCabecera, "tra_fecha_fin", "t_f_fin") );
+			}
+			//transporteMap.put("inicioEstimadoTranslado", sdf.format((Date) CoreService.getValueForKey(transaccionCabecera,"tra_fecha_inicio","t_f_ini")));
+			//transporteMap.put("finEstimadoTranslado", sdf.format((Date) CoreService.getValueForKey(transaccionCabecera,"tra_fecha_fin","t_f_fin")));
 			transporteMap.put("tipoResponsable", CoreService.getValueForKey(transaccionCabecera,"tra_tipo_responsable","t_tip_res"));
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_condicion_negociacion","t_con_neg") != null) {
 				transporteMap.put("condicionNegociacion", CoreService.getValueForKey(transaccionCabecera,"tra_condicion_negociacion","t_con_neg").toString().trim());
@@ -477,7 +492,7 @@ public class CoreDocumentoElectronico {
 			
 			
 			Map<String, Object> transporteTransportistaMap = new HashMap<String, Object>();
-			transporteTransportistaMap.put("contribuyente", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_contribuyente","t_t_con"));
+			transporteTransportistaMap.put("contribuyente", Boolean.valueOf(CoreService.getValueForKey(transaccionCabecera,"tra_transpor_contribuyente","t_t_con") +""));
 			if (CoreService.getValueForKey(transaccionCabecera,"tra_transpor_nombre","t_t_nom")!= null) {
 				transporteTransportistaMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"tra_transpor_nombre","t_t_nom").toString().trim());
 			}

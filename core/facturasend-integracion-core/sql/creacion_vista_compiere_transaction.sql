@@ -193,6 +193,7 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
 		END
 	END 														AS item_iva,
 	NULL  														AS item_lote,
+    NULL															AS item_tolerancia,
 	NULL  														AS item_vencimiento,
 	NULL  														AS item_numero_serie,
 	NULL  														AS item_numero_pedido,
@@ -219,11 +220,14 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
 	-- Datos de Transporte
 	--
 	NULL 														AS tra_tipo,
+    NULL												AS tra_nombre,
+	NULL												AS tra_fecha_inicio,
+	NULL												AS tra_fecha_fin,
 	NULL 														AS tra_modalidad,
 	NULL 														AS tra_tipo_responsable,
 	NULL 														AS tra_condicion_negociacion,
 	NULL 														AS tra_sali_direccion,
-	NULL 														AS tra_sali_numero_casa,
+	'1' 														AS tra_sali_numero_casa,
 	NULL 														AS tra_sali_comple_direccion1,
 	NULL 														AS tra_sali_comple_direccion2,
 	NULL 														AS tra_sali_departamento,
@@ -507,6 +511,7 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
 		END
 	END 														AS item_iva,
 	NULL  														AS item_lote,
+    NULL															AS item_tolerancia,
 	NULL  														AS item_vencimiento,
 	NULL  														AS item_numero_serie,
 	NULL  														AS item_numero_pedido,
@@ -573,11 +578,14 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
 	-- Datos de Transporte
 	--
 	NULL 														AS tra_tipo,
+    NULL												AS tra_nombre,
+	NULL												AS tra_fecha_inicio,
+	NULL												AS tra_fecha_fin,
 	NULL 														AS tra_modalidad,
 	NULL 														AS tra_tipo_responsable,
 	NULL 														AS tra_condicion_negociacion,
 	NULL 														AS tra_sali_direccion,
-	NULL 														AS tra_sali_numero_casa,
+	'1'	 														AS tra_sali_numero_casa,
 	NULL 														AS tra_sali_comple_direccion1,
 	NULL 														AS tra_sali_comple_direccion2,
 	NULL 														AS tra_sali_departamento,
@@ -704,15 +712,16 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
     7                                                           AS tipo_documento,
    	'mio'														AS clasific,
 
-	SUBSTR(ci.DOCUMENTNO, 10,3)		 							AS establecimiento,
-	SUBSTR(ci.DOCUMENTNO, 14,3)									AS punto,
-	SUBSTR(ci.DOCUMENTNO, 18,7)									AS numero,
-	SUBSTR(ci.DOCUMENTNO, 0,8)									AS timbrado,
-	SUBSTR(ci.DOCUMENTNO, 10,15)								AS numero_factura,
+	SUBSTR(mi.DOCUMENTNO, 10,3)		 							AS establecimiento,
+	SUBSTR(mi.DOCUMENTNO, 14,3)									AS punto,
+	SUBSTR(mi.DOCUMENTNO, 18,7)									AS numero,
+	SUBSTR(mi.DOCUMENTNO, 0,8)									AS timbrado,
+	SUBSTR(mi.DOCUMENTNO, 10,15)								AS numero_factura,
 
     NULL                                                        AS serie,
-    NULL                                                        AS descripcion,
-    mi.description                                              AS observacion,
+--    mi.description                                              AS descripcion,
+    'Shipment nro : '||mi.M_INOUT_ID							AS descripcion,
+    NULL			                                            AS observacion,
     mi.MOVEMENTDATE	                                            AS fecha,
 --    CAST(TRANSLATE('2022-11-29T00:00:00' USING nchar_cs) AS VARCHAR(19)) AS fecha,
     1                                                           AS tipo_emision,    -- 1=Normal
@@ -735,7 +744,11 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
     CAST(cb.TAXID AS VARCHAR(20))                               AS cliente_ruc,
     cb.NAME                                                     AS cliente_razon_social,
     cb.NAME                                                     AS cliente_nombre_fantasia,
-    NULL                                                        AS cliente_tipo_operacion, --1= B2B, 2= B2C, 3= B2G, 4= B2F
+    CASE WHEN ((cb.TAXID IS NULL OR cb.TAXID = '') OR (cb.MOLI_BPARTNERTYPE IS NOT NULL AND cb.MOLI_BPARTNERTYPE = 'F')) THEN
+		2
+	ELSE
+		1
+	END                                                        AS cliente_tipo_operacion, --1= B2B, 2= B2C, 3= B2G, 4= B2F
 
     cbl.NAME                                                    AS cliente_direccion,
     '0'
@@ -792,8 +805,9 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
     -- Datos de la Nota de Remision
     --
     1                                                           AS nota_remision_motivo,
-    NULL                                                        AS nota_remision_tipo_responsable,
-    mi.MOLI_DISTANCIA                                           AS nota_remision_kms,
+    1	                                                        AS nota_remision_tipo_responsable,
+    --mi.MOLI_DISTANCIA                                           AS nota_remision_kms,
+    mi.MOLI_DISTANCIA												AS nota_remision_kms,
     ci.DATEINVOICED                                             AS nota_remision_fecha_factura,
     NULL                                                        AS nota_remision_costo_flete,
 
@@ -858,6 +872,7 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
         END
     END                                                         AS item_iva,
     NULL                                                        AS item_lote,
+    NULL															AS item_tolerancia,
     NULL                                                        AS item_vencimiento,
     NULL                                                        AS item_numero_serie,
     NULL                                                        AS item_numero_pedido,
@@ -867,18 +882,53 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
     -- Datos de Documento Asociado
     --
 
-    CASE WHEN mi.MOLI_CDC IS NULL THEN
-        2
-    ELSE 
-        1
-    END                                                         AS doc_aso_formato,
-    ci.MOLI_CDC                                                 AS doc_aso_cdc,
-    1                                                           AS doc_aso_tipo_documento_impreso,
-    NULL                                                        AS doc_aso_timbrado,
-    NULL                                                        AS doc_aso_establecimiento,
-    NULL                                                        AS doc_aso_punto,
-    NULL                                                        AS doc_aso_numero,
-    NULL                                                        AS doc_aso_fecha,
+    CASE WHEN (cd_asociado.name = 'AR Factura Electronica' OR cd_asociado.name = 'AR Nota Crédito Electrónica') THEN 
+		1
+	ELSE 
+		2
+	END 													AS doc_aso_formato,
+	
+	CASE WHEN (cd_asociado.name = 'AR Factura Electronica' OR cd_asociado.name = 'AR Nota Crédito Electrónica') THEN 
+		ci.moli_cdc
+	ELSE 
+		NULL 
+	END  														AS doc_aso_cdc,
+	
+	CASE WHEN (cd_asociado.name = 'AR Factura Electronica' OR cd_asociado.name = 'AR Nota Crédito Electrónica') THEN 
+		NULL
+	ELSE 
+		2 
+	END  														AS doc_aso_tipo_documento_impreso,
+	
+	CASE WHEN (cd_asociado.name = 'AR Factura Electronica' OR cd_asociado.name = 'AR Nota Crédito Electrónica') THEN 
+		NULL
+	ELSE 
+		 NULL--ci.timbrado
+	END															AS doc_aso_timbrado,
+	
+	CASE WHEN (cd_asociado.name = 'AR Factura Electronica' OR cd_asociado.name = 'AR Nota Crédito Electrónica') THEN 
+		NULL
+	ELSE 
+		SUBSTR(ci.DOCUMENTNO, 10,3) 
+	END 														AS doc_aso_establecimiento,
+	
+	CASE WHEN (cd_asociado.name = 'AR Factura Electronica' OR cd_asociado.name = 'AR Nota Crédito Electrónica') THEN 
+		NULL
+	ELSE 
+		SUBSTR(ci.DOCUMENTNO, 14,3) 
+	END 														AS doc_aso_punto,
+	
+	CASE WHEN (cd_asociado.name = 'AR Factura Electronica' OR cd_asociado.name = 'AR Nota Crédito Electrónica') THEN 
+		NULL
+	ELSE 
+		SUBSTR(ci.DOCUMENTNO, 18,7) 
+	END  														AS doc_aso_numero,
+	
+	CASE WHEN (cd_asociado.name = 'AR Factura Electronica' OR cd_asociado.name = 'AR Nota Crédito Electrónica') THEN 
+		NULL
+	ELSE 
+		ci.DATEINVOICED 
+	END  														AS doc_aso_fecha,
     NULL                                                        AS doc_aso_numero_retencion,
     NULL                                                        AS doc_aso_reso_credito_fiscal,
     NULL                                                        AS doc_aso_constancia_tipo,
@@ -893,22 +943,28 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
     ELSE 
         1
     END                                                         AS tra_tipo,
+    mi.DRIVERNAME												AS tra_nombre,
+	mi.MOVEMENTDATE												AS tra_fecha_inicio,
+	mi.MOVEMENTDATE												AS tra_fecha_fin,
     1                                                           AS tra_modalidad,
     NULL                                                        AS tra_tipo_responsable,
     'CFR'                                                       AS tra_condicion_negociacion,
     (SELECT cl1.ADDRESS1 FROM C_LOCATION cl1 
         WHERE cl1.C_LOCATION_ID = mw.C_LOCATION_ID  )           AS tra_sali_direccion,
-    0                                                           AS tra_sali_numero_casa,
+    '1'                                                           AS tra_sali_numero_casa,
     NULL                                                        AS tra_sali_comple_direccion1,
     NULL                                                        AS tra_sali_comple_direccion2,
-    (SELECT mg.MOLI_GEOREFCODE_DEPARTMENTKEY  
-    FROM MOLI_GEOREFCODE mg 
-    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)        AS tra_sali_departamento,
-    (SELECT mg.MOLI_GEOREFCODE_SECTIONKEY  
-    FROM MOLI_GEOREFCODE mg 
-    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)        AS tra_sali_distrito,
-     (SELECT mg.VALUE FROM MOLI_GEOREFCODE mg 
-    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)        AS tra_sali_ciudad,
+--    (SELECT mg.MOLI_GEOREFCODE_DEPARTMENTKEY  
+--    FROM MOLI_GEOREFCODE mg 
+--    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)        AS tra_sali_departamento,
+    11															AS tra_sali_departamento,
+--    (SELECT mg.MOLI_GEOREFCODE_SECTIONKEY  
+--    FROM MOLI_GEOREFCODE mg 
+--    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)        AS tra_sali_distrito,
+    142															AS tra_sali_distrito,
+--     (SELECT mg.VALUE FROM MOLI_GEOREFCODE mg 
+--    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)        AS tra_sali_ciudad,
+    3298														AS tra_sali_ciudad,
     (SELECT cc.MOLI_ALP3COUNTRYCODE FROM C_COUNTRY cc 
     WHERE cc.C_COUNTRY_ID = (SELECT first_value
     (cl.C_COUNTRY_ID)over 
@@ -916,38 +972,45 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
     FROM C_LOCATION cl
     WHERE cl.C_LOCATION_ID = cbl.C_LOCATION_ID ) )              AS tra_sali_pais,
     l.ADDRESS1                                                  AS tra_entre_direccion,
-    0                                                           AS tra_entre_numero_casa,
+    '0'                                                           AS tra_entre_numero_casa,
     NULL                                                        AS tra_entre_comple_direccion1,
     NULL                                                        AS tra_entre_comple_direccion2,
-    (SELECT mg.MOLI_GEOREFCODE_DEPARTMENTKEY  
-    FROM MOLI_GEOREFCODE mg 
-    WHERE mg.MOLI_GEOREFCODE_ID = cbl.MOLI_GEOREFCODE_ID)       AS tra_entre_departamento,
-    (SELECT mg.MOLI_GEOREFCODE_SECTIONKEY  
-    FROM MOLI_GEOREFCODE mg 
-    WHERE mg.MOLI_GEOREFCODE_ID = cbl.MOLI_GEOREFCODE_ID)       AS tra_entre_distrito,
-    (SELECT mg.VALUE FROM MOLI_GEOREFCODE mg 
-    WHERE mg.MOLI_GEOREFCODE_ID = cbl.MOLI_GEOREFCODE_ID)       AS tra_entre_ciudad,
+--    (SELECT mg.MOLI_GEOREFCODE_DEPARTMENTKEY  
+--    FROM MOLI_GEOREFCODE mg 
+--    WHERE mg.MOLI_GEOREFCODE_ID = cbl.MOLI_GEOREFCODE_ID)       AS tra_entre_departamento,
+    11															AS tra_entre_departamento,
+--    (SELECT mg.MOLI_GEOREFCODE_SECTIONKEY  
+--    FROM MOLI_GEOREFCODE mg 
+--    WHERE mg.MOLI_GEOREFCODE_ID = cbl.MOLI_GEOREFCODE_ID)       AS tra_entre_distrito,
+    142															AS tra_entre_distrito,
+--    (SELECT mg.VALUE FROM MOLI_GEOREFCODE mg 
+--    WHERE mg.MOLI_GEOREFCODE_ID = cbl.MOLI_GEOREFCODE_ID)       AS tra_entre_ciudad,
+    3298														AS tra_entre_ciudad,
     (SELECT MOLI_ALP3COUNTRYCODE FROM C_COUNTRY cc2 
     WHERE cc2.C_COUNTRY_ID = l.C_COUNTRY_ID )                   AS tra_entre_pais,
     cbl.PHONE                                                   AS tra_entre_telefono_contacto,
-    NULL                                                        AS tra_vehi_tipo,
+    'camion'                                                        AS tra_vehi_tipo,
     mi.VEHICLE                                                  AS tra_vehi_marca,
     2                                                           AS tra_vehi_documento_tipo,
     NULL                                                        AS tra_vehi_documento_numero,
     NULL                                                        AS tra_vehi_obs,
     mi.VEHICLEID                                                AS tra_vehi_numero_matricula,
     NULL                                                        AS tra_vehi_numero_vuelo,
-    NULL                                                        AS tra_transpor_contribuyente,
+    CASE WHEN (MOLI_RUCTRANSPORTISTA IS NULL OR MOLI_RUCTRANSPORTISTA = '') THEN 
+    	'false'
+    ELSE 
+    	'true' 
+    END															AS tra_transpor_contribuyente,
     NULL                                                        AS tra_transpor_nombre,
-    NULL                                                        AS tra_transpor_ruc,
-    NULL                                                        AS tra_transpor_documento_tipo,
+    MOLI_RUCTRANSPORTISTA                                                        AS tra_transpor_ruc,
+    1                                                        AS tra_transpor_documento_tipo,
     MOLI_RUCTRANSPORTISTA                                       AS tra_transpor_documento_numero,
-    NULL                                                        AS tra_transpor_direccion,
+    MOLI_TRANSPORTDIRECTION                                                        AS tra_transpor_direccion,
     NULL                                                        AS tra_transpor_obs,
     NULL                                                        AS tra_transpor_pais,
     mi.DRIVERID                                                 AS tra_transpor_chofer_doc_numero,
     mi.DRIVERNAME                                               AS tra_transpor_chofer_nombre,
-    NULL                                                        AS tra_transpor_chofer_direccion,
+    MOLI_TRANSPORTDIRECTION                                                        AS tra_transpor_chofer_direccion,
     NULL                                                        AS tra_transpor_agente_nombre,
     NULL                                                        AS tra_transpor_agente_ruc,
     NULL                                                        AS tra_transpor_agente_direccion,
@@ -976,8 +1039,10 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
             (mil.M_PRODUCT_ID = mp.M_PRODUCT_ID)
         INNER JOIN C_Currency cc2 ON
             (ci.C_Currency_ID = cc2.C_Currency_ID)
-        LEFT OUTER JOIN C_DOCTYPE cd ON
-            (ci.C_DOCTYPE_ID = cd.C_DOCTYPE_ID AND (cd.NAME LIKE '%AR Nota Crédito Electrónica%' OR cd.NAME LIKE '%AR Factura Electronica%'))
+        INNER JOIN C_DOCTYPE cd ON
+            (mi.C_DOCTYPE_ID = cd.C_DOCTYPE_ID AND cd.NAME like '%MM Nota Remision Electronica%')
+        INNER JOIN C_DOCTYPE cd_asociado ON
+            (ci.C_DOCTYPE_ID = cd_asociado.C_DOCTYPE_ID)
         INNER JOIN C_PAYMENTTERM pt ON
             (ci.C_PAYMENTTERM_ID  = pt.C_PAYMENTTERM_ID)
         INNER JOIN C_BPARTNER cb ON
@@ -1004,6 +1069,7 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
         AND ci.AD_ORG_ID = 1000005
 --      AND ci.DOCACTION = 'CL'
         AND ci.DOCSTATUS = 'CO' --Completed
+        
         --Condiciones Temporales
         --AND ci.MOLI_PREIMPNO IS NOT NULL
         AND ci.DATEINVOICED > TO_DATE('2022-12-09', 'YYYY-MM-DD')
@@ -1132,6 +1198,7 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
     
     NULL                                     	                AS item_iva,
     NULL                                                        AS item_lote,
+    NULL															AS item_tolerancia,
     NULL                                                        AS item_vencimiento,
     NULL                                                        AS item_numero_serie,
     NULL                                                        AS item_numero_pedido,
@@ -1163,21 +1230,27 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
     -- Datos de Transporte
     --
     1	                                                        AS tra_tipo,
+    mm.DRIVERNAME												AS tra_nombre,
+	mm.MOVEMENTDATE												AS tra_fecha_inicio,
+	mm.MOVEMENTDATE												AS tra_fecha_fin,
     1                                                           AS tra_modalidad,
     NULL                                                        AS tra_tipo_responsable,
     'CFR'                                                       AS tra_condicion_negociacion,
     l2.ADDRESS1											        AS tra_sali_direccion,
-    0                                                           AS tra_sali_numero_casa,
+    '1'                                                           AS tra_sali_numero_casa,
     NULL                                                        AS tra_sali_comple_direccion1,
     NULL                                                        AS tra_sali_comple_direccion2,
-    (SELECT mg.MOLI_GEOREFCODE_DEPARTMENTKEY  
-    FROM MOLI_GEOREFCODE mg 
-    WHERE mg.MOLI_GEOREFCODE_ID = mw2.MOLI_GEOREFCODE_ID)        AS tra_sali_departamento,
-    (SELECT mg.MOLI_GEOREFCODE_SECTIONKEY  
-    FROM MOLI_GEOREFCODE mg 
-    WHERE mg.MOLI_GEOREFCODE_ID = mw2.MOLI_GEOREFCODE_ID)        AS tra_sali_distrito,
-     (SELECT mg.VALUE FROM MOLI_GEOREFCODE mg 
-    WHERE mg.MOLI_GEOREFCODE_ID = mw2.MOLI_GEOREFCODE_ID)        AS tra_sali_ciudad,
+--    (SELECT mg.MOLI_GEOREFCODE_DEPARTMENTKEY  
+--    FROM MOLI_GEOREFCODE mg 
+--    WHERE mg.MOLI_GEOREFCODE_ID = mw2.MOLI_GEOREFCODE_ID)		AS tra_sali_departamento,
+    11															AS tra_sali_departamento, 
+--    (SELECT mg.MOLI_GEOREFCODE_SECTIONKEY  
+--    FROM MOLI_GEOREFCODE mg 
+--    WHERE mg.MOLI_GEOREFCODE_ID = mw2.MOLI_GEOREFCODE_ID)        AS tra_sali_distrito,
+    142															AS tra_sali_distrito,
+--     (SELECT mg.VALUE FROM MOLI_GEOREFCODE mg 
+--    WHERE mg.MOLI_GEOREFCODE_ID = mw2.MOLI_GEOREFCODE_ID)        AS tra_sali_ciudad,
+    3298														AS tra_sali_ciudad,
     (SELECT cc.MOLI_ALP3COUNTRYCODE FROM C_COUNTRY cc 
     WHERE cc.C_COUNTRY_ID = (SELECT first_value
     (cl.C_COUNTRY_ID)over 
@@ -1185,39 +1258,46 @@ CREATE OR REPLACE VIEW RV_C_Invoice_FacturaSend AS
     FROM C_LOCATION cl
     WHERE cl.C_LOCATION_ID = l.C_LOCATION_ID ) )              AS tra_sali_pais,
     l.ADDRESS1                                                  AS tra_entre_direccion,
-    0                                                           AS tra_entre_numero_casa,
+    '0'                                                           AS tra_entre_numero_casa,
     NULL                                                        AS tra_entre_comple_direccion1,
     NULL                                                        AS tra_entre_comple_direccion2,
-    (SELECT mg.MOLI_GEOREFCODE_DEPARTMENTKEY  
-    FROM MOLI_GEOREFCODE mg 
-    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)       AS tra_entre_departamento,
-    (SELECT mg.MOLI_GEOREFCODE_SECTIONKEY  
-    FROM MOLI_GEOREFCODE mg 
-    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)       AS tra_entre_distrito,
-    (SELECT mg.VALUE FROM MOLI_GEOREFCODE mg 
-    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)       AS tra_entre_ciudad,
+--    (SELECT mg.MOLI_GEOREFCODE_DEPARTMENTKEY  
+--    FROM MOLI_GEOREFCODE mg 
+--    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)       AS tra_entre_departamento,
+--    (SELECT mg.MOLI_GEOREFCODE_SECTIONKEY  
+--    FROM MOLI_GEOREFCODE mg 
+--    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)       AS tra_entre_distrito,
+--    (SELECT mg.VALUE FROM MOLI_GEOREFCODE mg 
+--    WHERE mg.MOLI_GEOREFCODE_ID = mw.MOLI_GEOREFCODE_ID)       AS tra_entre_ciudad,
+    11 															AS tra_entre_departamento,
+    142															AS tra_entre_distrito,
+    3298														AS tra_entre_ciudad,
     (SELECT MOLI_ALP3COUNTRYCODE FROM C_COUNTRY cc2 
     WHERE cc2.C_COUNTRY_ID = l.C_COUNTRY_ID )                   AS tra_entre_pais,
 --    mw.PHONE                                                   AS tra_entre_telefono_contacto,
     NULL														AS tra_entre_telefono_contacto,
-    NULL                                                        AS tra_vehi_tipo,
+    'camion'                                                        AS tra_vehi_tipo,
     mm.VEHICLE                                                  AS tra_vehi_marca,
     2                                                           AS tra_vehi_documento_tipo,
     NULL                                                        AS tra_vehi_documento_numero,
     NULL                                                        AS tra_vehi_obs,
     mm.VEHICLEID                                                AS tra_vehi_numero_matricula,
     NULL                                                        AS tra_vehi_numero_vuelo,
-    NULL                                                        AS tra_transpor_contribuyente,
+    CASE WHEN (MOLI_RUCTRANSPORTISTA IS NULL OR MOLI_RUCTRANSPORTISTA = '') THEN 
+    	'false'
+    ELSE 
+    	'true' 
+    END															AS tra_transpor_contribuyente,
     NULL                                                        AS tra_transpor_nombre,
-    NULL                                                        AS tra_transpor_ruc,
-    NULL                                                        AS tra_transpor_documento_tipo,
+    mm.MOLI_RUCTRANSPORTISTA                                                         AS tra_transpor_ruc,
+    1                                                        AS tra_transpor_documento_tipo,
     mm.MOLI_RUCTRANSPORTISTA                                       AS tra_transpor_documento_numero,
-    NULL                                                        AS tra_transpor_direccion,
+    mm.MOLI_TRANSPORTDIRECTION                                                        AS tra_transpor_direccion,
     NULL                                                        AS tra_transpor_obs,
     NULL                                                        AS tra_transpor_pais,
     mm.DRIVERID                                                 AS tra_transpor_chofer_doc_numero,
     mm.DRIVERNAME                                               AS tra_transpor_chofer_nombre,
-    NULL                                                        AS tra_transpor_chofer_direccion,
+    MOLI_TRANSPORTDIRECTION                                                        AS tra_transpor_chofer_direccion,
     NULL                                                        AS tra_transpor_agente_nombre,
     NULL                                                        AS tra_transpor_agente_ruc,
     NULL                                                        AS tra_transpor_agente_direccion,
@@ -1905,5 +1985,3 @@ ROWNUM <= 20
 WHERE 
 rn  >= 1
 ORDER BY establecimiento , punto , numero 
-
-SELECT * FROM trans
