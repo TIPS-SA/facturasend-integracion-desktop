@@ -346,7 +346,7 @@ public class CoreIntegracionService {
 					log.info("No se invoco a la Api de Facturasend por que no existian datos para enviar "  + documentosParaEnvioJsonMap + " para el Tipo de Documento " + tipoDocumento);
 				}
 			} else {
-				log.info("No se encontraron transaccion_id(s) (-1) al reperar registros " + tipoDocumento);
+				log.info("No se encontraron transaccion_id(s) (-1) al recuperar registros " + tipoDocumento);
 			}
 			//
 		} catch (Exception e) {
@@ -1598,7 +1598,8 @@ public class CoreIntegracionService {
 			ResultSet rs = statement.executeQuery(sql);
 			
 			List<Map<String, Object>> listadoDes = SQLUtil.convertResultSetToList(rs);
-			log.info("listadoDes:" + listadoDes);
+			log.info("listadoDes.size:" + listadoDes.size());
+			log.debug("listadoDes:" + listadoDes);
 			
 			result.put("success", true);
 			result.put("result", listadoDes);
