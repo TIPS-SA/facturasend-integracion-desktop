@@ -152,12 +152,12 @@ public class InfoMovimiento extends JDialog {
 		List<Map<String, Object>> transacconesItem = fs.populateTransactionDetailsTable(jTableTransaccionesItems, transaccionId, tipoDocumento);
 		//Asignar valores
 		if (transacconesItem.size() > 0) {
-			String cdc = (String)CoreService.getValueForKey(transacconesItem.get(0), "CDC");
+			String cdc = (String)CoreService.getValueForKey(transacconesItem.get(0), "CDC", FacturasendService.readDBProperties());
 			if (cdc!= null) {
 				txtCdc.setText( cdc.trim() );
 			}
 			
-			Object fieldEstado = CoreService.getValueForKey(transacconesItem.get(0), "estado");
+			Object fieldEstado = CoreService.getValueForKey(transacconesItem.get(0), "estado", FacturasendService.readDBProperties());
 			
 			//String valueEstadoStr = (String) rs.get(i).get( fieldEstado );
 			Integer valueEstadoInt = -99;	//Sin estado	
@@ -174,14 +174,14 @@ public class InfoMovimiento extends JDialog {
 				txtEstado.setText( estado.trim() );
 			}*/
 			
-			String error = (String)CoreService.getValueForKey(transacconesItem.get(0), "ERROR");
+			String error = (String)CoreService.getValueForKey(transacconesItem.get(0), "ERROR", FacturasendService.readDBProperties());
 			
 			if (error != null) {
 				txtAError.setText( error.trim());
 			}
 			
 			
-			Map<String, Object> resultadoXml = FacturasendService.ejecutarObtenerJsonDelXml((String)CoreService.getValueForKey(transacconesItem.get(0), "CDC"));
+			Map<String, Object> resultadoXml = FacturasendService.ejecutarObtenerJsonDelXml((String)CoreService.getValueForKey(transacconesItem.get(0), "CDC", FacturasendService.readDBProperties()));
 			if (resultadoXml != null) {
 				Map<String, Object> rde = (Map<String, Object>)resultadoXml.get("rDE");
 				if(rde != null) {
@@ -197,15 +197,15 @@ public class InfoMovimiento extends JDialog {
 			Double totalGeneral = 0.0;
 			DecimalFormat dfFinal = new DecimalFormat();
 			for (int i = 0; i < transacconesItem.size(); i++) {
-				String moneda = (String)CoreService.getValueForKey(transacconesItem.get(i), "moneda");
+				String moneda = (String)CoreService.getValueForKey(transacconesItem.get(i), "moneda", FacturasendService.readDBProperties());
 				DecimalFormat df = new DecimalFormat("###,###,###,##0.##");	//Preparado para PYG
 				if (!moneda.equals("PYG")) {
 					df = new DecimalFormat("###,###,###,##0.00######");	
 				}
 				dfFinal = df;
-				Double cantidad = ((BigDecimal) CoreService.getValueForKey(transacconesItem.get(i), "item_cantidad", "i_cantidad")).doubleValue();
-				Double precioUnitario = ((BigDecimal) CoreService.getValueForKey(transacconesItem.get(i), "item_precio_unitario", "i_pre_uni")).doubleValue();
-				Double descuento = ((BigDecimal) CoreService.getValueForKey(transacconesItem.get(i), "item_descuento", "i_descue")).doubleValue();
+				Double cantidad = ((BigDecimal) CoreService.getValueForKey(transacconesItem.get(i), "item_cantidad", "i_cantidad", FacturasendService.readDBProperties())).doubleValue();
+				Double precioUnitario = ((BigDecimal) CoreService.getValueForKey(transacconesItem.get(i), "item_precio_unitario", "i_pre_uni", FacturasendService.readDBProperties())).doubleValue();
+				Double descuento = ((BigDecimal) CoreService.getValueForKey(transacconesItem.get(i), "item_descuento", "i_descue", FacturasendService.readDBProperties())).doubleValue();
 				
 				totalGeneral += cantidad.doubleValue() * precioUnitario.doubleValue() - descuento.doubleValue();
 			}

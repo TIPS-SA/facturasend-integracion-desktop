@@ -344,33 +344,46 @@ public class CoreService {
 		return sql;
 	}
 
-	public static Object getValueForKey(Map<String, Object> map, String key1) {
+	public static Object getValueForKey(Map<String, Object> map, String key1, Map<String, String> databaseProperties) {
 		
-		return getValueForKey( map, key1, null);
+		return getValueForKey(map, key1, null, databaseProperties);
 	}
 	
-	public static Object getValueForKey(Map<String, Object> map, String key1, String key2) {
+	public static Object getValueForKey(Map<String, Object> map, String key1, String key2, Map<String, String> databaseProperties) {
+		Object retorno = null;
 		if (map.get(key1) != null) {
-			return map.get(key1);
+			retorno = map.get(key1);
 		}
 		if (map.get(key1.toUpperCase()) != null) {
-			return map.get(key1.toUpperCase());
+			retorno = map.get(key1.toUpperCase());
 		}
 		if (map.get(key1.toLowerCase()) != null) {
-			return map.get(key1.toLowerCase());
+			retorno = map.get(key1.toLowerCase());
 		}
 		if (key2 != null) {
 			if (map.get(key2) != null) {
-				return map.get(key2);
+				retorno = map.get(key2);
 			}
 			if (map.get(key2.toUpperCase()) != null) {
-				return map.get(key2.toUpperCase());
+				retorno = map.get(key2.toUpperCase());
 			}
 			if (map.get(key2.toLowerCase()) != null) {
-				return map.get(key2.toLowerCase());
+				retorno = map.get(key2.toLowerCase());
 			}	
 		}
-		return null;
+		
+		
+		if (databaseProperties.get("database.type").equals("dbf")) {
+			//Si es DBF
+			if (retorno != null && (((String)retorno).trim() + "").equals("")) {
+				//Significa que es vacio.
+				if (databaseProperties.get("database.dbf.space_as_null").equalsIgnoreCase("S")) {
+					//Si el espacio debe ser considerado como null..
+					retorno = null;
+				}				
+			}
+		}
+		return retorno;
 	}
 	
 	/**

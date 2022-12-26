@@ -137,38 +137,38 @@ public class FacturasendService {
 				}
 			}
 			for (int i = 0; i < rs.size(); i++) {
-				String moneda = (String)CoreService.getValueForKey(rs.get(i), "moneda");
+				String moneda = (String)CoreService.getValueForKey(rs.get(i), "moneda", readDBProperties());
 				DecimalFormat df = new DecimalFormat("###,###,###,##0.##");	//Preparado para PYG
 				if (!moneda.equals("PYG")) {
 					df = new DecimalFormat("###,###,###,##0.00######");	
 				}
 				
-				Double total = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "total")).doubleValue();
+				Double total = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "total", readDBProperties())).doubleValue();
 				
-				registro[0] = CoreService.getValueForKey(rs.get(i), "transaccion_id", "tra_id");
-				registro[1] = CoreService.getValueForKey(rs.get(i), "fecha");
+				registro[0] = CoreService.getValueForKey(rs.get(i), "transaccion_id", "tra_id", readDBProperties());
+				registro[1] = CoreService.getValueForKey(rs.get(i), "fecha", readDBProperties());
 				String infoDoc = "";
-				if (CoreService.getValueForKey(rs.get(i), "cliente_ruc", "c_ruc") != null) {
-					infoDoc = (String)CoreService.getValueForKey(rs.get(i), "cliente_ruc", "c_ruc");
+				if (CoreService.getValueForKey(rs.get(i), "cliente_ruc", "c_ruc", readDBProperties()) != null) {
+					infoDoc = (String)CoreService.getValueForKey(rs.get(i), "cliente_ruc", "c_ruc", readDBProperties());
 				}
-				if (CoreService.getValueForKey(rs.get(i), "cliente_documento_numero", "c_doc_num") != null) {
-					infoDoc = (String)CoreService.getValueForKey(rs.get(i), "cliente_documento_numero", "c_doc_num");
+				if (CoreService.getValueForKey(rs.get(i), "cliente_documento_numero", "c_doc_num", readDBProperties()) != null) {
+					infoDoc = (String)CoreService.getValueForKey(rs.get(i), "cliente_documento_numero", "c_doc_num", readDBProperties());
 				}
 				
-				registro[2] = infoDoc.trim() + "-" + CoreService.getValueForKey(rs.get(i), "cliente_razon_social", "c_raz_soc");
-				registro[3] = StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "establecimiento", "estable")+"", 3)  + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "punto")+"", 3) + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "numero")+"", 7);
+				registro[2] = infoDoc.trim() + "-" + CoreService.getValueForKey(rs.get(i), "cliente_razon_social", "c_raz_soc", readDBProperties());
+				registro[3] = StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "establecimiento", "estable", readDBProperties())+"", 3)  + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "punto", readDBProperties()) + "", 3) + "-" + StringUtil.padLeftZeros(CoreService.getValueForKey(rs.get(i), "numero", readDBProperties()) + "", 7);
 				registro[4] = moneda;
 				registro[5] = df.format(total);
 				
-				String fieldPausado = (String)CoreService.getValueForKey(rs.get(i), "pausado");
-				Object fieldEstado = CoreService.getValueForKey(rs.get(i), "estado");
+				String fieldPausado = (String)CoreService.getValueForKey(rs.get(i), "pausado", readDBProperties());
+				Object fieldEstado = CoreService.getValueForKey(rs.get(i), "estado", readDBProperties());
 
 				Integer valueEstadoInt = -99;	//Sin estado	
 				
 				if (fieldEstado != null) {
 					valueEstadoInt = Integer.valueOf( (fieldEstado+"").trim() );
 				}
-				if (CoreService.getValueForKey(rs.get(i), "error") != null) {
+				if (CoreService.getValueForKey(rs.get(i), "error", readDBProperties()) != null) {
 					registro[6] = "Error";
 				} else {
 					registro[6] = CoreService.getEstadoDescripcion(valueEstadoInt);					
@@ -178,8 +178,8 @@ public class FacturasendService {
 					registro[6] += "(Pausado)";
 				}
 				
-				registro[7] = CoreService.getValueForKey(rs.get(i), "cdc");
-				registro[8] = CoreService.getValueForKey(rs.get(i), "clasific");
+				registro[7] = CoreService.getValueForKey(rs.get(i), "cdc", readDBProperties());
+				registro[8] = CoreService.getValueForKey(rs.get(i), "clasific", readDBProperties());
 				
 				if (refreshAll) {
 					model.insertRow(0, registro);
@@ -359,7 +359,7 @@ public class FacturasendService {
 			rs = (List<Map<String, Object>>)result.get("result");
 
 			for (int i = 0; i < rs.size(); i++) {
-				String moneda = (String)CoreService.getValueForKey(rs.get(i), "moneda");
+				String moneda = (String)CoreService.getValueForKey(rs.get(i), "moneda", readDBProperties());
 				DecimalFormat dfCantidad = new DecimalFormat("###,###,##0.00######");	//Cantidad
 
 				DecimalFormat df = new DecimalFormat("###,###,###,##0.##");	//Preparado para PYG
@@ -367,12 +367,12 @@ public class FacturasendService {
 					df = new DecimalFormat("###,###,###,##0.00######");	
 				}
 				
-				Double cantidad = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "item_cantidad", "i_cantidad")).doubleValue();
-				Double precioUnitario = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "item_precio_unitario", "i_pre_uni")).doubleValue();
-				Double descuento = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "item_descuento", "i_descue")).doubleValue();
+				Double cantidad = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "item_cantidad", "i_cantidad", readDBProperties())).doubleValue();
+				Double precioUnitario = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "item_precio_unitario", "i_pre_uni", readDBProperties())).doubleValue();
+				Double descuento = ((BigDecimal) CoreService.getValueForKey(rs.get(i), "item_descuento", "i_descue", readDBProperties())).doubleValue();
 				
-				datos[0] = CoreService.getValueForKey(rs.get(i), "item_codigo","i_codigo");
-				datos[1] = CoreService.getValueForKey(rs.get(i), "item_descripcion", "i_descrip");
+				datos[0] = CoreService.getValueForKey(rs.get(i), "item_codigo","i_codigo", readDBProperties());
+				datos[1] = CoreService.getValueForKey(rs.get(i), "item_descripcion", "i_descrip", readDBProperties());
 				datos[2] = dfCantidad.format(cantidad);
 				datos[3] = df.format(precioUnitario);
 				datos[4] = df.format(descuento);
