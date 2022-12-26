@@ -169,7 +169,7 @@ public class H2Connection implements Connection {
     private void reload( String filePath ) throws Exception {
     	
     	String sql = "show columns from " + FILES_META_TABLE;
-		System.out.println("\n" + sql + " ");
+		//System.out.println("\n" + sql + " ");
 		Statement statement = h2Connection.createStatement();
 		ResultSet rs = statement.executeQuery(sql);
 		

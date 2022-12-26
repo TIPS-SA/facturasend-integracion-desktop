@@ -85,7 +85,7 @@ public class H2Loader {
             //System.out.println("*** " + field.getName() +"->" + field.getSetFieldsFlag());
             
             logSb.append( "\t").append( DBFUtil.getFieldDescription( field ) ).append(" \n");
-            System.out.println(DBFUtil.getFieldDescription2( field ));
+            //System.out.println(DBFUtil.getFieldDescription2( field ));
             saveFieldInMetaTable(h2Connection, table, field);
             dbfFieldList.add(field);
             if (appendComma) {
@@ -263,15 +263,15 @@ public class H2Loader {
                     if (value == null) {
                         stInsert.setNull(i + 1, DataTypeUtil.getJavaType(field));
                     } else {
-                    	if (field.getName().equalsIgnoreCase("Clasific")) {
-                        	System.out.println(field.getName() + " " + field.getType() + " value: " + record[i]);
+                    	//if (field.getName().equalsIgnoreCase("Clasific")) {
+                        	//System.out.println(field.getName() + " " + field.getType() + " value: " + record[i]);
                     		
-                    	}
+                    	//}
                         if ((field.getType().equals(DBFDataType.CHARACTER) || field.getType().equals(DBFDataType.VARCHAR)) &&
                         		(value+"").trim().equalsIgnoreCase(".null.")) {
-                        	if (field.getName().equalsIgnoreCase("Clasific")) {
-                        		System.out.println("Coloco null");
-                        	}
+                        	//if (field.getName().equalsIgnoreCase("Clasific")) {
+                        	//	System.out.println("Coloco null");
+                        	//}
                         	stInsert.setNull(i + 1, DataTypeUtil.getJavaType(field));
                         	
                         } else if (field.getType().equals(DBFDataType.CHARACTER) || field.getType().equals(DBFDataType.VARCHAR) ) {
