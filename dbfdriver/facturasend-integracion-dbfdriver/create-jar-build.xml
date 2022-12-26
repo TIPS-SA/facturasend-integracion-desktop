@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project name="Crea el JAR del dbfdriver">
 	
+	<property name="project1.dir" value="/home/lucasf/pgfxDev/git/facturasend-integracion-desktop/dbfdriver/facturasend-integracion-dbfdriver\"/>
+	<property name="project1X.dir" value="C:\Users\marco\git\facturasend-integracion-desktop\dbfdriver\facturasend-integracion-dbfdriver\"/>
 	<jar 
-		destfile="C:\Users\marco\git\facturasend-integracion-desktop\dbfdriver\facturasend-integracion-dbfdriver\dbschema-dbf-jdbc2.0.jar"
+		destfile="${project1.dir}dbschema-dbf-jdbc2.0.jar"
 		basedir="./bin"
 		excludes="**/test/**">
 	</jar>
 	
-
-	<copy todir="C:\Users\marco\git\facturasend-integracion-desktop\core\facturasend-integracion-core\libs\">
-		<fileset dir="C:\Users\marco\git\facturasend-integracion-desktop\dbfdriver\facturasend-integracion-dbfdriver\">
+	<property name="mainProject2.dir" value="/home/lucasf/pgfxDev/git/facturasend-integracion-desktop/core/facturasend-integracion-core/libs/"/>
+	<property name="mainProject2X.dir" value="C:\Users\marco\git\facturasend-integracion-desktop\core\facturasend-integracion-core\libs\"/>
+	<copy todir="${mainProject2.dir}">
+		<fileset dir="${project1.dir}">
 			<include name="dbschema-dbf-jdbc2.0.jar" />
 		</fileset>
 	</copy>

@@ -390,7 +390,6 @@ public class CoreDocumentoElectronico {
 			Map<String, Object> transporteMap = new HashMap<String, Object>();
 			transporteMap.put("tipo", CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip"));
 			transporteMap.put("modalidad", CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod"));
-			transporteMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"tra_nombre","t_nom"));
 			if ( CoreService.getValueForKey(transaccionCabecera,"tra_fecha_inicio", "t_f_ini") instanceof Date) {
 				transporteMap.put("inicioEstimadoTranslado", sdfYyyyMMdd.format((Date) CoreService.getValueForKey(transaccionCabecera, "tra_fecha_inicio","t_f_ini")));
 			} else {

@@ -1089,10 +1089,13 @@ public class CoreIntegracionService {
 		
 		//---
 		String tableToDelete = databaseProperties.get(prefixForTable);
-		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table" + ((databaseProperties.get("database.type").equals("dbf")) ? "" : "." + tipoDE);
+		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table" + ((databaseProperties.get("database.type").equalsIgnoreCase("dbf")) ? "" : "." + tipoDE);
+		System.out.println("Resultado del regex: " +!clasificador.equals(".NULL."));
+		//en dbf mi clasificador me trae como 10 espacios vacios, por lo cual no me deja integrar
 		if (clasificador != null) {
 			prefix += "." + clasificador;
 		}
+		System.out.println("Prefix raro: " + prefix + " termina aca. Calsificador.length: "+clasificador.length());
 		prefix += ".field.";
 		String transaccionIdForeignKeyField = CoreService.findKeyByValueInProperties(databaseProperties, prefix, "transaccion_id");
 		System.out.println("\nDE\n"+de+"\n");
@@ -1336,8 +1339,9 @@ public class CoreIntegracionService {
 		}
 	
 		if (swTieneValores) {
-			log.info("\n" + sqlUpdate + " ");
+			log.debug("\n" + sqlUpdate + " ");
 			result = statement.executeUpdate();
+			
 			log.info("result: " + result + "");
 			String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table.";
 			
@@ -1355,7 +1359,7 @@ public class CoreIntegracionService {
 
 			//String posUpdateSQL = databaseProperties.get(prefix + ".pos_update_sql");
 			if (posUpdateSQL != null) {
-				log.info("\n" + posUpdateSQL + " ");
+				log.debug("\n" + posUpdateSQL + " ");
 				PreparedStatement statement2 = conn.prepareStatement(posUpdateSQL);
 				//ResultSet rs = statement2.executeQuery();
 				Integer resultExecuteUpdate = statement2.executeUpdate();
@@ -1509,11 +1513,12 @@ public class CoreIntegracionService {
 		PreparedStatement statement = conn.prepareStatement(sqlConsulta);
 		statement.setInt(1, transaccionId);
 		
-		log.info("\n" + sqlConsulta + " ");
+		log.debug("\n" + sqlConsulta + " ");
 		ResultSet rs = statement.executeQuery();
 		
 		Map<String, Object> situacionPausadoActualMap = SQLUtil.convertResultSetToMap(rs);
-		log.info("listadoDes:" + situacionPausadoActualMap);
+		log.info("situacionPausadoActualMap.size:" + situacionPausadoActualMap.size());
+		log.debug("situacionPausadoActualMap:" + situacionPausadoActualMap);
 		
 		if ( situacionPausadoActualMap != null && Integer.valueOf(CoreService.getValueForKey(situacionPausadoActualMap, tableToUpdateValue) +"") == 1 ) {
 			//Ya existe el registro de PAUSADO y esta PAUSADO
