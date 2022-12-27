@@ -613,7 +613,12 @@ public class CoreIntegracionService {
 						tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : 
 						tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "" : "";
 		
-		String prefixTable = "database." + databaseProperties.get("database.type") + ".transaction_table_update." + tipoDE;
+		String prefixTable = "database." + databaseProperties.get("database.type") + ".transaction_table_update";
+		
+		String discrimateByTp = databaseProperties.get("database.discriminate_facturasend_table_by_tipo_documento") + ""; 
+		if ( discrimateByTp.equalsIgnoreCase("Y")) {
+			prefixTable += "." + tipoDE;
+		}
 		if (clasificador != null) {
 			prefixTable += "." + clasificador;
 		}
@@ -1091,12 +1096,10 @@ public class CoreIntegracionService {
 		//---
 		String tableToDelete = databaseProperties.get(prefixForTable);
 		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table" + ((databaseProperties.get("database.type").equalsIgnoreCase("dbf")) ? "" : "." + tipoDE);
-		System.out.println("Resultado del regex: " +!clasificador.equals(".NULL."));
 		//en dbf mi clasificador me trae como 10 espacios vacios, por lo cual no me deja integrar
 		if (clasificador != null) {
 			prefix += "." + clasificador;
 		}
-		System.out.println("Prefix raro: " + prefix + " termina aca. Calsificador.length: "+clasificador.length());
 		prefix += ".field.";
 		String transaccionIdForeignKeyField = CoreService.findKeyByValueInProperties(databaseProperties, prefix, "transaccion_id");
 		System.out.println("\nDE\n"+de+"\n");
@@ -1484,16 +1487,27 @@ public class CoreIntegracionService {
 		//TODO:: Ver como traer el clasificador aqui por que no encuentra la tabla
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
 		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
-		String prefixTable = "database." + databaseProperties.get("database.type") + ".facturasend_table."+tipoDE;
+		String prefixTable = "database." + databaseProperties.get("database.type") + ".facturasend_table";
+		
+		String discrimateByTp = databaseProperties.get("database.discriminate_facturasend_table_by_tipo_documento") + ""; 
+		if ( discrimateByTp.equalsIgnoreCase("Y")) {
+			prefixTable += "." + tipoDE;
+		}
 		if (clasificador != null) {
 			prefixTable += "." + clasificador;
 		}
 		String tableToUpdate = databaseProperties.get(prefixTable);
+		if (tableToUpdate.endsWith(".dbf")) {
+			tableToUpdate = tableToUpdate.substring(0, tableToUpdate.indexOf(".dbf"));
+		}
 		String tableToUpdateKey = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.key");
 		String tableToUpdateValue = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.value");
 		
 		//String transaccionIdForeignKeyField = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.field.transaccion_id");
-		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table."+tipoDE;
+		String prefix = "database." + databaseProperties.get("database.type") + ".facturasend_table";
+		if ( discrimateByTp.equalsIgnoreCase("Y")) {
+			prefix += "." + tipoDE;
+		}
 		if (clasificador != null) {
 			prefix += "." + clasificador;
 		}
@@ -1505,7 +1519,7 @@ public class CoreIntegracionService {
 		transaccionIdForeignKeyField = transaccionIdForeignKeyField.substring(prefix.length(), transaccionIdForeignKeyField.length());
 		
 		//Obtener de la BD
-		String sqlConsulta = "SELECT CAST(" + tableToUpdateValue + " AS VARCHAR(10)) AS " + tableToUpdateValue + " "
+		String sqlConsulta = "SELECT CAST(\"" + tableToUpdateValue + "\" AS VARCHAR(10)) AS \"" + tableToUpdateValue + "\" "
 						+ "FROM " + tableToUpdate + " "
 						+ "WHERE "
 						+ transaccionIdForeignKeyField + " = ? " 
@@ -1521,8 +1535,15 @@ public class CoreIntegracionService {
 		log.info("situacionPausadoActualMap.size:" + situacionPausadoActualMap.size());
 		log.debug("situacionPausadoActualMap:" + situacionPausadoActualMap);
 		
-		if ( situacionPausadoActualMap != null && Integer.valueOf(CoreService.getValueForKey(situacionPausadoActualMap, tableToUpdateValue, databaseProperties) +"") == 1 ) {
-			//Ya existe el registro de PAUSADO y esta PAUSADO
+		if ( situacionPausadoActualMap != null ) {
+			
+			Integer situacionPausadoValue = 0;
+			if (CoreService.getValueForKey(situacionPausadoActualMap, tableToUpdateValue, databaseProperties) != null) {
+				situacionPausadoValue = Integer.valueOf((CoreService.getValueForKey(situacionPausadoActualMap, tableToUpdateValue, databaseProperties) +"").trim());
+			}
+			
+			if (situacionPausadoValue == 1) {
+				//Ya existe el registro de PAUSADO y esta PAUSADO
 			
 			String sqlDelete = "DELETE "
 					+ "FROM " + tableToUpdate + " "
@@ -1537,7 +1558,7 @@ public class CoreIntegracionService {
 			
 			int resultDelete = statementDelete.executeUpdate();
 			log.info("resultDelete: " + resultDelete);
-			
+			}
 		} else {
 			//Consultar el objeto completo del Servidor, por el transaccion_id
 			Map<String, Object> resultViewMap = obtenerTransaccionesParaEnvioLote("(" + transaccionId + ")", databaseProperties);

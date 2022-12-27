@@ -388,18 +388,11 @@ public class CoreDocumentoElectronico {
 			}
 			
 			Map<String, Object> transporteMap = new HashMap<String, Object>();
-<<<<<<< HEAD
-			transporteMap.put("tipo", CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip"));
-			transporteMap.put("modalidad", CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod"));
-			if ( CoreService.getValueForKey(transaccionCabecera,"tra_fecha_inicio", "t_f_ini") instanceof Date) {
-				transporteMap.put("inicioEstimadoTranslado", sdfYyyyMMdd.format((Date) CoreService.getValueForKey(transaccionCabecera, "tra_fecha_inicio","t_f_ini")));
-=======
 			transporteMap.put("tipo", CoreService.getValueForKey(transaccionCabecera,"tra_tipo","t_tip", databaseProperties));
 			transporteMap.put("modalidad", CoreService.getValueForKey(transaccionCabecera,"tra_modalidad","t_mod", databaseProperties));
 			transporteMap.put("nombre", CoreService.getValueForKey(transaccionCabecera,"tra_nombre","t_nom", databaseProperties));
 			if ( CoreService.getValueForKey(transaccionCabecera,"tra_fecha_inicio", "t_f_ini", databaseProperties) instanceof Date) {
 				transporteMap.put("inicioEstimadoTranslado", sdfYyyyMMdd.format((Date) CoreService.getValueForKey(transaccionCabecera, "tra_fecha_inicio","t_f_ini", databaseProperties)));
->>>>>>> branch 'main' of https://github.com/TIPS-SA/facturasend-integracion-desktop.git
 			} else {
 				dataMap.put("inicioEstimadoTranslado", CoreService.getValueForKey(transaccionCabecera, "tra_fecha_inicio", "t_f_ini", databaseProperties));
 			}

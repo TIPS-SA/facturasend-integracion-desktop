@@ -1,9 +1,9 @@
 package core;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.h2.jdbc.JdbcSQLSyntaxErrorException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -375,12 +374,32 @@ public class CoreService {
 		
 		if (databaseProperties.get("database.type").equals("dbf")) {
 			//Si es DBF
-			if (retorno != null && (((String)retorno).trim() + "").equals("")) {
+			if (retorno != null && retorno instanceof String && (((String)retorno).trim() + "").equals("")) {
 				//Significa que es vacio.
-				if (databaseProperties.get("database.dbf.space_as_null").equalsIgnoreCase("S")) {
+				if (databaseProperties.get("database.dbf.string_space_as_null").equalsIgnoreCase("S")) {
 					//Si el espacio debe ser considerado como null..
 					retorno = null;
-				}				
+				}
+			}
+			if (retorno != null && (retorno instanceof BigDecimal)) {
+				
+				try {
+					//System.out.println(key2 + "=" + retorno);
+					//Double value = new BigDecimal(((String)retorno).trim() + "").doubleValue();
+					Double value = ((BigDecimal)retorno).doubleValue();
+					String camposANullear = databaseProperties.get("database.dbf.number_zero_as_null");
+					//System.out.println(camposANullear.contains(key1));
+					//System.out.println(camposANullear.contains(key2));
+					//Significa que es zero.
+					//if (databaseProperties.get("database.dbf.number_zero_as_null").equalsIgnoreCase("S") && value.doubleValue() == 0) {
+					if (value.doubleValue() == 0 && (camposANullear.contains(key1) || (key2 != null ? camposANullear.contains(key2) : false))) {
+						//Si el espacio debe ser considerado como null..
+						retorno = null;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
 			}
 		}
 		return retorno;
