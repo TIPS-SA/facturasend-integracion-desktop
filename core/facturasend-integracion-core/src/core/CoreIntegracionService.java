@@ -762,8 +762,10 @@ public class CoreIntegracionService {
 		
 		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
 
-		String prefixForFields = "database." + databaseProperties.get("database.type") + ".facturasend_table." + tipoDE;
-
+		String prefixForFields = "database." + databaseProperties.get("database.type") + ".facturasend_table";
+		if (!databaseProperties.get("database.type").equalsIgnoreCase("dbf")) {
+			prefixForFields += "." + tipoDE;
+		}
 		Iterator itr = databaseProperties.entrySet().iterator();
 		while (itr.hasNext()) {
 			Map.Entry e = (Map.Entry)itr.next();

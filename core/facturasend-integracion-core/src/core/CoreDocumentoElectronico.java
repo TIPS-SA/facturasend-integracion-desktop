@@ -102,7 +102,9 @@ public class CoreDocumentoElectronico {
 
 			dataMap.put("establecimiento", CoreService.getValueForKey(transaccionCabecera, "establecimiento", "estable", databaseProperties));
 			dataMap.put("punto", CoreService.getValueForKey(transaccionCabecera, "punto", databaseProperties));
-			dataMap.put("numero", CoreService.getValueForKey(transaccionCabecera, "numero", databaseProperties));
+			if (CoreService.getValueForKey(transaccionCabecera,"numero", databaseProperties) != null) {
+				dataMap.put("numero", CoreService.getValueForKey(transaccionCabecera, "numero", databaseProperties).toString().trim());
+			}
 			dataMap.put("serie", CoreService.getValueForKey(transaccionCabecera, "serie", databaseProperties));
 			if (CoreService.getValueForKey(transaccionCabecera,"descripcion","descrip", databaseProperties) != null) {
 				dataMap.put("descripcion", CoreService.getValueForKey(transaccionCabecera, "descripcion", "descrip", databaseProperties).toString().trim());
