@@ -1190,7 +1190,10 @@ public class CoreIntegracionService {
 	
 		Connection conn = SQLConnection.getInstance(BDConnect.fromMap(databaseProperties)).getConnection("integracion");
 		
-		Integer tipoDocumento = Integer.valueOf(CoreService.getValueForKey(viewPrincipal, "tipo_documento", "tip_doc", databaseProperties)+"");
+		Integer tipoDocumento = 0;
+		if (CoreService.getValueForKey(viewPrincipal, "tipo_documento", "tip_doc", databaseProperties) != null) {
+			tipoDocumento = Integer.valueOf(CoreService.getValueForKey(viewPrincipal, "tipo_documento", "tip_doc", databaseProperties)+"");
+		}
 		String clasificador = (String)CoreService.getValueForKey(viewPrincipal, "clasific", databaseProperties);
 		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
 		
@@ -1210,7 +1213,9 @@ public class CoreIntegracionService {
 		if (clasificador != null) {
 			fieldPrefix += "." + clasificador;
 		}
-		fieldPrefix += ".";
+		if (!tipoDE.equals("")) {
+			fieldPrefix += ".";
+		}
 		
 		String preUpdateSQL = databaseProperties.get("database." + databaseProperties.get("database.type") + ".facturasend_table.pre_update_sql");
 		if (preUpdateSQL != null) {
@@ -1534,7 +1539,7 @@ public class CoreIntegracionService {
 		ResultSet rs = statement.executeQuery();
 		
 		Map<String, Object> situacionPausadoActualMap = SQLUtil.convertResultSetToMap(rs);
-		log.info("situacionPausadoActualMap.size:" + situacionPausadoActualMap.size());
+		log.info("situacionPausadoActualMap.size:" + (situacionPausadoActualMap != null ? situacionPausadoActualMap.size() : 0));
 		log.debug("situacionPausadoActualMap:" + situacionPausadoActualMap);
 		
 		if ( situacionPausadoActualMap != null ) {
@@ -1760,7 +1765,7 @@ public class CoreIntegracionService {
 		
 		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
 		
-		String prefixForTable = "database." + databaseProperties.get("database.type") + ".facturasend_table" + (databaseProperties.get("database.type").equals("dbf")?"":"."+tipoDE);
+		String prefixForTable = "database." + databaseProperties.get("database.type") + ".facturasend_table" + (databaseProperties.get("database.type").equals("dbf") ? "" : "." + tipoDE);
 		if (clasificador != null) {
 			prefixForTable += "." + clasificador;
 		}
@@ -1772,13 +1777,13 @@ public class CoreIntegracionService {
 			tableToUpdateKey = tableToUpdateKey.toUpperCase();
 			tableToUpdateValue = tableToUpdateValue.toUpperCase();
 		}
-		String fieldPrefix = prefixForTable + ".field." + tipoDE;
+		String fieldPrefix = prefixForTable + ".field" + (databaseProperties.get("database.type").equals("dbf") ? "" : "." + tipoDE);
 		if (clasificador != null) {
 			fieldPrefix += "." + clasificador;
 		}
 		fieldPrefix += ".";
 		
-		//Buscar fields adicionales
+		//Buscar fields adicionales (Campos que pueden estar en database.type.facturasend_table.field,xyz)
 		//String camposAdicionales = "";
 		Iterator itr = databaseProperties.entrySet().iterator();
 		while (itr.hasNext()) {
@@ -1816,7 +1821,7 @@ public class CoreIntegracionService {
 		String fieldsSelectString = "";
 		Iterator itr2 = fieldsSelectMap.entrySet().iterator();
 		while (itr2.hasNext()) {
-			fieldsSelectString += ((Map.Entry)itr2.next()).getKey()+", ";
+			fieldsSelectString += ((Map.Entry)itr2.next()).getKey() + ", ";
 		}
 		fieldsSelectString = fieldsSelectString.substring(0, fieldsSelectString.length() -2);
 		
@@ -2136,7 +2141,7 @@ public class CoreIntegracionService {
 		//String clasificador = (String)CoreService.getValueForKey(datosUpdate, "clasific");
 		String tipoDE = tipoDocumento == 1 ? "fe" : tipoDocumento == 2 ? "ni" : tipoDocumento == 3 ? "ne" : tipoDocumento == 4 ? "af" : tipoDocumento == 5 ? "nc" : tipoDocumento == 6 ? "nd" : tipoDocumento == 7 ? "nr" : tipoDocumento == 8 ? "fe" : "";
 
-		String prefixForFields = "database." + databaseProperties.get("database.type") + ".facturasend_table." + tipoDE;
+		String prefixForFields = "database." + databaseProperties.get("database.type") + ".facturasend_table" + (databaseProperties.get("database.type").equals("dbf") ? "" : "." + tipoDE);
 			
 		if (clasificador != null) {
 			prefixForFields += "." + clasificador;
@@ -2190,7 +2195,9 @@ public class CoreIntegracionService {
 
 			sql = "SELECT "
 					+ extraFields
-					+ "tra_id, \n";
+					+ "tra_id, \n"
+					+ "tip_doc, \n"
+					+ "clasific, \n";
 			if (obtenerCdcEstadoPausadoPorSubSelect) {
 //				sql += "cdc AS \"cdc\" \n";
 				sql += "(SELECT \"" + facturaSendTableValue + "\" FROM \"" + facturaSendTableName + "\" mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) AS \"cdc\" \n";
@@ -2217,7 +2224,7 @@ public class CoreIntegracionService {
 				+ "tra_id, cdc";
 		}
 		
-		
+		System.out.println("------------------------------------------------------------" + sql);
 		return sql;
 	}
 	
