@@ -1019,11 +1019,19 @@ public class CoreIntegracionService {
 
 							String printerName = databaseProperties.get("config.otros.nombre_impresora")+"";
 							String enviarKUDEImpresora = databaseProperties.get("config.otros.enviar_kude_impresora")+"";
+							Integer nroCopias = 1;
+							if(databaseProperties.get("config.otros.numero_impresiones") != null) {
+								nroCopias = Integer.valueOf(databaseProperties.get("config.otros.numero_impresiones").toString().trim());
+							}
 							
+							System.out.println("ACA LOS TEMAS DE LA IMPRESION ---------------> "+printerName+" - "+enviarKUDEImpresora+" - " + nroCopias);
 							
 							if (enviarKUDEImpresora.equalsIgnoreCase("Y")) {
+								int i;
 								PrintPdf printPDFFile = new PrintPdf(inStream, "FacturaSend", printerName, "PDF");
-					            printPDFFile.print();	
+								for (i = 0; i < nroCopias; i++) {									
+									printPDFFile.print();	
+								}
 							}
 							
 
@@ -1667,8 +1675,9 @@ public class CoreIntegracionService {
 						+ "AND ( \n"
 							+ "CDC IS NULL \n"
 							+ "OR \n"
-							+ "(ESTADO IS NOT NULL AND ESTADO = 4) \n"
-						+ ") \n"
+							//+ "(ESTADO IS NOT NULL AND ESTADO = 4) \n"
+							+ "(ESTADO IS NOT NULL AND ESTADO NOT IN (4,2,3,99,0)) \n"
+						+ ")  \n"
 						+ "GROUP BY transaccion_id, establecimiento, punto, numero \n"
 						+ "ORDER BY establecimiento, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo	
 		} else {
@@ -1691,14 +1700,23 @@ public class CoreIntegracionService {
 
 			if (obtenerCdcEstadoPausadoPorSubSelect) {
 
-				sql += "AND (SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='PAUSADO' LIMIT 1) IS NULL \n"
+				/*sql += "AND (SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='PAUSADO' LIMIT 1) IS NULL \n"
 						+ "AND ( \n"
 						+ "(SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) IS NULL \n"
 						+ "OR \n"
 						+ "COALESCE(CAST((SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='ESTADO' LIMIT 1) AS INTEGER), 999) = 4 \n"
-					+ ") \n";
+					+ ") \n";*/
+				sql += "AND (SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='PAUSADO' LIMIT 1) IS NULL \n"
+						+ "AND ( \n"
+						+ "(SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='CDC' LIMIT 1) IS NULL \n"
+						+ "\n"
+					+ ") AND \n"
+					+ "COALESCE(CAST((SELECT \"" + facturaSendTableValue + "\" FROM " + facturaSendTableName + " mid WHERE mid.tra_id = vp.tra_id AND mid.tip_doc = vp.tip_doc AND \"" + facturaSendTableKey + "\"='ESTADO' LIMIT 1) AS INTEGER), 999) != 4 \n"
+;
 			} else {
-				sql += "AND pausado IS NULL AND (cdc IS NULL OR estado = 4) ";
+				//sql += "AND pausado IS NULL AND (cdc IS NULL OR estado = 4) ";
+				//sql += "AND pausado IS NULL AND (cdc IS NULL) AND estado != 4 ";
+				sql += "AND pausado IS NULL AND (cdc IS NULL) AND ESTADO NOT IN (4,2,3,99,0)";
 			}
 			sql += "GROUP BY tra_id, estable, punto, numero \n"
 					+ "ORDER BY estable, punto, numero \n";	//Ordena de forma normal, para obtener el ultimo				

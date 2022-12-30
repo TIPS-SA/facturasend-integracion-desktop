@@ -37,6 +37,7 @@ import org.apache.commons.logging.LogFactory;
 
 import enums.DatabaseType;
 import service.ConfigProperties;
+import java.awt.event.KeyAdapter;
 
 public class Config extends JDialog {
 
@@ -104,6 +105,8 @@ public class Config extends JDialog {
 	private JCheckBox chkEnviarKudeImpresora;
 
 	private Principal parent;
+	private JLabel lblNumeroDeCopias;
+	private JTextField txtNroCopias;
 	/**
 	 * Launch the application.
 	 */
@@ -475,17 +478,26 @@ public class Config extends JDialog {
 		
 		txtNombreImpresora = new JTextField();
 		txtNombreImpresora.setColumns(10);
+		
+		lblNumeroDeCopias = new JLabel("Numero de Copias");
+		
+		txtNroCopias = new JTextField();
+		txtNroCopias.setColumns(10);
 		GroupLayout gl_paneOtros = new GroupLayout(paneOtros);
 		gl_paneOtros.setHorizontalGroup(
 			gl_paneOtros.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_paneOtros.createSequentialGroup()
 					.addGap(19)
 					.addGroup(gl_paneOtros.createParallelGroup(Alignment.LEADING)
-						.addComponent(chkEnviarKudeImpresora)
-						.addGroup(Alignment.TRAILING, gl_paneOtros.createSequentialGroup()
-							.addComponent(lblNombreDeLa)
+						.addComponent(chkEnviarKudeImpresora, Alignment.TRAILING)
+						.addGroup(gl_paneOtros.createSequentialGroup()
+							.addGroup(gl_paneOtros.createParallelGroup(Alignment.LEADING)
+								.addComponent(lblNombreDeLa)
+								.addComponent(lblNumeroDeCopias))
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(txtNombreImpresora, GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE)))
+							.addGroup(gl_paneOtros.createParallelGroup(Alignment.LEADING)
+								.addComponent(txtNroCopias, GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE)
+								.addComponent(txtNombreImpresora, GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE))))
 					.addContainerGap())
 		);
 		gl_paneOtros.setVerticalGroup(
@@ -497,7 +509,11 @@ public class Config extends JDialog {
 					.addGroup(gl_paneOtros.createParallelGroup(Alignment.LEADING)
 						.addComponent(lblNombreDeLa)
 						.addComponent(txtNombreImpresora, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addContainerGap(229, Short.MAX_VALUE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_paneOtros.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblNumeroDeCopias)
+						.addComponent(txtNroCopias, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addContainerGap(202, Short.MAX_VALUE))
 		);
 		paneOtros.setLayout(gl_paneOtros);
 		
@@ -629,6 +645,19 @@ public class Config extends JDialog {
 				}
 			}
 		});
+		txtNroCopias.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+				int key = e.getKeyChar();
+
+//				boolean mayusculas = key >= 65 && key <= 90;
+//				boolean minusculas = key >= 97 && key <= 122;
+//				boolean espacio = key == 32;
+				if (key < 48 || key > 57){
+					e.consume();
+				}
+			}
+		});
 	}
 	
 	private void isDBF(boolean flag) {
@@ -711,6 +740,8 @@ public class Config extends JDialog {
 		
 		propertiesDb.put("config.otros.enviar_kude_impresora", chkEnviarKudeImpresora.isSelected()?"Y":"N");
 		propertiesDb.put("config.otros.nombre_impresora", txtNombreImpresora.getText());
+		Integer nroCopias = ((txtNroCopias.getText().equals("") || Integer.valueOf(txtNroCopias.getText()) < 1) ? 1 : Integer.valueOf(txtNroCopias.getText()));
+		propertiesDb.put("config.otros.numero_impresiones", nroCopias.toString());
 		
 		cp.writeDbProperties(propertiesDb);
 		//cp.writeFsProperties(propertiesDb);
@@ -810,6 +841,7 @@ public class Config extends JDialog {
 			//pestanha otros
 			chkEnviarKudeImpresora.setSelected((propertiesDb.get("config.otros.enviar_kude_impresora")).toString().equals("Y")?true:false);
 			txtNombreImpresora.setText(propertiesDb.get("config.otros.nombre_impresora"));
+			txtNroCopias.setText(propertiesDb.get("config.otros.numero_impresiones"));
 		}
 	}
 	

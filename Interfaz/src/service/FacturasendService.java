@@ -168,7 +168,7 @@ public class FacturasendService {
 				if (fieldEstado != null) {
 					valueEstadoInt = Integer.valueOf( (fieldEstado+"").trim() );
 				}
-				if (CoreService.getValueForKey(rs.get(i), "error", readDBProperties()) != null) {
+				if (valueEstadoInt != 4 && CoreService.getValueForKey(rs.get(i), "error", readDBProperties()) != null) {
 					registro[6] = "Error";
 				} else {
 					registro[6] = CoreService.getEstadoDescripcion(valueEstadoInt);					

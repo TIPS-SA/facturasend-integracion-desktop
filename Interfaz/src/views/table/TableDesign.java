@@ -72,8 +72,9 @@ class CurrencyCellRenderer extends DefaultTableCellRenderer {
 class CeldaPersonalizada extends DefaultTableCellRenderer {
 	 
 	Font font = new Font("helvetica", Font.PLAIN, 12);
-	Map  attributes = font.getAttributes();
+	//Map  attributes = font.getAttributes();
 
+	/*
 	@Override
 	public Component getTableCellRendererComponent(JTable table, Object value,
             boolean isSelected, boolean hasFocus, int row, int column) {
@@ -106,32 +107,95 @@ class CeldaPersonalizada extends DefaultTableCellRenderer {
 				componente.setBackground(Color.green);
 				componente.setForeground(Color.black);
 				//resaltar o algo
+				Map attributes = font.getAttributes();
 				attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON); 
 				componente.setFont( new Font(attributes));
 				break;
 			case "Rechazado":
-				componente.setBackground(Color.red);
+				componente.setBackground(Color.DARK_GRAY);
 				componente.setForeground(Color.white);
+				Map attributesRechazado = font.getAttributes();
+				attributesRechazado.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
+				componente.setFont( new Font(attributesRechazado));
 				break;
 			case "Inexistente":
 				componente.setBackground(Color.white);
 				componente.setForeground(Color.black);
 				//preguntar al profe
-				attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON); 
-				componente.setFont( new Font(attributes));
+				Map attributesInexistente = font.getAttributes();
+				attributesInexistente.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON); 
+				componente.setFont( new Font(attributesInexistente));
 				break;
 			case "Cancelado":
 				componente.setBackground(Color.red);
 				componente.setForeground(Color.white);
 				//tachar
-				attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON); 
-				componente.setFont( new Font(attributes));
+				Map attributesCancelado = font.getAttributes();
+				attributesCancelado.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON); 
+				componente.setFont( new Font(attributesCancelado));
 				break;
 			case "No integrado":
 				componente.setBackground(Color.white);
 				componente.setForeground(Color.black);
 				break;
 			}
+		}
+		*/
+	@Override
+	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+		Component componente = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+		if(column == 6) {
+			if (this.getText().startsWith("No integrado")) {
+				componente.setBackground(Color.white);
+				componente.setForeground(Color.black);
+			}
+			if (this.getText().startsWith("Error")) {
+				componente.setBackground(Color.red);
+				componente.setForeground(Color.white);				
+			}
+			if (this.getText().startsWith("Generado")) {
+				componente.setBackground(Color.gray);
+				componente.setForeground(Color.white);
+			}
+			if (this.getText().startsWith("Borrador")) {
+				componente.setBackground(Color.white);
+				componente.setForeground(Color.gray);
+			}
+			if (this.getText().equalsIgnoreCase("Aprobado")) {
+				componente.setBackground(Color.green);
+				componente.setForeground(Color.black);
+			}else if (this.getText().startsWith("Aprobado c/Obs")) {
+				componente.setBackground(Color.green);
+				componente.setForeground(Color.black);
+				//resaltar o algo
+				Map attributes = font.getAttributes();
+				attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON); 
+				componente.setFont( new Font(attributes));
+			}
+			if (this.getText().startsWith("Rechazado")) {
+				componente.setBackground(Color.DARK_GRAY);
+				componente.setForeground(Color.white);
+				Map attributesRechazado = font.getAttributes();
+				attributesRechazado.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
+				componente.setFont( new Font(attributesRechazado));
+			}
+			if (this.getText().startsWith("Inexistente")) {
+				componente.setBackground(Color.white);
+				componente.setForeground(Color.black);
+				//preguntar al profe
+				Map attributesInexistente = font.getAttributes();
+				attributesInexistente.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON); 
+				componente.setFont( new Font(attributesInexistente));
+			}
+			if (this.getText().startsWith("Cancelado")) {
+				componente.setBackground(Color.red);
+				componente.setForeground(Color.white);
+				//tachar
+				Map attributesCancelado = font.getAttributes();
+				attributesCancelado.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON); 
+				componente.setFont( new Font(attributesCancelado));
+			}
+			
 		}
 		return componente;
 		
