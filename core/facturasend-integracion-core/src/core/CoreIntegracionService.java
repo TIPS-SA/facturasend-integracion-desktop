@@ -277,8 +277,8 @@ public class CoreIntegracionService {
 									//facturasend.carpetaXML
 								}
 								
-								setTimeout(() -> imprimirXMLFacturaSend(respuestaDE.get("cdc")+"", respuestaDE.get("xml") + "", tipoDocumento, databaseProperties), 10);	//Ejecuta en un thread						
-								setTimeout(() -> imprimirKUDEFacturaSend(respuestaDE.get("cdc")+"", tipoDocumento, databaseProperties), 10);	//Ejecuta en un thread						
+								setTimeout(() -> imprimirXMLFacturaSend(respuestaDE.get("cdc")+"", respuestaDE.get("xml") + "", tipoDocumento, databaseProperties), 100);	//Ejecuta en un thread						
+								setTimeout(() -> imprimirKUDEFacturaSend(respuestaDE.get("cdc")+"", tipoDocumento, databaseProperties), 100);	//Ejecuta en un thread						
 							}	// end-for 
 							
 						} else {
@@ -1019,7 +1019,7 @@ public class CoreIntegracionService {
 
 							String printerName = databaseProperties.get("config.otros.nombre_impresora")+"";
 							String enviarKUDEImpresora = databaseProperties.get("config.otros.enviar_kude_impresora")+"";
-							Integer nroCopias = 1;
+							Integer nroCopias = 0;
 							if(databaseProperties.get("config.otros.numero_impresiones") != null) {
 								nroCopias = Integer.valueOf(databaseProperties.get("config.otros.numero_impresiones").toString().trim());
 							}

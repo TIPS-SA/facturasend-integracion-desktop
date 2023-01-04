@@ -740,7 +740,7 @@ public class Config extends JDialog {
 		
 		propertiesDb.put("config.otros.enviar_kude_impresora", chkEnviarKudeImpresora.isSelected()?"Y":"N");
 		propertiesDb.put("config.otros.nombre_impresora", txtNombreImpresora.getText());
-		Integer nroCopias = ((txtNroCopias.getText().equals("") || Integer.valueOf(txtNroCopias.getText()) < 1) ? 1 : Integer.valueOf(txtNroCopias.getText()));
+		Integer nroCopias = ((txtNroCopias.getText().equals("") || Integer.valueOf(txtNroCopias.getText()) < 0) ? 0 : Integer.valueOf(txtNroCopias.getText()));
 		propertiesDb.put("config.otros.numero_impresiones", nroCopias.toString());
 		
 		cp.writeDbProperties(propertiesDb);
